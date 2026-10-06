@@ -72,8 +72,10 @@ namespace Vantage.EditorTools
         /// </summary>
         public static VantageTowerBuilder.Result Apply()
         {
-            VantageTowerBuilder.DronePrefab = buildDronePrefab();
-            var turretPrefab = buildTurretPrefab();
+            // Existing prefabs are kept, so tuning done on them in the editor survives a rebuild.
+            // "Vantage/Drones/Rebuild Drone Prefabs From Code" resets them on purpose.
+            VantageTowerBuilder.DronePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DronePrefabPath) ?? buildDronePrefab();
+            var turretPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(TurretPrefabPath) ?? buildTurretPrefab();
 
             // Reference point for a first build; a rebuild keeps the tower where it is.
             var character = findCharacter();
@@ -265,6 +267,16 @@ namespace Vantage.EditorTools
         #endregion
 
         #region Drone prefabs
+
+        [MenuItem("Vantage/Drones/Rebuild Drone Prefabs From Code (discards prefab edits)", priority = 50)]
+        public static void RebuildDronePrefabs()
+        {
+            if (!EditorUtility.DisplayDialog("VANTAGE", "Rebuild Drone.prefab and Turret.prefab from code? Changes made to them in the editor are lost.", "Rebuild", "Cancel"))
+                return;
+            buildDronePrefab();
+            buildTurretPrefab();
+            Debug.Log("[Vantage] Drone and turret prefabs rebuilt from code.");
+        }
 
         private static GameObject buildDronePrefab()
         {
@@ -509,6 +521,48 @@ namespace Vantage.EditorTools
             shot(folder, "4_roof_turret", root.TransformPoint(new Vector3(4f, 17.4f, -6.5f)), root.TransformPoint(new Vector3(-4.5f, 20.5f, 4.5f)), false, 0);
             shot(folder, "5_aerial", root.TransformPoint(new Vector3(-30f, 30f, -38f)), root.TransformPoint(new Vector3(0, 6f, -6f)), false, 0);
             Debug.Log("[Vantage] Screenshots written; level 2 plans saved to " + docs);
+        }
+
+        /// <summary>
+        /// Screenshots along the whole climb, to check the way up reads at a glance. Does not modify the scene.
+        /// -executeMethod Vantage.EditorTools.VantageEnhance.RouteShotsBatch -vantageShots "folder"
+        /// </summary>
+        public static void RouteShotsBatch()
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            var i = System.Array.IndexOf(args, "-vantageShots");
+            var folder = i >= 0 && i + 1 < args.Length ? args[i + 1] : "RouteShots";
+            var exitCode = 0;
+            try
+            {
+                EditorSceneManager.OpenScene(VantageAutoSetup.ScenePath, OpenSceneMode.Single);
+                Directory.CreateDirectory(folder);
+                var root = GameObject.Find(VantageTowerBuilder.TowerName).transform;
+                var generator = Object.FindFirstObjectByType<VantageLevel2Generator>();
+                if (generator != null)
+                    generator.Generate(1234, false);
+
+                void at(string name, Vector3 from, Vector3 to) => shot(folder, name, root.TransformPoint(from), root.TransformPoint(to), false, 0);
+                at("r1_entrance", new Vector3(0f, 2.2f, -15f), new Vector3(0f, 1.5f, -8f));
+                at("r2_lobby_to_stairs", new Vector3(-1f, 2.2f, -8f), new Vector3(7.3f, 2f, -4f));
+                at("r3_lobby_stairs_side", new Vector3(1.5f, 2.5f, -3f), new Vector3(7.3f, 4f, -1f));
+                at("r4_level2_arrival", new Vector3(7.2f, 9f, 4.2f), new Vector3(-2f, 8.4f, 7.1f));
+                at("r5_level2_west_hall", new Vector3(-6.5f, 9f, 6.8f), new Vector3(-7.5f, 8f, -6.7f));
+                at("r6_fire_escape_out", new Vector3(-7f, 9f, -6.7f), new Vector3(-10.5f, 8.5f, -3f));
+                at("r7_fire_escape_side", new Vector3(-18f, 10f, -9f), new Vector3(-10.3f, 9.5f, -1f));
+                at("r8_level3_in", new Vector3(-10.3f, 13f, 1.5f), new Vector3(-6f, 12.4f, 2.5f));
+                at("r9_level3_to_ramp", new Vector3(-7.5f, 13f, 2.5f), new Vector3(3.5f, 12f, -3.5f));
+                at("r10_ramp", new Vector3(3.5f, 13.2f, -6f), new Vector3(3.5f, 15f, 3f));
+                if (generator != null)
+                    generator.Clear();
+                Debug.Log("[Vantage] Route screenshots written to " + folder);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+                exitCode = 1;
+            }
+            EditorApplication.Exit(exitCode);
         }
 
         /// <summary>

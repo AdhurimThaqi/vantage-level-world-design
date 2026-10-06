@@ -46,6 +46,30 @@ namespace Vantage
 
         public bool IsDead { get; private set; }
 
+        /// <summary>
+        /// Every drone and turret in the scene, so ambience can react to them being alive.
+        /// </summary>
+        public static readonly System.Collections.Generic.List<VantageDrone> All = new System.Collections.Generic.List<VantageDrone>();
+
+        /// <summary>
+        /// Is a living drone or turret within the given horizontal distance of a point, on roughly the same floor?
+        /// </summary>
+        public static bool AnyAliveNear(Vector3 point, float distance, float maxHeightDifference)
+        {
+            foreach (var drone in All)
+            {
+                if (drone == null || drone.IsDead)
+                    continue;
+                var offset = drone.transform.position - point;
+                if (Mathf.Abs(offset.y) > maxHeightDifference)
+                    continue;
+                offset.y = 0;
+                if (offset.sqrMagnitude <= distance * distance)
+                    return true;
+            }
+            return false;
+        }
+
         private CharacterHealth _health;
         private AudioSource _audio;
         private Vector3 _home;
@@ -74,6 +98,9 @@ namespace Vantage
             if (Tracer != null)
                 Tracer.enabled = false;
         }
+
+        private void OnEnable() => All.Add(this);
+        private void OnDisable() => All.Remove(this);
 
         private void Update()
         {

@@ -15,7 +15,8 @@ Solo student project for the HSLU module I.BA_LWD (Level & World Design, HS26). 
   - `Scripts/`
     - `VantageArsenal`: makes the "Cowboy" player start unarmed; weapons unlock through pickups.
     - `WeaponPickup`: the pistol and rifle pickups (unlocks them in `VantageArsenal`).
-    - `VantageThirdPersonPlayer`: player death and level restart.
+    - `VantageThirdPersonPlayer`: player health (100 HP, delayed regen up to 60 %; replaces the template's 400 HP + 5 HP/s that made him unkillable), death and level restart. Adds `VantagePlayerHUD`.
+    - `VantagePlayerHUD`: our uGUI HUD built in code (vitals, weapon/ammo, hostiles/waves, pickup notice, damage flash, low-HP pulse, death screen). Hides the template's HealthBar/GunAmmo for the player.
     - `VantageCameraFader`: fades walls between the third-person camera and the player (URP).
     - `VantageCoverUtil`: adds template-style cover markers to tower pieces, props and level 2 walls.
     - `VantageDrone`: drones and the mast turret.
@@ -26,7 +27,7 @@ Solo student project for the HSLU module I.BA_LWD (Level & World Design, HS26). 
     - `VantageEvents`, `VantageKillReporter`: shared gameplay events and soldier kill reporting.
     - Unused leftovers from the first-person version (they still compile, nothing in the scene uses them): `VantagePlayer`, `VantageWeapons`, `VantageHUD`, `VantageViewSwitch`. The V view switch is gone from the game. Remove these together with their references in `VantageSetup`, `VantageAutoSetup`, `VantageEnhance` and `VantageThirdPerson`.
   - `Editor/`: the **Vantage** menu.
-    - `VantageTowerBuilder` (+ `VantageTowerBuilder.Compound.cs`): builds the tower blockout from ProBuilder shapes, and the military compound in the yard.
+    - `VantageTowerBuilder` (+ `.Compound.cs`, `.Entrance.cs`, `.Guidance.cs`): builds the tower blockout from ProBuilder shapes, the military compound, the entrance, and the way-up guidance (glowing yellow floor line, chevrons, yellow step edges, framed fire escape doors; no colliders).
     - `VantageUnusedAssets`: moves unused pack files out to `../_UnusedAssets/`.
     - `VantageEnhance`: drones, approach, waves, mood, logging, NavMesh.
     - `VantageAutoSetup`: the full one-shot setup.
@@ -51,6 +52,9 @@ Unity must be **closed** on this project, otherwise batch mode fails on the proj
 Before launching Unity, check the C# offline with `dotnet build` on a scratch csproj built from `Assembly-CSharp-Editor.csproj`. The steps: drop its `<Compile>`, `<ProjectReference>` and `<Analyzer>` items, make the `Library\...` HintPaths absolute, add `Assets/ThirdPersonCoverShooter/Scripts/**` and `Assets/Vantage/**`, and reference `Library/ScriptAssemblies/Unity.StarterAssets.dll` and `Unity.AI.Navigation.dll`.
 
 ## Rules that are easy to get wrong
+
+- The template character **cannot step up ledges** (velocity is kept horizontal on flat ground; the template has ramps, never stairs). Every stair gets an invisible `Walk Ramp` BoxCollider instead of its step MeshCollider (`AddWalkRamp`), and floors the player walks onto must be flush or ramped.
+- `VantageEnhance.Apply` keeps existing `Drone.prefab`/`Turret.prefab` (the user tunes them in the editor). Only **Vantage → Drones → Rebuild Drone Prefabs From Code** regenerates them.
 
 - The template AI only targets objects on **layer 10 "Character"** with a `BaseActor` whose `Side` differs from theirs. Enemies are side 0, the player is side 1. Layers 8–11 (Cover, Scope, Character, Zones) are hard-coded in `CoverShooter.Layers`.
 - Damage travels as `SendMessage("OnHit", CoverShooter.Hit)` to the hit collider. `CharacterHealth.Hurt` never fires (bug in the package), so use `Changed`.
@@ -84,5 +88,7 @@ Before launching Unity, check the C# offline with `dotnet build` on a scratch cs
 - Environment sound: template wind bed (2D), procedural sea, generators and floodlight buzz.
 - Tower textures use world-space UVs (continuous across pieces).
 - **Not yet playtested in Play mode** (batch mode cannot play). Things to watch first: drone movement and wall sliding in tight level 2 rooms, drone accuracy and damage balance, whether soldiers walk through runtime-generated level 2 walls (they rely on NavMeshObstacle carving), and the roof waves triggering.
+- 2026-10-06 fixes (code compiled offline, **not yet tested in Play mode**): free-standing drone hum fades when no living drone is on its floor (`VantageDrone.All`); player health; new HUD; stair walk ramps + entrance + hut floor via the patch menu item. Backups: `_Backups/SampleScene_before_stairs_entrance_*.unity`, `_Backups/Drone_user_tuned_*.prefab`.
+- 2026-10-06 17:21: tower rebuilt in batch with all of the above. The user found the climb unclear, so the route is now: entrance → yellow line → lobby stairs → level 2 **authored L-shaped hall** (generated rooms only beside it, `VantageLevel2Generator.Halls`) → wide framed door → fire escape stairs → wide framed door → level 3 (shaft railed, fallen slab moved) → ramp. Checked visually with `VantageEnhance.RouteShotsBatch -vantageShots <folder>` (route screenshots, scene untouched). Walking it in Play mode is still untested.
 - Documentation renders without touching the scene: `-executeMethod Vantage.EditorTools.VantageEnhance.DocumentationBatch`.
 - Open ideas: styled uGUI HUD instead of IMGUI, remove the unused first-person scripts, a full art pass on the roof (vertical slice), Asset Store links for the README asset table.

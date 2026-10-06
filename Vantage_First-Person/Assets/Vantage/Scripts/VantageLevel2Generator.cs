@@ -9,6 +9,10 @@ namespace Vantage
     /// between the hand-placed entry (stair landing) and exit (fire escape door).
     /// The layout varies, the pacing does not: entry, exit and enemy count stay authored.
     ///
+    /// The main route is authored too (playtest finding: players got lost in a fully generated floor).
+    /// An L-shaped hall runs from the stair landing to the fire escape door and is never split or furnished;
+    /// the generated rooms sit beside it, each side block opening onto it through seeded doorways.
+    ///
     /// Binary space partitioning: every split wall gets at least one doorway, so every room is
     /// always reachable. Walls are kept out of authored "keep clear" zones and never end inside a doorway.
     /// All coordinates are local to the tower root (this object sits at the tower origin).
@@ -23,17 +27,22 @@ namespace Vantage
         [Header("Footprint (tower local)")]
         public float FloorY = 7.2f;
         public float CeilingY = 10.8f;
-        [Tooltip("Areas the generator fills. Shared edges between them get a doorway.")]
+        [Tooltip("Side blocks the generator fills with rooms. Shared edges between them get a doorway.")]
         public Rect[] Regions =
         {
-            Rect.MinMaxRect(-8.6f, -1.5f, 5.6f, 8.6f),
-            Rect.MinMaxRect(-8.6f, -8.6f, 0f, -1.5f),
+            Rect.MinMaxRect(-5.6f, -1.5f, 5.6f, 5.6f),
+            Rect.MinMaxRect(-5.6f, -8.6f, 0f, -1.5f),
         };
-        [Tooltip("Authored spots no wall may cross: exit door, entry landing, barricaded door.")]
+        [Tooltip("The authored main route (stair landing -> north hall -> west hall -> fire escape door). Never split or furnished; every side block gets a doorway onto it.")]
+        public Rect[] Halls =
+        {
+            Rect.MinMaxRect(-8.6f, 5.6f, 5.6f, 8.6f),
+            Rect.MinMaxRect(-8.6f, -8.6f, -5.6f, 5.6f),
+        };
+        [Tooltip("Authored spots no generated wall or prop may cover.")]
         public Rect[] KeepClear =
         {
             Rect.MinMaxRect(-8.6f, -8.2f, -6.4f, -5.2f),
-            Rect.MinMaxRect(3.8f, 3.6f, 5.6f, 8.6f),
             Rect.MinMaxRect(-8.6f, 1.3f, -7.2f, 3.9f),
         };
         public Vector2 Entry = new Vector2(7.2f, 6.2f);
@@ -92,8 +101,12 @@ namespace Vantage
 
             // Doorways on edges shared between regions first, so later walls avoid them.
             for (int a = 0; a < Regions.Length; a++)
+            {
                 for (int b = a + 1; b < Regions.Length; b++)
                     sharedEdgeWall(Regions[a], Regions[b]);
+                foreach (var hall in Halls)
+                    sharedEdgeWall(Regions[a], hall);
+            }
 
             foreach (var region in Regions)
                 split(region, 0);

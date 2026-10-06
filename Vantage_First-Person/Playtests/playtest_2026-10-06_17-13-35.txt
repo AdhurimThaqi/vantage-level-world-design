@@ -1,0 +1,56 @@
+VANTAGE playtest  2026-10-06_17-13-35
+Level 2 seed: 88296
+Session length: 0s   Completed: no   Furthest: Fire Escape   Backtracks: 8
+
+Time per space
+  Yard               57s   deaths 0
+  L1 Lobby           37s   deaths 0
+  L2 Corridors      100s   deaths 0
+  Fire Escape        23s   deaths 0
+  L3 Collapsed        0s   deaths 0
+  Roof                0s   deaths 0
+
+Kills
+  Drone          7
+  Soldier        3
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Level 2 layout seed 88296
+[    0.0s] Session started
+[    3.4s] Picked up Pistol
+[    9.2s] Killed Drone in Yard
+[   10.9s] Killed Drone in Yard
+[   28.2s] Killed Soldier in L1 Lobby
+[   30.8s] Killed Drone in L1 Lobby
+[   31.7s] Yard -> L1 Lobby
+[   43.2s] Killed Soldier in L1 Lobby
+[   54.8s] L1 Lobby -> L2 Corridors
+[   55.1s] Killed Soldier in L2 Corridors
+[   60.2s] Killed Drone in L2 Corridors
+[   71.7s] Killed Drone in L2 Corridors
+[   75.1s] Killed Drone in L2 Corridors
+[   77.3s] L2 Corridors -> Fire Escape
+[   88.7s] Fire Escape -> L2 Corridors
+[   88.7s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[  104.5s] Killed Drone in L3 Collapsed
+[  119.1s] L2 Corridors -> Fire Escape
+[  122.5s] Fire Escape -> L2 Corridors
+[  122.5s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[  132.2s] L2 Corridors -> Yard
+[  132.2s] BACKTRACK to Yard (furthest so far: Fire Escape)
+[  147.2s] Yard -> L1 Lobby
+[  147.2s] BACKTRACK to L1 Lobby (furthest so far: Fire Escape)
+[  151.2s] L1 Lobby -> Yard
+[  151.2s] BACKTRACK to Yard (furthest so far: Fire Escape)
+[  161.0s] Yard -> L1 Lobby
+[  161.0s] BACKTRACK to L1 Lobby (furthest so far: Fire Escape)
+[  170.6s] L1 Lobby -> L2 Corridors
+[  170.6s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[  204.4s] L2 Corridors -> Fire Escape
+[  212.2s] Fire Escape -> L2 Corridors
+[  212.2s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)

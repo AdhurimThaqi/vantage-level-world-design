@@ -15,11 +15,25 @@ namespace Vantage
         public float RestartDelay = 3f;
         public float DamageFlashTime = 0.35f;
 
+        [Header("Health")]
+        [Tooltip("The template character has 400 HP and regenerates 5 HP per second, more than a drone deals, so he could never die. This replaces it.")]
+        public float MaxHealth = 100f;
+        [Tooltip("Health regenerated per second, but only after a few seconds without taking damage: staying in cover pays off, standing in fire does not.")]
+        public float RegenPerSecond = 4f;
+        public float RegenDelay = 6f;
+        [Tooltip("Regeneration stops at this fraction of max health, so damage taken still matters later.")]
+        [Range(0, 1)] public float RegenCap = 0.6f;
+
         private CharacterMotor _motor;
         private CharacterHealth _health;
         private float _previousHealth;
         private float _lastDamage = -100f;
         private bool _dead;
+
+        /// <summary>
+        /// Time the player last lost health, for the HUD.
+        /// </summary>
+        public float LastDamageTime => _lastDamage;
 
         private void Awake()
         {
@@ -29,7 +43,16 @@ namespace Vantage
             if (actor != null)
                 actor.Side = Side;
             if (_health != null)
+            {
+                _health.MaxHealth = MaxHealth;
+                _health.Health = MaxHealth;
+                _health.Regeneration = 0f;
+                _health.IsTakingDamage = true;
                 _previousHealth = _health.Health;
+            }
+
+            if (GetComponent<VantagePlayerHUD>() == null)
+                gameObject.AddComponent<VantagePlayerHUD>();
         }
 
         private void Update()
@@ -38,6 +61,10 @@ namespace Vantage
             {
                 if (_health.Health < _previousHealth)
                     _lastDamage = Time.time;
+
+                if (!_dead && _motor.IsAlive && Time.time - _lastDamage > RegenDelay && _health.Health < MaxHealth * RegenCap)
+                    _health.Health = Mathf.Min(MaxHealth * RegenCap, _health.Health + RegenPerSecond * Time.deltaTime);
+
                 _previousHealth = _health.Health;
             }
 
@@ -59,22 +86,9 @@ namespace Vantage
 #endif
         }
 
-        private void OnGUI()
-        {
-            var flash = 1f - (Time.time - _lastDamage) / DamageFlashTime;
-            if (flash > 0)
-            {
-                GUI.color = new Color(0.6f, 0, 0, 0.3f * flash);
-                GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-                GUI.color = Color.white;
-            }
-
-            if (_dead)
-            {
-                var style = new GUIStyle(GUI.skin.label) { fontSize = 48, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
-                style.normal.textColor = Color.white;
-                GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "YOU DIED", style);
-            }
-        }
+        /// <summary>
+        /// True once the player has died and the restart is pending. The damage flash and death screen are drawn by VantagePlayerHUD.
+        /// </summary>
+        public bool IsDead => _dead;
     }
 }

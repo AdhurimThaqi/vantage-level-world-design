@@ -1,0 +1,8 @@
+VANTAGE performance capture 2026-10-06_17-00-51 (occlusion-on)
+Camera at (65.2, 10.8, 41.4)
+Frames: 512 over 10s
+Frame time  avg 19.60 ms (51 fps)   99th pct 27.07 ms   worst 36.86 ms
+Batches     avg 185
+SetPass     avg 39
+Triangles   avg 130954
+(Batches/SetPass/Triangles are only reported in the editor and development builds.)

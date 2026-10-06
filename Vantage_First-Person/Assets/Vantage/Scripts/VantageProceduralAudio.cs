@@ -18,11 +18,26 @@ namespace Vantage
         [Tooltip("Pitch multiplier, e.g. to tell drones apart.")]
         public float Pitch = 1f;
 
+        [Tooltip("Drone hum only: when this sound is not part of a drone, fade it out once no living drone on the same floor is within this distance (0 = never).")]
+        public float SilenceWhenNoDroneWithin = 20f;
+        [Tooltip("Drones more than this far above or below do not count (they are on another floor).")]
+        public float SameFloorHeight = 3f;
+
         private const int Rate = 22050;
+
+        private AudioSource _source;
+        private bool _followsDrones;
+        private float _nextCheck;
+        private float _targetVolume;
 
         private void Awake()
         {
             var source = GetComponent<AudioSource>();
+            _source = source;
+            // A drone's own hum is stopped by the drone when it dies. A free-standing hum (the "drones upstairs"
+            // guidance sound) must not keep playing after those drones are dead.
+            _followsDrones = Sound == Kind.DroneHum && SilenceWhenNoDroneWithin > 0 && GetComponentInParent<VantageDrone>() == null;
+            _targetVolume = Volume;
             source.clip = Create(Sound, GetInstanceID());
             source.loop = true;
             source.playOnAwake = true;
@@ -35,6 +50,21 @@ namespace Vantage
             source.dopplerLevel = 0.3f;
             source.time = Random.Range(0f, source.clip.length * 0.9f);
             source.Play();
+        }
+
+        private void Update()
+        {
+            if (!_followsDrones)
+                return;
+
+            // Level 2 drones are generated at runtime, so look them up instead of wiring them in.
+            if (Time.time >= _nextCheck)
+            {
+                _nextCheck = Time.time + 0.5f;
+                _targetVolume = VantageDrone.AnyAliveNear(transform.position, SilenceWhenNoDroneWithin, SameFloorHeight) ? Volume : 0f;
+            }
+
+            _source.volume = Mathf.MoveTowards(_source.volume, _targetVolume, Volume * Time.deltaTime / 2f);
         }
 
         public static AudioClip Create(Kind kind, int seed)

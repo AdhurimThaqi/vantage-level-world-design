@@ -63,7 +63,7 @@ namespace Vantage.EditorTools
             public bool Contains(float x, float z) => x > X0 && x < X1 && z > Z0 && z < Z1;
         }
 
-        private static Material _concrete, _concreteDark, _floor, _metal, _rust, _sandbag, _wood, _fabric, _body, _mastRed, _glowRed, _glowGreen;
+        private static Material _concrete, _concreteDark, _floor, _metal, _rust, _sandbag, _wood, _fabric, _body, _mastRed, _glowRed, _glowGreen, _guide;
 
         #region Entry
 
@@ -95,11 +95,13 @@ namespace Vantage.EditorTools
 
             buildShell(group(root, "Structure"));
             buildApproach(group(root, "Approach"), result);
+            buildEntrance(group(root, EntranceName));
             buildLobby(group(root, "Level 1 - Lobby"), result);
             buildCorridors(group(root, "Level 2 - Corridors"), result);
             buildFireEscape(group(root, "Fire Escape"));
             buildCollapsedLevel(group(root, "Level 3 - Collapsed"), result);
             buildRoof(group(root, "Roof"), result);
+            buildGuidance(group(root, "Guidance (way up)"));
             VantageAtmosphere.Build(group(root, "Atmosphere"));
             dressWithProps(group(root, "Props (industrial pack)"));
             buildCompound(group(root, "Military Compound"));
@@ -141,8 +143,8 @@ namespace Vantage.EditorTools
 
             wall(parent, "Wall West", false, -x, -Inner, Inner, y0, y1, Wall, _concrete,
                 new Opening(-2f, 4f, 2f, 5.5f),              // lobby glass
-                new Opening(-7.6f, -5.8f, F2, 9.6f),         // door out to the fire escape
-                new Opening(1.6f, 3.2f, F3, 13.6f),          // door in from the fire escape
+                new Opening(-8f, -5.4f, F2, 9.8f),           // door out to the fire escape (wide, framed in yellow)
+                new Opening(1.2f, 3.8f, F3, 13.9f),          // door in from the fire escape (wide, framed in yellow)
                 new Opening(-6f, -2f, 12.2f, 14.6f));
 
             wall(parent, "Wall East", false, x, -Inner, Inner, y0, y1, Wall, _concrete,
@@ -184,7 +186,7 @@ namespace Vantage.EditorTools
             box(cover, "Rubble", new Vector3(2f, F1, -6.2f), new Vector3(4.2f, 0.7f, -4.8f), _concreteDark); // fell down the shaft
 
             // Open stairwell up the east side, visible from the door.
-            stair(parent, "Stairwell L1-L2", new Vector3(6f, F1, -6f), new Vector3(2.6f, F2 - F1, 9.8f), 35, _concrete);
+            stair(parent, LobbyStairName, new Vector3(6f, F1, -6f), new Vector3(2.6f, F2 - F1, 9.8f), LobbyStairSteps, _concrete);
 
             light(parent, "Lobby Sun Bounce", new Vector3(-3f, 5f, -4f), new Color(1f, 0.72f, 0.45f), 3f, 14f);
             light(parent, "Lobby Back", new Vector3(2f, 5f, 4f), new Color(1f, 0.7f, 0.45f), 2.5f, 12f);
@@ -202,13 +204,14 @@ namespace Vantage.EditorTools
             var hut = group(parent, "Guard Hut");
             hut.localPosition = new Vector3(hutCenter.x, floor, hutCenter.z);
 
-            box(hut, "Hut Floor", new Vector3(-1.6f, -0.2f, -1.6f), new Vector3(1.6f, 0.1f, 1.6f), _concreteDark);
-            box(hut, "Hut Wall Back", new Vector3(-1.6f, 0.1f, 1.4f), new Vector3(1.6f, 2.6f, 1.6f), _concrete);
-            box(hut, "Hut Wall Left", new Vector3(-1.6f, 0.1f, -1.6f), new Vector3(-1.4f, 2.6f, 1.4f), _concrete);
-            box(hut, "Hut Wall Front", new Vector3(-1.6f, 0.1f, -1.6f), new Vector3(1.6f, 1.1f, -1.4f), _concrete);
+            // Nearly flush with the ground: the character cannot step up ledges, so a 10 cm lip would keep him out.
+            box(hut, "Hut Floor", new Vector3(-1.6f, -0.27f, -1.6f), new Vector3(1.6f, 0.03f, 1.6f), _concreteDark);
+            box(hut, "Hut Wall Back", new Vector3(-1.6f, 0.03f, 1.4f), new Vector3(1.6f, 2.6f, 1.6f), _concrete);
+            box(hut, "Hut Wall Left", new Vector3(-1.6f, 0.03f, -1.6f), new Vector3(-1.4f, 2.6f, 1.4f), _concrete);
+            box(hut, "Hut Wall Front", new Vector3(-1.6f, 0.03f, -1.6f), new Vector3(1.6f, 1.1f, -1.4f), _concrete);
             box(hut, "Hut Roof", new Vector3(-1.9f, 2.6f, -1.9f), new Vector3(1.9f, 2.8f, 1.9f), _rust);
-            box(hut, "Hut Post", new Vector3(1.4f, 0.1f, -1.6f), new Vector3(1.6f, 2.6f, -1.4f), _concrete);
-            box(hut, "Hut Desk", new Vector3(-1.3f, 0.1f, 0.4f), new Vector3(0.2f, 0.95f, 1.3f), _wood);
+            box(hut, "Hut Post", new Vector3(1.4f, 0.03f, -1.6f), new Vector3(1.6f, 2.6f, -1.4f), _concrete);
+            box(hut, "Hut Desk", new Vector3(-1.3f, 0.03f, 0.4f), new Vector3(0.2f, 0.95f, 1.3f), _wood);
             VantageSetup.AddPickupAt("Pistol", hut.TransformPoint(new Vector3(-0.55f, 1.25f, 0.85f)), hut);
             light(hut, "Hut Bulb (go here)", new Vector3(0, 2.3f, 0), new Color(1f, 0.82f, 0.55f), 3.5f, 6f);
 
@@ -233,6 +236,8 @@ namespace Vantage.EditorTools
             wall(parent, "Collapsed Room Wall North", true, -1.5f, 0f, 5.6f, y0, y1, t, _concreteDark);
             wall(parent, "Collapsed Room Wall East", false, 5.6f, -Inner, -1.5f, y0, y1, t, _concreteDark);
             wall(parent, "Stairwell Railing", false, 5.7f, -1.5f, 3.8f, y0, y0 + 1f, 0.15f, _metal);
+            // Closes the generated rooms off from the stair landing, so the only way on is the hall (main route).
+            wall(parent, "Landing Wall", false, 5.6f, 3.8f, 5.6f, y0, y1, t, _concreteDark);
             box(parent, "Collapse Debris", new Vector3(0.6f, y0, -8.2f), new Vector3(1.4f, y0 + 0.6f, -6.8f), _concreteDark);
 
             // Story prop 2: a door barricaded from the player's side. They were retreating upward too.
@@ -272,7 +277,7 @@ namespace Vantage.EditorTools
             box(parent, "Rail", new Vector3(-11.6f, F2, -8.2f), new Vector3(-11.5f, F2 + 1.1f, -4.6f), _rust);
             box(parent, "Rail", new Vector3(-11.6f, F2, -8.2f), new Vector3(-Half, F2 + 1.1f, -8.1f), _rust);
 
-            stair(parent, "Fire Escape Stairs", new Vector3(-11.5f, F2, -4.6f), new Vector3(2.4f, F3 - F2, 5.6f), 20, _rust);
+            stair(parent, FireEscapeStairName, new Vector3(-11.5f, F2, -4.6f), new Vector3(2.4f, F3 - F2, 5.6f), FireEscapeSteps, _rust);
             var slope = Mathf.Atan2(F3 - F2, 5.6f) * Mathf.Rad2Deg;
             boxRotated(parent, "Stair Rail", new Vector3(-11.55f, (F2 + F3) / 2 + 1.05f, -1.8f), new Vector3(0.08f, 0.08f, 6.9f), Quaternion.Euler(-slope, 0, 0), _rust);
 
@@ -311,11 +316,17 @@ namespace Vantage.EditorTools
 
             var debris = group(parent, "Debris And Cover");
             boxRotated(debris, "Fallen Slab", new Vector3(6.6f, y0 + 0.6f, -6.2f), new Vector3(2.6f, 0.3f, 2.2f), Quaternion.Euler(10f, 25f, 28f), _concrete);
-            boxRotated(debris, "Fallen Slab", new Vector3(-1.5f, y0 + 0.5f, -5f), new Vector3(2.4f, 0.3f, 1.8f), Quaternion.Euler(-22f, -15f, 8f), _concrete);
+            boxRotated(debris, "Fallen Slab", new Vector3(-1.8f, y0 + 0.5f, -6.1f), new Vector3(2.4f, 0.3f, 1.8f), Quaternion.Euler(-22f, -15f, 8f), _concrete);
             box(debris, "Block", new Vector3(-7f, y0, -1.5f), new Vector3(-5.6f, y0 + 1.2f, -0.4f), _concreteDark);
             box(debris, "Block", new Vector3(6f, y0, 0.5f), new Vector3(7.4f, y0 + 1.2f, 1.6f), _concreteDark);
             box(debris, "Block", new Vector3(-2f, y0, 2.5f), new Vector3(-0.8f, y0 + 1f, 3.5f), _concreteDark);
             box(debris, "Rubble", new Vector3(0.6f, y0, -8.2f), new Vector3(1.4f, y0 + 0.5f, -7.6f), _concreteDark);
+
+            // Railing round the collapse shaft: the view down to the lobby stays, falling back down does not.
+            railing(parent, new Vector3(1.5f, y0, -4.5f), new Vector3(4.5f, y0, -4.5f));
+            railing(parent, new Vector3(1.5f, y0, -7.5f), new Vector3(4.5f, y0, -7.5f));
+            railing(parent, new Vector3(1.5f, y0, -7.5f), new Vector3(1.5f, y0, -4.5f));
+            railing(parent, new Vector3(4.5f, y0, -7.5f), new Vector3(4.5f, y0, -4.5f));
 
             light(parent, "Daylight Fill", new Vector3(-2f, y1 - 0.3f, -2f), new Color(0.85f, 0.9f, 1f), 2f, 10f);
             light(parent, "Ramp Top (way up)", new Vector3(3.5f, FR + 0.6f, 4f), new Color(1f, 0.9f, 0.7f), 5f, 10f);
@@ -562,7 +573,10 @@ namespace Vantage.EditorTools
         private static GameObject stair(Transform parent, string name, Vector3 corner, Vector3 size, int steps, Material material)
         {
             var mesh = ShapeGenerator.GenerateStair(PivotLocation.FirstVertex, size, steps, true);
-            return finish(mesh, parent, name, corner, Quaternion.identity, material);
+            var go = finish(mesh, parent, name, corner, Quaternion.identity, material);
+            AddWalkRamp(go, steps);
+            stepEdges(parent, name, corner, size, steps);
+            return go;
         }
 
         private static GameObject finish(ProBuilderMesh mesh, Transform parent, string name, Vector3 localPosition, Quaternion localRotation, Material material)
@@ -723,6 +737,7 @@ namespace Vantage.EditorTools
             _mastRed = material("Mast Red", new Color(0.62f, 0.12f, 0.08f), 0.3f, 0.3f);
             _glowRed = material("Glow Red", new Color(1f, 0.2f, 0.1f), 0, 0.5f, new Color(4f, 0.3f, 0.15f));
             _glowGreen = material("Glow Green", new Color(0.3f, 1f, 0.4f), 0, 0.5f, new Color(0.4f, 2.5f, 0.6f));
+            _guide = material("Guide Yellow", new Color(1f, 0.78f, 0.1f), 0, 0.3f, new Color(2.2f, 1.5f, 0.15f));
             AssetDatabase.SaveAssets();
         }
 

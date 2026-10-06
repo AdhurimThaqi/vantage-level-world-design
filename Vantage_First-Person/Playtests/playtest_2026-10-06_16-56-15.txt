@@ -1,0 +1,22 @@
+VANTAGE playtest  2026-10-06_16-56-15
+Level 2 seed: 48687
+Session length: 0s   Completed: no   Furthest: Yard   Backtracks: 0
+
+Time per space
+  Yard                8s   deaths 0
+  L1 Lobby            0s   deaths 0
+  L2 Corridors        0s   deaths 0
+  Fire Escape         0s   deaths 0
+  L3 Collapsed        0s   deaths 0
+  Roof                0s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Level 2 layout seed 48687
+[    0.0s] Session started
