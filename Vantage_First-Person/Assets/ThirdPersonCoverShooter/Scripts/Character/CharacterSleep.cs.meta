@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 434da79f7fbbd89409dd0f9c6ee8c7ac
+timeCreated: 1504525477
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Character/CharacterSleep.cs
+  uploadId: 883304

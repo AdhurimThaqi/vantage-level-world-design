@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 8576f5d633a25e14faf96945a3430393
+timeCreated: 1515503872
+licenseType: Store
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/standart 2sided.shader
+  uploadId: 883304

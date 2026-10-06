@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: dc7a4f282d2c9af4d8aee4ff45908a73
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Character/CharacterIK.cs
+  uploadId: 883304

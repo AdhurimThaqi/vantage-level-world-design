@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f63aa73c307891a4ead3689f82825283
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/AI/Actions/FindCoverAgainst.cs
+  uploadId: 883304

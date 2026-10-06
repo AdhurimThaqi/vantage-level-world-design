@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: ed478b8df94aa5f4bb55d8b55161b8f1
+timeCreated: 1507879650
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Settings/BurstSettings.cs
+  uploadId: 883304

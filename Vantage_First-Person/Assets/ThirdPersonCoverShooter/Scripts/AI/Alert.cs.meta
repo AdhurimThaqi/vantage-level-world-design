@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 9683f575a202c8543ae1df57896ceecf
+timeCreated: 1504691787
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/AI/Alert.cs
+  uploadId: 883304

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 18f5f26becb973d4fbf0c08606d13ace
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/AI/Actions/SetAnimatorTrigger.cs
+  uploadId: 883304

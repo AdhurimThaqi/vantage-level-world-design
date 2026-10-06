@@ -1,0 +1,949 @@
+VANTAGE unused pack assets  2026-10-06 11:55
+Nothing has been deleted. 'Used' = needed by the level scene, Assets/Vantage, settings or Resources.
+
+Assets/ThirdPersonCoverShooter                used 371.4 MB   unused 342.2 MB   (473 files)
+Assets/PistolAnimsetPro                       used  53.9 MB   unused  12.7 MB   (27 files)
+Assets/LoafbrrAssets                          used   0.0 MB   unused 336.2 MB   (324 files)
+Assets/RPG_FPS_game_assets_industrial         used 156.1 MB   unused 120.6 MB   (102 files)
+Assets/AlterunaFPS                            used   0.0 MB   unused   0.0 MB   (0 files)
+Assets/TutorialInfo                           used   0.0 MB   unused   0.0 MB   (2 files)
+
+TOTAL                                         used 581.5 MB   unused 811.7 MB
+
+== Assets/ThirdPersonCoverShooter (largest first)
+  9.5 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan_Normal.png
+  8.6 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan_Normal.png
+  7.3 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl_Normal.png
+  6.9 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_ao.tga
+  6.7 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy-mobile/cowboy (riged).fbm/normal_body.png
+  6.7 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy-mobile/cowboy (riged).fbx
+  6.5 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl_Albedo.tif
+  6.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan_Albedo.png
+  5.8 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl_Albedo.png
+  5.4 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy-mobile/cowboy (riged).fbm/body_color_oclusion.png
+  4.9 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/blue.png
+  4.6 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_Specular-.tif
+  4.4 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl_Specular.tif
+  4.4 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan_Occlusion.png
+  4.3 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/red.png
+  4.2 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl_Occlusion.tif
+  4.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/pistol_u_Specular.tga
+  4.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/pistol_u_Albedo.tga
+  4.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/pistol_b_Albedo.tga
+  3.8 MB  Assets/ThirdPersonCoverShooter/Animations/cow_cover_throw_granade_lefthand_low_Right.fbx
+  3.8 MB  Assets/ThirdPersonCoverShooter/Animations/cow_cover_throw_granade_lefthand_low_middle.fbx
+  3.7 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan_Albedo.png
+  3.7 MB  Assets/ThirdPersonCoverShooter/Animations/cow_cover_throw_granade_lefthand_low_left.fbx
+  3.7 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Sniper/sniper_Specular-.tif
+  3.6 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl_Normal.tif
+  3.4 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/Shield/shield_Normal.tif
+  3.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/Shield/shield_Specular.tif
+  3.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan_Specular.tif
+  3.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/grenade2_Emission.tga
+  3.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/pistol_u_Normal.tga
+  3.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/pistol_u_Occlusion.tga
+  3.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl_Occlusion.png
+  3.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan_Occlusion.png
+  2.9 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun_old/shotgun_Specular.png
+  2.9 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_Specular.png
+  2.8 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/crosshair_psd.psd
+  2.8 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/Shield/shield_Albedo.tif
+  2.6 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/UI.png
+  2.3 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_Albedo.png
+  2.3 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun_old/shotgun_Albedo.png
+  2.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Sniper/sniper_Normal-.tif
+  1.9 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl_Specular.tif
+  1.9 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_Albedo-.png
+  1.8 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/baseballbat/baseballbat_1Albedo.png
+  1.6 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan_Specular.tif
+  1.6 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Crouch_Turn_Left_90_001.fbx
+  1.6 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Crouch_Turn_Left_90_002.fbx
+  1.6 MB  Assets/ThirdPersonCoverShooter/Animations/Roll_Forward.fbx
+  1.6 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/mike.png
+  1.6 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Sniper/sniper_Albedo-.tif
+  1.5 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan_Specular.png
+  1.5 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/ZombieWalkForward.fbx
+  1.5 MB  Assets/ThirdPersonCoverShooter/Animations/Roll_Back.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Crouch_Idle_Shoot_001.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Stick_Walk_hit.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/Agnes.png
+  1.4 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/crosshair_psd03.psd
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Roll_left.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_turn_180.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Turn_90.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_TallWall_Idle_Right.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_TallWall_Shoot_Corenr_Left.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Fists_Walk_Forward_001.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/cover_throw_granade_lefthand.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/asdf_Vault_jump_over.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/Zombie_Walk_hit_001.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Materials/SmokePuffNormal.tif
+  1.4 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/ZombieWalkForward_001.fbx
+  1.4 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_normal-.png
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Roll_Right.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Crouch_Turn_Right_90_002.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Crouch_Turn_Right_90_001.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/ZombieWalkBackward.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_Crouch_Wall_Right.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_Crouch_Walll_Left.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_TallWall_Walk_Left.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_TallWall_Walk_Right.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_Left_002.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_TallWall_Shoot_Corner_Right_Idle_shoot.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_TallWall_Shoot_Corner_Left_Idle_shoot02.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Walk_Forward_zombie.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_Forward_002.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_ForwardLeft_003.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_TallWall_Shoot_Corner_Right_Idle_shoot02.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_ForwardLeft.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_Backward_002.fbx
+  1.3 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Idle_gun_down.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/sarah.png
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_Right_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Machete_Hit.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Hit.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_Wall_Idle_Right.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_BackwardLeft_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_BackwardRight_003.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/boy_Simple_attack.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Walk_ForwardRight_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Kick.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/baseballbat/baseballBat_1Bump.png
+  1.2 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/Drake.png
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/3_ZombieWalkForward.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/2_ZombieWalkForward.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/ZombieWalkForwardRight.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/PistolShield_Idle_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Stick_Hit.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_take.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Backwards_Right_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Forwards_Right_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Forward_001.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Backwards_Left_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Left_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Right_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Forward_Left_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_Forward_swing_001.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/ZombieWalkBackwardLeft.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/ZombieWalkBackwardsRight.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Run_Left_HDown.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan_Specular.png
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Run_Backwards_002.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Hit.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_step_back_of_wall.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/cow_Rifle_Sprint_Forward.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_TallWalMidl_Idle_Right_001.fbx
+  1.2 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/ZombieWalkforwardLeft.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_Wall_Idle_Left.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Fist_Hit.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_run_Left_swing_001.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/2xPistol_Idle_002.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Zombies/Zombie_idle.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_Right_swing_001.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Walk_Forward_test.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Machete_TallWall_idle_Left.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Shield_idle.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Idle_Phone_hold.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/cow_Pistol_Turn_Right_90_shoot.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Animations/Crouch_Wall_Left_Filming.fbx
+  1.1 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Sniper/sniper_Occlusion-.tif
+  1.0 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Idle_Shield_up_1.fbx
+  1.0 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Crouch_Wall_Right_Idle_002.fbx
+  1.0 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Crouch_Wall_Right_Idle_002.fbx
+  1.0 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Crouch_Wall_Left_Idle_002.fbx
+  1.0 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Crouch_Wall_Left_Idle_002.fbx
+  1.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/baseballbat/Baseballbat_1MGO.png
+  1.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan.FBX
+  1.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan.fbx
+  0.9 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl.FBX
+  0.8 MB  Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/Characterzombie1Mirror.controller
+  0.8 MB  Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/Characterzombie2Mirror.controller
+  0.8 MB  Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/Characterzombie2.controller
+  0.8 MB  Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/Characterzombie1.controller
+  0.8 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl.fbx
+  0.8 MB  Assets/ThirdPersonCoverShooter/Animations/Climb_1.2m.fbx
+  0.7 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_TallWall_Shoot_Corenr_Left_Back.fbx
+  0.7 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_Occlusion-.png
+  0.7 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Idle_1.fbx
+  0.7 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Auto flare.prefab
+  0.6 MB  Assets/ThirdPersonCoverShooter/Assets/ExplosionParticles/explosion_opaque.png
+  0.6 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Crouch_Walll_Left.fbx
+  0.6 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_Croush_Right.fbx
+  0.6 MB  Assets/ThirdPersonCoverShooter/Animations/Pistol_shooting.fbx
+  0.6 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/HitLLeg.fbx
+  0.5 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/Shield/shield_Occlusion.tif
+  0.5 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/HitRleg.fbx
+  0.5 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Walk_ForwardLeft2.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Injured/InjuredWalkForward.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Injured/InjuredWalkBackward.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_Left.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_ForwardRight.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/gun.prefab
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_Forward.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_Right.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_BacwardRight.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_Bacward.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Run_BacwardLeft.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy-mobile/cowboy (riged).fbm/colormap_mustaches.png
+  0.4 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun_old/shotgun_Occlusion.png
+  0.4 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_Occlusion.png
+  0.4 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun_old/shotgun.fbx
+  0.4 MB  Assets/ThirdPersonCoverShooter/Animations/Rifle_Idle_LookUP.fbx
+  0.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Injured/injuredWalkForwardRight.fbx
+  0.3 MB  Assets/ThirdPersonCoverShooter/Assets/ExplosionParticles/Explosion.prefab
+  0.3 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/SmokeToxicGrenadesFX/ToxicGrenadeFX.prefab
+  0.3 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Hit_anyting.prefab
+  0.3 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/HitAnythingParticles sand.prefab
+  0.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Injured/InjuiredWalkBackwardLeft.fbx
+  0.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Injured/InjuredWalkforwardLeft.fbx
+  0.3 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Injured/InjuredWalkBackwardsRight.fbx
+  0.3 MB  Assets/ThirdPersonCoverShooter/Sounds/Zombie/Moan_03_.wav
+  0.3 MB  Assets/ThirdPersonCoverShooter/Brains/Camper.brain
+  0.3 MB  Assets/ThirdPersonCoverShooter/Brains/Fighter.brain
+  0.3 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shell/Trail_01.tga
+  0.3 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shell/Glow_02.tga
+  0.2 MB  Assets/ThirdPersonCoverShooter/Sounds/Zombie/Moan_08_.wav
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/smoke.png
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Bullet (small).prefab
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Bullet (sniper).prefab
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Bullet.prefab
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun_old/shotgun_Normal.png
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun_Normal.png
+  0.2 MB  Assets/ThirdPersonCoverShooter/Sounds/FIREARM_Shotgun_Model_01_Fire_Single_RR3_stereo.wav
+  0.2 MB  Assets/ThirdPersonCoverShooter/Sounds/FIREARM_Shotgun_Model_01_Fire_Single_RR2_stereo.wav
+  0.2 MB  Assets/ThirdPersonCoverShooter/Sounds/FIREARM_Shotgun_Model_01_Fire_Single_RR1_stereo.wav
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Blood Zombie.prefab
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/BloodParticles.prefab
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Healing.prefab
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Desert.prefab
+  0.2 MB  Assets/ThirdPersonCoverShooter/Brains/Assault.brain
+  0.2 MB  Assets/ThirdPersonCoverShooter/Brains/Assault - Copy.brain
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shell/Glow_01.tga
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/grenade2_Height.tga
+  0.2 MB  Assets/ThirdPersonCoverShooter/Brains/Melee Assault.brain
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/shotgun.FBX
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Fonts/duality.ttf
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Sniper/sniper.FBX
+  0.2 MB  Assets/ThirdPersonCoverShooter/Sounds/Zombie/Moan_04_.wav
+  0.2 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/BoxerTankNewAi.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Cop Chief.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Cop.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Enemie/AIEnemy.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsManTopDown.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsManNewAI.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/pistol.FBX
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/ZombieGuy2 (mirror).prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/ZombieGuy1.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/ZombieGuy1 (Mirror).prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/ZombieGuy2.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/MacheteGuy.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Practice Target.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Textures/sand_normal.png
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirlTopDown.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Footsteps Test 1.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Footsteps Test.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/SmokeToxicGrenadesFX/SmokeGrenadeFX.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/shell.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Defence.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Damage.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/normal_shotgun_01.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Sparks.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Help/Doc.pdf
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankManTopDOWN.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirlTopDown.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/Footstep01_data/e00/d00/e0000f28.au
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/f361e2d996fd0d3f3c7c310da6a3d539.jpg
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/normal_shotgun_03.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/normal_shotgun_02.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/Zombie/Moan_06_.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/GORE_Splat_Hit_Bubbles_mono.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Brains/Boxer.brain
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/GORE_Splat_Hit_Deep_mono.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy-mobile/cowboy (riged).prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl 1.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/GORE_Stab_02_mono.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Textures/sand.png
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/RELOAD_Pump_stereo.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Sounds/GORE_Splat_Hit_Short_mono.wav
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/platforms02.FBX
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl.prefab
+  0.1 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/cube_color.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/baseballbat/baseball bat.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/hdre_111_tonemapped.jpg
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass02_animated.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/boxes.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Textures/hexagon.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass05_animated.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass03_animated.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Sounds/GORE_Stab_01_mono.wav
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass04_animated.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass01_animated.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/Shield/shield.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/shield.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PickupPrototype01x01x01.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/hdre_105_thumb.jpg
+  0.0 MB  Assets/ThirdPersonCoverShooter/Sounds/shield_sound.wav
+  0.0 MB  Assets/ThirdPersonCoverShooter/Sounds/GORE_Stab_03_mono.wav
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Textures/SparkParticle.tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/selected.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Sounds/IMPACT_Generic_09_Short_mono.wav
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/StepsPrototype04x02x02.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PlatformPrototype16x003x16.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Textures/spark02.tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PlatformPrototype08x003x08.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/fist.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/shotgun.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/HousePrototype16x16x24.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/50932705 (31).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PlatformPrototype08x01x08.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PlatformPrototype04x01x04.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/FloorPrototype04x01x04.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/FloorPrototype64x01x64.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/CubePrototype04x04x04.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/CubePrototype02x02x02.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/JoinInnerPrototype01x06x01.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/JoinOuterPrototype02x06x02.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/CubePrototype08x08x08.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Textures/GridTransparent.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/RampPrototype04x02x02.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/JoinMidPrototype04x06x01.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Sounds/MARTIAL_ARTS_Kick_Punch_RR10_mono.wav
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PillarPrototype02x08x02.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/laser.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/BlockPrototype04x04x04.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PillarPrototype01x02x01.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/FloorPrototype08x01x08.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/WallPrototype08x08x01.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/50928635 (99).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Textures/GridEmissive.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/big_circle.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Textures/Ray.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/PlatformPrototype02x01x02.fbx
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/cube_emission.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/crosshair.FBX
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Textures/sand02.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Brains/Demo/Variable.brain
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Textures/SwatchNavyDarkAlbedo.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Textures/SwatchOrangeAlbedo.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/67349203 (55).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Textures/SwatchYellowAlbedo.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/56980441 (22).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Brains/Demo/Super Node.brain
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/crosshair_pick-4.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/67339191 (73).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/crosshair_pick-3.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Heal/Heal 1.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/crosshair_pick-5.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/57870523 (55).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Textures/SwatchPinkDAlbedo.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Textures/logo_redbee.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/controls.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/51448621 (14).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/14206612 (45).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/51527428 (87).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/59737710 (66).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/57932337 (35).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/67657732 (25).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Brains/Zombie.brain
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/shoot_controls.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Brains/Demo/Any.brain
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/14190980 (87).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/57072544 (05).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/51389033 (44).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/TPCS.asset
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/56347015 (66).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Thompson/Textures/thompson.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Platform.anim
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/67681053 (39).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/cube.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/PinkGrid.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/YellowGrid.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/NavyGrid 2.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/BlueGrid 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/NavyGrid 4.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/NavyGrid 3.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/NavyGrid 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/NavyGrid.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/spark02.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/YellowSmooth.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/PinkSmooth.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/NavySmooth.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Textures/grenade.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Phone.prefab
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/DpsMan/DpsMan.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/TankMan.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Laser 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankMan/Shield/Shield.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Materials/Spark.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/TankGirl/TankGirl.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Sight.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Sniper/sniper.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/baseballbat/baseballbat.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/Materials/pistol_b_Albedo 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy/SniperGirl/SniperGirl.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/Materials/pistol_u_Albedo.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun_old/Materials/shotgun_Albedo.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/Shotgun.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy-mobile/Materials/body_color_oclusion.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Cowboy-mobile/Materials/colormap_mustaches.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/Materials/09 - Default.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Materials/cube_color 2.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass01_Slow.controller
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/Cover.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Shield.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Materials/cube 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Materials/cube.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/SwatchNavyDarkAlbedo.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/SwatchOrangeAlbedo.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Materials/GridEmissive.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Pistol/Materials/pistol_b_Albedo.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/Materials/grenade2_Albedo.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Materials/cube_color.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Materials/cube_color 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Green.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/logo_redbee.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/practice guys.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shotgun/metal.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/cop chief.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/civilian.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Models/Materials/tile_prototype_grey_dff.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/zombies.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Thompson/Materials/Bullet.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/1.5.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/redcrosshair.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/cop.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Hurt zombie.prefab
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/sight 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Materials/phone.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/baseballbat/Materials/No Name.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/spark.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Death zombie.prefab
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Fonts/text 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Fonts/text 2.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Fonts/text.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Fonts/text 4.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Fonts/text 3.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/smoke.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/agressive.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Textures/bubble.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shell/Trail_01.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/ExplosionParticles/Particles.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Shell/Glow_03.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Tpose.fbm/59741431 (80).tif
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Materials/Bullethole sand.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/ExplosionParticles/Explosion.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/ExplosionParticles/ExplosionFlame toxic.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/ExplosionParticles/ExplosionFlame.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Heal/HP_t.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/SmokeToxicGrenadesFX/Smoke white.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/Materials/09 - Default 3.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/Materials/09 - Default 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Ray 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Materials/triangles.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/MoveTarget.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/SmokeToxicGrenadesFX/Smoke toxic.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/HoldPosition.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/regrupe.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/icon.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Ray.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prefabs/Scope.prefab
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/Materials/09 - Default 2.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/sky 1.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/sky.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Laser.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/arow.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/MovePath.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/ThrowExplosionPreviewMobile.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/SmokePreview.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/ThrowExplosionPreview.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/ExplosionPreviewMobile.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/ToxicPreview.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Materials/Outline.mat
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/icon06.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Gun/Grenade/Revolver/revolver.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Other animation/Animated platform.controller
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass03.controller
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass04.controller
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass05.controller
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass02.controller
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Prototyping/Grass/grass01.controller
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/iconSpeed.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/icon04.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/icon05.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/target.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/smoke_granade.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/close.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/mass_damage.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/bullets.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/damage_buff.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/UI/Strategy/icons/icon_dot.png
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/SlopeFriction.physicMaterial
+  0.0 MB  Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/BodyNoIK.mask
+  0.0 MB  Assets/ThirdPersonCoverShooter/Assets/Textures/square.png
+
+== Assets/PistolAnimsetPro (largest first)
+  5.3 MB  Assets/PistolAnimsetPro/Models/Character.fbx
+  2.9 MB  Assets/PistolAnimsetPro/Animations/MovementAnimationsPro_SmoothRotate.fbx
+  2.7 MB  Assets/PistolAnimsetPro/Animations/PistolAnimsetPro_LookAts.fbx
+  0.7 MB  Assets/PistolAnimsetPro/Models/Dummy.fbx
+  0.7 MB  Assets/PistolAnimsetPro/Animations/PistolAnimsetPro_Death.fbx
+  0.1 MB  Assets/PistolAnimsetPro/Models/Character.prefab
+  0.1 MB  Assets/PistolAnimsetPro/Models/PistolAnimsetPro_LookAts.prefab
+  0.1 MB  Assets/PistolAnimsetPro/Models/Dummy.prefab
+  0.1 MB  Assets/PistolAnimsetPro/Mecanim/PistolTPPController.controller
+  0.0 MB  Assets/PistolAnimsetPro/PistolAnimsetPro_Readme.pdf
+  0.0 MB  Assets/PistolAnimsetPro/Models/PistolPlaceholder.FBX
+  0.0 MB  Assets/PistolAnimsetPro/Scenes/PAP_Overview.unity
+  0.0 MB  Assets/PistolAnimsetPro/Mecanim/PAP_Test1.controller
+  0.0 MB  Assets/PistolAnimsetPro/Models/Materials/GlassesGlass1.mat
+  0.0 MB  Assets/PistolAnimsetPro/Models/Materials/SoldierALL1.mat
+  0.0 MB  Assets/PistolAnimsetPro/Models/Materials/PistolPlaceholder.mat
+  0.0 MB  Assets/PistolAnimsetPro/Materials/DecalBulletHole.mat
+  0.0 MB  Assets/PistolAnimsetPro/Models/Materials/Metal.mat
+  0.0 MB  Assets/PistolAnimsetPro/Models/Materials/Dummy.mat
+  0.0 MB  Assets/PistolAnimsetPro/Models/Materials/Head2.mat
+  0.0 MB  Assets/PistolAnimsetPro/Materials/Checker.mat
+  0.0 MB  Assets/PistolAnimsetPro/Models/Textures/PistolPlaceholder.png
+  0.0 MB  Assets/PistolAnimsetPro/Models/Textures/Dummy.png
+  0.0 MB  Assets/PistolAnimsetPro/Models/PistolPlaceholder.prefab
+  0.0 MB  Assets/PistolAnimsetPro/Materials/Textures/lines.png
+  0.0 MB  Assets/PistolAnimsetPro/Mecanim/UpperBodyMaskPistol.mask
+  0.0 MB  Assets/PistolAnimsetPro/readme.txt
+
+== Assets/LoafbrrAssets (largest first)
+130.5 MB  Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip
+ 20.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_B/Surface_Floor_B_Normal_2K.png
+ 19.3 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_A/Surface_Floor_A_Normal_2K.png
+ 15.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_Normal_2K.png
+ 14.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_Normal_2K.png
+  7.5 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_Diffuse_2K.png
+  7.2 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_Diffuse_2K_A.png
+  7.2 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_Diffuse_2K_B.png
+  7.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Diffuse_2K_C.png
+  5.4 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Normal_2K.png
+  5.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Diffuse_2K_A.png
+  5.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_B/Surface_Floor_B_Normal_1K.png
+  4.9 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_A/Surface_Floor_A_Normal_1K.png
+  4.3 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Diffuse_2K_B.png
+  4.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_ORM_2K.png
+  4.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_Diffuse_2K_A.png
+  4.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_ORM_2K.png
+  4.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_A/Surface_Floor_A_Diffuse_2K.png
+  3.9 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_Diffuse_2K_B.png
+  3.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_Normal_1K.png
+  3.7 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_Normal_1K.png
+  3.5 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_Diffuse_2K_B.png
+  3.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_Normal_2K.png
+  3.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_A/Surface_Floor_A_ORM_2K.png
+  3.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_ORM_2K.png
+  2.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_B/Surface_Floor_B_ORM_2K.png
+  2.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_Diffuse_2K_A.png
+  2.5 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/Lightmap-0_comp_light.exr
+  2.3 MB  Assets/LoafbrrAssets/Interiors_A/fbx/Interiors_A.fbx
+  2.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_Normal_2K.png
+  1.9 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_Diffuse_1K.png
+  1.9 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_Diffuse_1K_A.png
+  1.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_Diffuse_1K_B.png
+  1.7 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Diffuse_1K_C.png
+  1.6 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_ORM_2K.png
+  1.4 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_B/Surface_Floor_B_Diffuse_2K.png
+  1.2 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_ORM_2K.png
+  1.2 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Diffuse_1K_A.png
+  1.2 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Normal_1K.png
+  1.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_Diffuse_1K_A.png
+  1.1 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Diffuse_1K_B.png
+  1.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_ORM_1K.png
+  1.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_A/Surface_Floor_A_Diffuse_1K.png
+  1.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_ORM_1K.png
+  1.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_Diffuse_1K_B.png
+  0.9 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_Diffuse_1K_B.png
+  0.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_ORM_1K.png
+  0.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_A/Surface_Floor_A_ORM_1K.png
+  0.8 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/Lightmap-0_comp_dir.png
+  0.8 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_B/Surface_Floor_B_ORM_1K.png
+  0.7 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_Diffuse_1K_A.png
+  0.6 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_A/Surface_Ceiling_A_Normal_1K.png
+  0.6 MB  Assets/LoafbrrAssets/Interiors_A/Scene/MatTest.unity
+  0.5 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Ceiling_B/Surface_Ceiling_B_ORM_1K.png
+  0.4 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Floor_B/Surface_Floor_B_Diffuse_1K.png
+  0.4 MB  Assets/LoafbrrAssets/Interiors_A/texture/Surface_Wall_A/Surface_Wall_A_ORM_1K.png
+  0.4 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_Normal_1K.png
+  0.3 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/ReflectionProbe-2.exr
+  0.3 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/ReflectionProbe-0.exr
+  0.3 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/ReflectionProbe-1.exr
+  0.1 MB  Assets/LoafbrrAssets/Interiors_A/materials/ORM_Shader 1.shadergraph
+  0.1 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/ReflectionProbe-3.exr
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Mask_2K.png
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Alpha_2K.png
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_Emission_2K.png
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene.unity
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_B_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_C_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_C_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_B_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_D_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/LightingData.asset
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_B_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_C_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_B_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_A_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_F_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_F_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_D_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_B_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_F_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_C_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_C_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_C_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_B_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_A_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_F_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_D_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_F_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_F_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Mask_1K.png
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_A_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_A_Grp_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_A_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_A_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_G_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_G_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_G_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/Door/Door_Alpha_1K.png
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_1m_E_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_2m_E_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairSet/Stairs_3m_E_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/texture/MiscTrim/MiscTrim_Emission_1K.png
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_F_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_E_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_D_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_A_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_C_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_B_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/Scene/Demo_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_G_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_I_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Door/Door_H_Grp.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/sky 1.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/sky 2.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_E_Fliiped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_F_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_G.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_E.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m_Window_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_H.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_2x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_3x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_1x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_I.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_2x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_3x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_1x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_F.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_1x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_3x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_1x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_3x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_3x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_1x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_2x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_2x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_3x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_1x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_A_2x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_B_2x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_Edge_Corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Bottom_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_3x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_Bottom_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Bottom_Corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_2x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_Bottom_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Vent_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_2x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_3x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_1x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_Edge_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_1x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_Edge_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_Edge_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m_Vent_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_2x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stairs_Bottom_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_1x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m_Vent_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Bottom_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_Edge_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Bottom_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_1x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Bottom_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Vent_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/FloorCeiling_3x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_2x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_3x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_1x3.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_2x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_2x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_3x2.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_1x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_3x1.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Edge_B_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Edge_C_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Edge_C_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Edge_A_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Edge_B_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Edge_B_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Edge_A_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Edge_A_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Trim_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Trim_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Trim_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_1m_B_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_2m_B_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Corner_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Edge_C_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_2m_A_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_3m_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Edge_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Edge_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Edge_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Corner_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_A_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Edge_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_1m_A_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Edge_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Edge_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_B_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Edge_Corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Edge_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Trim.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Edge_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Edge_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_Post_b.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_Corner.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_2m_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_Post_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_1m_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m_Door_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Door_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_C_flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Door_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m_Trim.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_1m_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_2m_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_2x2_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_Post.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_2x1_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_3x1_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_3x3_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_1x1_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_1x2_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_E.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Pillar_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m_Trim.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_G_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Window_D.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Trim_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Trim_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Trim_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m_Window_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m_Door_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Wall_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_G.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Pillar_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_1x3_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_1m_Door.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Edge_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m_Door_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_2x3_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_F.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Pillar_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_3m_Edge_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Vent.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_Corner_D.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Stair_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Edge_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Floor/Floor_3x2_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Stair_Rail_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/StairParts/Wall_Trim_Corner.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_1m_1Side.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_Edge_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Vent/Vent_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/wall/Wall_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/MiscTrim_Mat.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Glass.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Ceiling_B 1.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Ceiling_A 1.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Ceiling_A.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Ceiling_B.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Floor_B 1.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Floor_A 1.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Wall_A 1.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Floor_B.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Wall_A.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Surface_Floor_A.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Door_A_Mat.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Door_B_Mat.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/materials/Door_C_Mat.mat
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Grate_corner_C_Flipped.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Tape_Caution_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Ceiling_A_Light.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Tape_Danger_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Tape_Caution_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Floor_Separator_corner.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Grate_corner_B.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Tape_Caution_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Grate_corner_C.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Grate_corner_A.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Ceiling_B_Light.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Floor_Separator_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Tape_Danger_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Tape_Danger_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Floor_Separator_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Wall_Plugs.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Floor_Separator_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Wall_Switch.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Grate_1m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Grate_3m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/prefabs/Decal/Decal_Grate_2m.prefab
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/New Lighting Settings.lighting
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/Global Volume Profile.asset
+  0.0 MB  Assets/LoafbrrAssets/Interiors_A/README.txt
+
+== Assets/RPG_FPS_game_assets_industrial (largest first)
+ 58.6 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Source/Cargo_container_v1.psd
+ 36.8 MB  Assets/RPG_FPS_game_assets_industrial/Map_v1/Lightmap-0_comp_light.exr
+ 11.2 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Source/Cargo_container_v2.tga
+ 11.2 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Source/Cargo_container_v3.tga
+  1.1 MB  Assets/RPG_FPS_game_assets_industrial/Map_v1.unity
+  0.5 MB  Assets/RPG_FPS_game_assets_industrial/Assets_showcase_scene.unity
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Map_v1/ReflectionProbe-0.exr
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Particles/Smoke/Smoke_v1/Smoke_v1.prefab
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_7.FBX
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Particles/Smoke/Smoke_v1/Source/Smoke_v1.png
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_6.FBX
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Map_v1/LightingData.asset
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_outbuildings.FBX
+  0.1 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/UNIConcrete_fences/Source/UNIConcrete_fence_v1.FBX
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_1.FBX
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_4.FBX
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_2.FBX
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_3.FBX
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Source/Hangar_v2_5.FBX
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_7.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_6.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Cargo_container_v1_LD2open.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_S_L_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_S_R_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_S_L_2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_W_2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_W_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_s_road_up_2m_HD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_s_road_up_1m_HD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_s_road_up_1m_LD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_s_road_up_2m_LD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_road_up_2m_LD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_road_up_3m_HD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_road_up_1m_HD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_road_up_3m_LD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_road_up_1m_LD.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_b_bend_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_b_bend_2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Road_sets/Road_set_v1/Road_set_v1_b_bend_3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_4.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Textures/Concrete_wall/UNIConcrete_walls/UNIConcrete_wall_v3/Materials/UNIConcrete_wall_v3.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Textures/Grass/Materials/Grass_v1.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Textures/Concrete_wall/UNIConcrete_walls/UNIConcrete_wall_v3/UNIConcrete_wall_v3.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Textures/Concrete_wall/UNIConcrete_walls/UNIConcrete_wall_v2/UNIConcrete_wall_v2.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Source/Cargo_container_v3.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Source/Cargo_container_v2.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Textures/Concrete_wall/UNIConcrete_walls/UNIConcrete_wall_v1/Materials/UNIConcrete_wall_v1.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_H_set_v3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_H_set_v4.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_U_set_v2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_U_set_v4.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_U_set_v3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_U_set_v1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_bend_d_H2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Cargo_container_v1_LD1doorR.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_bend_d_H1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/Concrete_fence_v2/Concrete_fence_v2_end.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Cargo_container_v1_LD1through.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Cargo_container_v1_LD2through.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_S_single.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_W_tile_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_S_right.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_W_end_3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_W_end_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_W_end_4.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Roads/Floor_elevation_sets/UNIFloor_elevation_set_v1/UNIConcrete_wall_v1_S_left.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/UNIConcrete_fences/UNIConcrete_fence_v1_end.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/UNIConcrete_fences/UNIConcrete_fence_v1_c2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/UNIConcrete_fences/UNIConcrete_fence_v1_c1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v3/Hangar_v3_outbuilding_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v3/Hangar_v3_outbuilding_2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/UNIConcrete_fences/UNIConcrete_fence_v1_L.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Containers/Cargo_container_v1/Cargo_container_v1_LD1doorL.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_tile_d1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/Concrete_fence_v1/Concrete_fence_v1_L2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/Concrete_fence_v1/Concrete_fence_v1_c2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/Concrete_fence_v1/Concrete_fence_v1_c1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/Concrete_fence_v1/Concrete_fence_v1_c4.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_tile_s2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/Concrete_fence_v1/Concrete_fence_v1_c3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_tile_s1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_support.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/Concrete_fence_v1/Concrete_fence_v1_L1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Fences/Concrete_fences/UNIConcrete_fences/UNIConcrete_fence_v1_s.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_bend_s.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_bend_d.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Boxes/Wooden_box_v1/Wooden_box_v1_LD2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Barrels/Barrel_v2/Barrel_v2_single.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v1/Hangar_v1_half.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Barrels/Barrel_v1/Barrel_v1_LD3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Barrels/Barrel_v1/Barrel_v1_LD2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Other_props/Pipes/Pipe_sets/Pipes_set_v1/Pipes_set_v1_V_set_v1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_outbuilding2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_outbuilding1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_outbuilding3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_3.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_1.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_5.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Buildings/Industrial/Hangars/Hangar_v2/Hangar_v2_2.prefab
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Particles/Smoke/Smoke_v1/Source/New Material.mat
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Assets_showcase_sceneSettings.lighting
+  0.0 MB  Assets/RPG_FPS_game_assets_industrial/Map_v1Settings.lighting
+
+== Assets/TutorialInfo (largest first)
+  0.0 MB  Assets/TutorialInfo/Icons/URP.png
+  0.0 MB  Assets/TutorialInfo/Layout.wlt

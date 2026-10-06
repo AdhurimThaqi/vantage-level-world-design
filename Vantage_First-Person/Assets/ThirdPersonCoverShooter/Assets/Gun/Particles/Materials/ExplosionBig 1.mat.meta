@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 7d5fcfd8bfcd65b4e9c1d80d50ba47a4
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Materials/ExplosionBig
+    1.mat
+  uploadId: 883304

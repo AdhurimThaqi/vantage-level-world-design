@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: e1d4cb8fe2d811b4cabf4dd397d5da46
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/AI/Actions/TurnTowards.cs
+  uploadId: 883304

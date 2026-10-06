@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 17e037184c18fbe4a985bce5c4918a2b
+timeCreated: 1485851444
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/Legs.mask
+  uploadId: 883304

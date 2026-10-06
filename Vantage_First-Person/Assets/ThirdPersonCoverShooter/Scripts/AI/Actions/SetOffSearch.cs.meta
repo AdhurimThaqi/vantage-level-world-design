@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f13b2372c70504b43a0e6ffceb6f2605
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/AI/Actions/SetOffSearch.cs
+  uploadId: 883304

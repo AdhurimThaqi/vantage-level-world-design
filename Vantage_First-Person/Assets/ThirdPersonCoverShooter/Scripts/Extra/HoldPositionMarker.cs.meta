@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 460b07498bc75de479f0a606331b35fb
+timeCreated: 1518514141
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Extra/HoldPositionMarker.cs
+  uploadId: 883304

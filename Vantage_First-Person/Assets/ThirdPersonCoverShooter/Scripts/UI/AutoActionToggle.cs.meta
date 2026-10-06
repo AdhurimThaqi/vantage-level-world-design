@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: b031de88557b14640bdb853d02eccd45
+timeCreated: 1519630908
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/UI/AutoActionToggle.cs
+  uploadId: 883304

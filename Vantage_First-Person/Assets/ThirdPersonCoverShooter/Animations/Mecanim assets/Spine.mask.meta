@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 46922c11987c02a4e85398597d77b278
+timeCreated: 1485851444
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/Spine.mask
+  uploadId: 883304

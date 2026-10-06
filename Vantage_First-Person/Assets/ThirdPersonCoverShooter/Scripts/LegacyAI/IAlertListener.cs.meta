@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b13e85907ce2e6d44ba4567ec8fcfa87
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/LegacyAI/IAlertListener.cs
+  uploadId: 883304

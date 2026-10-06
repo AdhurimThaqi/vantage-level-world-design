@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: cbd0d2903d558484aaec298852099be5
+timeCreated: 1509446733
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Editor/FighterBrain.cs
+  uploadId: 883304

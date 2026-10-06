@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 28e3d96e40457f248994dcaedfabc95f
+timeCreated: 1517485183
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/LegacyAI/Controllers/AIThreatControl.cs
+  uploadId: 883304

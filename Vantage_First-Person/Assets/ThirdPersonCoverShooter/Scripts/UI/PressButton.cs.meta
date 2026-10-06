@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: a1601e08316a3a1478a712aaab53ab81
+timeCreated: 1519370572
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/UI/PressButton.cs
+  uploadId: 883304

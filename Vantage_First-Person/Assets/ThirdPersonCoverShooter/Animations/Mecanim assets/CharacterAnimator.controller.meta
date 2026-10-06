@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 7fd60b2301b1b9741ac93257cbc7abd1
+timeCreated: 1521623480
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/CharacterAnimator.controller
+  uploadId: 883304

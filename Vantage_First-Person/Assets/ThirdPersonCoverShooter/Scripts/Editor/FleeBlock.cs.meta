@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 658cf424af00de24e8b1419926f83266
+timeCreated: 1509956302
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Editor/FleeBlock.cs
+  uploadId: 883304

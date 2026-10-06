@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 39fc73f24527f884392a0fc5341dbd23
+timeCreated: 1490890042
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Materials/Body.mat
+  uploadId: 883304

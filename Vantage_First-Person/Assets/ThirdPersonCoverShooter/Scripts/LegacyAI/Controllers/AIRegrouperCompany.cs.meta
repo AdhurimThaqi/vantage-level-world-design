@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 50cbf5f6d78a59d42ae9180503d4883d
+timeCreated: 1515667200
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/LegacyAI/Controllers/AIRegrouperCompany.cs
+  uploadId: 883304

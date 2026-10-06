@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 91860e8c476377746b19fa23767d55a7
+timeCreated: 1497599248
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Settings/MobileCameraSettings.cs
+  uploadId: 883304

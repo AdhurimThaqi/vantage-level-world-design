@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: bfb7a94afe1500948a9576863f46528c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/LegacyAI/Controllers/AIMelee.cs
+  uploadId: 883304

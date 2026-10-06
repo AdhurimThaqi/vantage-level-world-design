@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 29ef05aa5a977ce4ea1d10408047bedf
+timeCreated: 1490877094
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Gun/Particles/Blood.prefab
+  uploadId: 883304

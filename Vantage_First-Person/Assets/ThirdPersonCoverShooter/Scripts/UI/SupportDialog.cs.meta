@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 299f853880d7d8d408d51b31843cb889
+timeCreated: 1517916070
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/UI/SupportDialog.cs
+  uploadId: 883304

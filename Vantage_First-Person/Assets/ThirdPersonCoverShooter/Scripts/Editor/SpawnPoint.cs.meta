@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: c19ef94b9a49cf047b35469e52d626ee
+timeCreated: 1508837875
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Editor/SpawnPoint.cs
+  uploadId: 883304

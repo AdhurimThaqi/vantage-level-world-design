@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: beb50548bd111a14187833d2cb9f05b3
+timeCreated: 1511210704
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/LegacyAI/Controllers/AIBackupCall.cs
+  uploadId: 883304

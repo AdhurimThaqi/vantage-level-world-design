@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: f341e7917f129274491f7b65dac885a5
+timeCreated: 1504170124
+licenseType: Store
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Shaders/ExplosionPreview.shader
+  uploadId: 883304

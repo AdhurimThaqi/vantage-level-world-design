@@ -1,0 +1,38 @@
+VANTAGE playtest  2026-10-06_12-23-50
+Level 2 seed: 3437
+Session length: 0s   Completed: no   Furthest: Fire Escape   Backtracks: 3
+
+Time per space
+  Yard              106s   deaths 0
+  L1 Lobby           41s   deaths 0
+  L2 Corridors       56s   deaths 0
+  Fire Escape        46s   deaths 0
+  L3 Collapsed        0s   deaths 0
+  Roof                0s   deaths 0
+
+Kills
+  Drone          4
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Level 2 layout seed 3437
+[    0.0s] Session started
+[   71.1s] Picked up Pistol
+[   79.9s] Killed Drone in Yard
+[   87.3s] Killed Drone in Yard
+[  106.5s] Yard -> L1 Lobby
+[  112.1s] L1 Lobby -> L2 Corridors
+[  136.1s] Killed Drone in L2 Corridors
+[  137.5s] Killed Drone in L2 Corridors
+[  141.8s] L2 Corridors -> Fire Escape
+[  169.0s] Fire Escape -> L2 Corridors
+[  169.0s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[  183.9s] L2 Corridors -> Fire Escape
+[  202.9s] Fire Escape -> L2 Corridors
+[  202.9s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[  214.8s] L2 Corridors -> L1 Lobby
+[  214.8s] BACKTRACK to L1 Lobby (furthest so far: Fire Escape)

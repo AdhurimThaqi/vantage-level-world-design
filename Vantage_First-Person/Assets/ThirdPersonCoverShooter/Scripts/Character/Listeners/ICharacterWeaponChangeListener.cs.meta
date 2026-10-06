@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 7965bad46c6f7014b8da1d8356dcd394
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Character/Listeners/ICharacterWeaponChangeListener.cs
+  uploadId: 883304

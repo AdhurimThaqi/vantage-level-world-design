@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 1946aa24f0c97934482b08fef2a88cb2
+timeCreated: 1517917140
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/UI/SupportSelector.cs
+  uploadId: 883304

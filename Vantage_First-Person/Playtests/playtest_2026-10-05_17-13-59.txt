@@ -1,0 +1,43 @@
+VANTAGE playtest  2026-10-05_17-13-59
+Level 2 seed: 13203
+Session length: 232s   Completed: no   Furthest: L3 Collapsed   Backtracks: 2
+
+Time per space
+  Yard               26s   deaths 0
+  L1 Lobby            5s   deaths 0
+  L2 Corridors       48s   deaths 0
+  Fire Escape         9s   deaths 0
+  L3 Collapsed       11s   deaths 1
+  Roof                0s   deaths 0
+
+Kills
+  Drone          6
+  Soldier        1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  130.9s] Level 2 layout seed 13203
+[  130.9s] Session started
+[  134.9s] Picked up Pistol
+[  139.5s] Killed Drone in Yard
+[  144.2s] Killed Drone in Yard
+[  155.7s] Killed Drone in L1 Lobby
+[  156.4s] Yard -> L1 Lobby
+[  161.1s] L1 Lobby -> L2 Corridors
+[  161.8s] L2 Corridors -> L1 Lobby
+[  161.8s] BACKTRACK to L1 Lobby (furthest so far: L2 Corridors)
+[  161.9s] L1 Lobby -> L2 Corridors
+[  172.2s] L2 Corridors -> L1 Lobby
+[  172.2s] BACKTRACK to L1 Lobby (furthest so far: L2 Corridors)
+[  172.6s] L1 Lobby -> L2 Corridors
+[  178.3s] Killed Drone in L2 Corridors
+[  200.0s] Killed Drone in L2 Corridors
+[  204.8s] Killed Drone in L2 Corridors
+[  209.1s] L2 Corridors -> Fire Escape
+[  217.9s] Fire Escape -> L3 Collapsed
+[  227.0s] Killed Soldier in L3 Collapsed
+[  228.5s] DEATH in L3 Collapsed at (57.5, 10.9, 36.9) (health reached zero (first person))

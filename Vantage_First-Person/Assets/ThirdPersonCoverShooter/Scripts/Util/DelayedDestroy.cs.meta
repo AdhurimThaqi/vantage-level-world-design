@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 26a11e10c1ee7cc4d920a552fcd38aa7
+timeCreated: 1504164842
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Util/DelayedDestroy.cs
+  uploadId: 883304

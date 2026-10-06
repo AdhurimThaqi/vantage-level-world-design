@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: e4142d1fe4299fe429944fbaf93ce49a
+timeCreated: 1513251703
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/LegacyAI/Controllers/AIAssault.cs
+  uploadId: 883304

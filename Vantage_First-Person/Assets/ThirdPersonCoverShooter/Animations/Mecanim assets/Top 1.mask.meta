@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fade985757d72ef4a9a8b4592a546114
+timeCreated: 1485851444
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Animations/Mecanim assets/Top 1.mask
+  uploadId: 883304

@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 241a8a2929d0c1f44a9ec5e66e83e99c
+timeCreated: 1496918641
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/UI/TouchMovement.cs
+  uploadId: 883304

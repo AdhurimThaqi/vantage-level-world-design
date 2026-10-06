@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 40af60a630a03414fbb027930af88667
+timeCreated: 1518166976
+licenseType: Store
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Shaders/Outline.shader
+  uploadId: 883304

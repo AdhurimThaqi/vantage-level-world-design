@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 5bddaec738e20a44fa2a29624e34a344
+timeCreated: 1515484850
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Editor/AIRegrouperButton.cs
+  uploadId: 883304

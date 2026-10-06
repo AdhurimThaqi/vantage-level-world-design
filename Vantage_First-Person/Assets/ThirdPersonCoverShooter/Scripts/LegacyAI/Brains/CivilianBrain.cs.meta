@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: f51e33defcf43ab4c9fdad103b51d306
+timeCreated: 1509447464
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/LegacyAI/Brains/CivilianBrain.cs
+  uploadId: 883304

@@ -1,0 +1,32 @@
+VANTAGE playtest  2026-10-05_17-11-43
+Level 2 seed: 77062
+Session length: 131s   Completed: no   Furthest: Yard   Backtracks: 0
+
+Time per space
+  Yard              128s   deaths 1
+  L1 Lobby            0s   deaths 0
+  L2 Corridors        0s   deaths 0
+  Fire Escape         0s   deaths 0
+  L3 Collapsed        0s   deaths 0
+  Roof                0s   deaths 0
+
+Kills
+  Drone          1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Level 2 layout seed 77062
+[    0.0s] Session started
+[   24.1s] View: third person
+[   28.4s] View: first person
+[   38.0s] View: third person
+[   51.7s] View: first person
+[   79.6s] View: third person
+[   95.8s] View: first person
+[   95.8s] Picked up Pistol
+[  125.9s] Killed Drone in Yard
+[  127.8s] DEATH in Yard at (63.1, 2.2, 18.0) (health reached zero (first person))

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c2e6a03945531b449ba1a5ee4115753f
+timeCreated: 1506666287
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Prefabs/Hurt.prefab
+  uploadId: 883304

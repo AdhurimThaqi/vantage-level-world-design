@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 42d1008b421ca324ca70e5be969fd219
+timeCreated: 1519990258
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/Weapons/BulletShield.cs
+  uploadId: 883304

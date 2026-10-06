@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: bf1736245e656de44ade1caa1ada029a
+timeCreated: 1504170027
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Assets/Materials/GrenadePath.mat
+  uploadId: 883304

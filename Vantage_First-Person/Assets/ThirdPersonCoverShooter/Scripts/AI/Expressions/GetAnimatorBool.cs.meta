@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 54e3a4db83c132b4ea8a0dfbd1e82f3d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 88424
+  packageName: Third Person Cover Shooter Template
+  packageVersion: 1.7
+  assetPath: Assets/ThirdPersonCoverShooter/Scripts/AI/Expressions/GetAnimatorBool.cs
+  uploadId: 883304
