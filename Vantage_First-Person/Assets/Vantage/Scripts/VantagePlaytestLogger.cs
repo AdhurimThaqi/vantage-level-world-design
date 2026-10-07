@@ -8,24 +8,26 @@ namespace Vantage
 {
     /// <summary>
     /// Writes one report per play session for the documented playtests (concept doc: testing and feedback loops).
-    /// Logs the level 2 seed, time per space, deaths, kills, pickups, waves, view switches, back-tracking
+    /// Logs the enemy placement seed, time per space, deaths, kills, pickups, waves, back-tracking
     /// ("nothing is sealed behind the player" is a testable claim) and a position trail for heatmaps.
     /// F8 = mark a moment (e.g. when the tester says something worth noting).
     /// Files: [project]/Playtests/ in the editor, persistentDataPath/Playtests in a build.
     /// </summary>
     public class VantagePlaytestLogger : MonoBehaviour
     {
-        [Tooltip("Tower root, used to work out which space the player is in.")]
+        [Tooltip("Command tower root (the levels come from VantageTowerLevels).")]
         public Transform Tower;
         public float TrailInterval = 1f;
         public bool ShowOverlay = true;
 
-        private const float F2 = 7.2f, F3 = 11.2f, FR = 15.7f;
-        private static readonly string[] Spaces = { "Yard", "L1 Lobby", "L2 Corridors", "Fire Escape", "L3 Collapsed", "Roof" };
-        private static readonly float[] Progress = { 0f, 1f, 2f, 2.5f, 3f, 4f };
+        private static readonly string[] Spaces = { "Military Base", "Level 1 (ground, F1)", "Level 2 (F2, F3)", "Level 3 (F4, F5)", "Level 4 (roof)" };
+        private static readonly float[] Progress = { 0f, 1f, 2f, 3f, 4f };
+
+        /// <summary>Name of the space the player is in, or null before the first update (shown by the minimap).</summary>
+        public string CurrentSpace => _space >= 0 ? Spaces[_space] : null;
 
         private readonly StringBuilder _events = new StringBuilder();
-        private readonly StringBuilder _trail = new StringBuilder("time,x,y,z,space,view\n");
+        private readonly StringBuilder _trail = new StringBuilder("time,x,y,z,space\n");
         private readonly float[] _timeIn = new float[Spaces.Length];
         private readonly int[] _deathsIn = new int[Spaces.Length];
         private readonly Dictionary<string, int> _kills = new Dictionary<string, int>();
@@ -34,7 +36,6 @@ namespace Vantage
         private float _bestProgress;
         private int _backtracks;
         private int _seed = -1;
-        private bool _thirdPerson;
         private bool _completed;
         private float _nextTrail;
         private string _folder;
@@ -46,9 +47,7 @@ namespace Vantage
             VantageEvents.PlayerDied += onDied;
             VantageEvents.EnemyKilled += onKill;
             VantageEvents.WeaponPickedUp += onPickup;
-            VantageEvents.ViewSwitched += onView;
             VantageEvents.LayoutGenerated += onSeed;
-            VantageEvents.WaveStarted += onWave;
             VantageEvents.LevelCompleted += onComplete;
         }
 
@@ -57,9 +56,7 @@ namespace Vantage
             VantageEvents.PlayerDied -= onDied;
             VantageEvents.EnemyKilled -= onKill;
             VantageEvents.WeaponPickedUp -= onPickup;
-            VantageEvents.ViewSwitched -= onView;
             VantageEvents.LayoutGenerated -= onSeed;
-            VantageEvents.WaveStarted -= onWave;
             VantageEvents.LevelCompleted -= onComplete;
             write();
         }
@@ -86,7 +83,7 @@ namespace Vantage
                     if (_space >= 0)
                         log($"{Spaces[_space]} -> {Spaces[space]}");
 
-                    if (Progress[space] + 0.01f < _bestProgress && space != 3)
+                    if (Progress[space] + 0.01f < _bestProgress)
                     {
                         _backtracks++;
                         log($"BACKTRACK to {Spaces[space]} (furthest so far: {furthest()})");
@@ -101,7 +98,7 @@ namespace Vantage
                 if (Time.time >= _nextTrail)
                 {
                     _nextTrail = Time.time + TrailInterval;
-                    _trail.Append($"{Time.time:F1},{position.x:F2},{position.y:F2},{position.z:F2},{Spaces[space]},{(_thirdPerson ? "3P" : "1P")}\n");
+                    _trail.Append($"{Time.time:F1},{position.x:F2},{position.y:F2},{position.z:F2},{Spaces[space]}\n");
                 }
             }
 
@@ -110,26 +107,12 @@ namespace Vantage
                 log($"MARK at {(player != null ? player.transform.position.ToString("F1") : "?")} in {(_space >= 0 ? Spaces[_space] : "?")}");
         }
 
+        /// <summary>0 outside the tower, 1–4 for the tower's levels.</summary>
         private int spaceOf(Vector3 world)
         {
-            if (Tower == null)
-                return 0;
-
-            var p = Tower.InverseTransformPoint(world);
-            var inside = Mathf.Abs(p.x) < 9f && Mathf.Abs(p.z) < 9f;
-            var onFireEscape = p.x < -8.9f && p.x > -12f && p.z > -8.5f && p.z < 4.2f && p.y > F2 - 1f;
-
-            if (onFireEscape)
-                return 3;
-            if (!inside)
-                return p.y > FR - 0.5f ? 5 : 0;
-            if (p.y > FR - 0.5f)
-                return 5;
-            if (p.y > F3 - 0.5f)
-                return 4;
-            if (p.y > F2 - 0.5f)
-                return 2;
-            return 1;
+            var levels = VantageTowerLevels.Instance;
+            var level = levels != null ? levels.LevelAt(world) : -1;
+            return level >= 0 ? Mathf.Min(level + 1, Spaces.Length - 1) : 0;
         }
 
         private string furthest()
@@ -155,9 +138,7 @@ namespace Vantage
         }
 
         private void onPickup(string weapon) => log("Picked up " + weapon);
-        private void onView(bool thirdPerson) { _thirdPerson = thirdPerson; log("View: " + (thirdPerson ? "third person" : "first person")); }
-        private void onSeed(int seed) { _seed = seed; log("Level 2 layout seed " + seed); }
-        private void onWave(int wave, int count) => log($"Roof wave {wave} started ({count} drones)");
+        private void onSeed(int seed) { _seed = seed; log("Enemy placement seed " + seed); }
 
         private void onComplete()
         {
@@ -181,7 +162,7 @@ namespace Vantage
                 Directory.CreateDirectory(_folder);
                 var report = new StringBuilder();
                 report.Append("VANTAGE playtest  ").Append(_stamp).Append('\n');
-                report.Append("Level 2 seed: ").Append(_seed >= 0 ? _seed.ToString() : "n/a").Append('\n');
+                report.Append("Enemy placement seed: ").Append(_seed >= 0 ? _seed.ToString() : "n/a").Append('\n');
                 report.Append($"Session length: {Time.time:F0}s   Completed: {(_completed ? "yes" : "no")}   Furthest: {furthest()}   Backtracks: {_backtracks}\n\n");
 
                 report.Append("Time per space\n");

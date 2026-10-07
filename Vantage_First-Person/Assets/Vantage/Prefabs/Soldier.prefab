@@ -1,0 +1,182 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3034149608841251302
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1317045090754292, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_Name
+      value: Soldier
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4760142222335612, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 95905396247511878, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114051075142140442, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: AlwaysUpdateIK
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114051075142140442, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: Weapon.RightItem
+      value: 
+      objectReference: {fileID: 3034911836939150546}
+    - target: {fileID: 114051075142140442, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: Weapon.RightHolster
+      value: 
+      objectReference: {fileID: 3035350251315049522}
+    - target: {fileID: 114051075142140442, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: Weapon.IsDualWielding
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114051075142140442, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      propertyPath: Weapon.PreferSwapping
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1317045090754292, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3500630684588339471}
+    - targetCorrespondingSourceObject: {fileID: 1317045090754292, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5063482227584198873}
+    - targetCorrespondingSourceObject: {fileID: 1317045090754292, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4053614211682433704}
+  m_SourcePrefab: {fileID: 100100000, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+--- !u!1 &3034867044158180666 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1536572160279772, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+  m_PrefabInstance: {fileID: 3034149608841251302}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3034911836939150546 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1507165013372212, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+  m_PrefabInstance: {fileID: 3034149608841251302}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3035277015895204444 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1141993569315770, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+  m_PrefabInstance: {fileID: 3034149608841251302}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3035350251315049522 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1350229888155092, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+  m_PrefabInstance: {fileID: 3034149608841251302}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3035385630840723218 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1317045090754292, guid: 1678028dff86a964b968130bf728d70f, type: 3}
+  m_PrefabInstance: {fileID: 3034149608841251302}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3500630684588339471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3035385630840723218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f825e350da1be534680d9e2b102e11f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Weapons:
+  - RightItem: {fileID: 3034911836939150546}
+    LeftItem: {fileID: 0}
+    RightHolster: {fileID: 3035350251315049522}
+    LeftHolster: {fileID: 0}
+    Shield: {fileID: 0}
+    PreferSwapping: 0
+    IsDualWielding: 0
+    IsHeavy: 0
+    PreventCovers: 0
+    PreventClimbing: 0
+    PreventArmLowering: 0
+    Aiming: 0
+  - RightItem: {fileID: 3034867044158180666}
+    LeftItem: {fileID: 0}
+    RightHolster: {fileID: 3035277015895204444}
+    LeftHolster: {fileID: 0}
+    Shield: {fileID: 0}
+    PreferSwapping: 0
+    IsDualWielding: 0
+    IsHeavy: 0
+    PreventCovers: 0
+    PreventClimbing: 0
+    PreventArmLowering: 0
+    Aiming: 0
+--- !u!114 &5063482227584198873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3035385630840723218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 249a7c3e826202d43aa5d0e0118bd01b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EngageRange: 32
+  CoverRange: 9
+  FloorTolerance: 2.6
+--- !u!114 &4053614211682433704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3035385630840723218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bb55f3f95fac4845b4d432c05b393d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EnemyName: Soldier

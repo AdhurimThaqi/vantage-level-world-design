@@ -1239,6 +1239,14 @@ namespace CoverShooter
         public WeaponDescription[] Weapons;
 
         /// <summary>
+        /// VANTAGE change: update aiming IK even when no renderer of the character is visible. The template skips
+        /// IK for off-screen characters, and a gun is only allowed to fire while the arms are aimed, so enemies
+        /// outside the camera view (behind the player, around corners) could never shoot.
+        /// </summary>
+        [Tooltip("Update aiming IK even when the character is off-screen (needed for AI that must be able to shoot from outside the camera view).")]
+        public bool AlwaysUpdateIK;
+
+        /// <summary>
         /// Grenade settings.
         /// </summary>
         public GrenadeSettings Grenade = GrenadeSettings.Default();
@@ -3441,7 +3449,7 @@ namespace CoverShooter
                         break;
                     }
 
-                if (anyVisibility || _targetLayer == Layers.Scope)
+                if (anyVisibility || AlwaysUpdateIK || _targetLayer == Layers.Scope)
                     updateIK();
 
                 if (EquippedWeapon.Gun != null)

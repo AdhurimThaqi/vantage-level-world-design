@@ -1,0 +1,42 @@
+VANTAGE playtest  2026-10-07_09-43-33
+Enemy placement seed: 85156
+Session length: 0s   Completed: no   Furthest: Level 2 (F2, F3)   Backtracks: 1
+
+Time per space
+  Military Base       3s   deaths 0
+  Level 1 (ground, F1)     30s   deaths 0
+  Level 2 (F2, F3)     12s   deaths 0
+  Level 3 (F4, F5)      0s   deaths 0
+  Level 4 (roof)      0s   deaths 0
+
+Kills
+  Drone          3
+  Soldier        10
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 85156
+[    0.0s] Session started
+[    2.0s] Killed Drone in Level 1 (ground, F1)
+[    2.1s] Killed Soldier in Level 1 (ground, F1)
+[    2.1s] Killed Soldier in Level 1 (ground, F1)
+[    2.1s] Killed Soldier in Level 1 (ground, F1)
+[    2.1s] Killed Soldier in Level 1 (ground, F1)
+[    2.1s] Killed Drone in Level 2 (F2, F3)
+[    2.1s] Killed Drone in Level 2 (F2, F3)
+[    2.3s] Killed Soldier in Level 2 (F2, F3)
+[    2.3s] Killed Soldier in Level 2 (F2, F3)
+[    2.3s] Killed Soldier in Level 2 (F2, F3)
+[    2.3s] Killed Soldier in Level 2 (F2, F3)
+[    2.3s] Killed Soldier in Level 2 (F2, F3)
+[    2.3s] Killed Soldier in Level 2 (F2, F3)
+[    2.6s] Military Base -> Level 1 (ground, F1)
+[   17.3s] Picked up Rifle
+[   22.3s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   26.3s] Level 2 (F2, F3) -> Level 1 (ground, F1)
+[   26.3s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 2 (F2, F3))
+[   37.0s] Level 1 (ground, F1) -> Level 2 (F2, F3)

@@ -1,0 +1,1137 @@
+{
+ "props": {
+  "APC_8x8": {
+   "fbx": "Models/Props/APC_8x8.fbx",
+   "tex": "APC_8x8",
+   "alpha": false,
+   "size": 2048
+  },
+  "AmmoBox": {
+   "fbx": "Models/Props/AmmoBox.fbx",
+   "tex": "AmmoBox",
+   "alpha": false,
+   "size": 256
+  },
+  "AntennaPole": {
+   "fbx": "Models/Props/AntennaPole.fbx",
+   "tex": "AntennaPole",
+   "alpha": false,
+   "size": 256
+  },
+  "BalanceBeam": {
+   "fbx": "Models/Props/BalanceBeam.fbx",
+   "tex": "BalanceBeam",
+   "alpha": false,
+   "size": 256
+  },
+  "Barrel_Blue": {
+   "fbx": "Models/Props/Barrel_Blue.fbx",
+   "tex": "Barrel_Blue",
+   "alpha": false,
+   "size": 256
+  },
+  "Barrel_Green": {
+   "fbx": "Models/Props/Barrel_Green.fbx",
+   "tex": "Barrel_Green",
+   "alpha": false,
+   "size": 256
+  },
+  "Barrel_Rusty": {
+   "fbx": "Models/Props/Barrel_Rusty.fbx",
+   "tex": "Barrel_Rusty",
+   "alpha": false,
+   "size": 256
+  },
+  "Bench": {
+   "fbx": "Models/Props/Bench.fbx",
+   "tex": "Bench",
+   "alpha": false,
+   "size": 256
+  },
+  "BoomBarrier": {
+   "fbx": "Models/Props/BoomBarrier.fbx",
+   "tex": "BoomBarrier",
+   "alpha": false,
+   "size": 512
+  },
+  "Bunker": {
+   "fbx": "Models/Props/Bunker.fbx",
+   "tex": "Bunker",
+   "alpha": false,
+   "size": 2048
+  },
+  "CableReel": {
+   "fbx": "Models/Props/CableReel.fbx",
+   "tex": "CableReel",
+   "alpha": false,
+   "size": 512
+  },
+  "CamoShelter": {
+   "fbx": "Models/Props/CamoShelter.fbx",
+   "tex": "CamoShelter",
+   "alpha": true,
+   "size": 2048
+  },
+  "ClimbFrame": {
+   "fbx": "Models/Props/ClimbFrame.fbx",
+   "tex": "ClimbFrame",
+   "alpha": false,
+   "size": 1024
+  },
+  "CommsMast": {
+   "fbx": "Models/Props/CommsMast.fbx",
+   "tex": "CommsMast",
+   "alpha": false,
+   "size": 1024
+  },
+  "ConcreteBlock": {
+   "fbx": "Models/Props/ConcreteBlock.fbx",
+   "tex": "ConcreteBlock",
+   "alpha": false,
+   "size": 256
+  },
+  "Container_20ft_Blue": {
+   "fbx": "Models/Props/Container_20ft_Blue.fbx",
+   "tex": "Container_20ft_Blue",
+   "alpha": false,
+   "size": 2048
+  },
+  "Container_20ft_Olive": {
+   "fbx": "Models/Props/Container_20ft_Olive.fbx",
+   "tex": "Container_20ft_Olive",
+   "alpha": false,
+   "size": 2048
+  },
+  "Container_20ft_Rust": {
+   "fbx": "Models/Props/Container_20ft_Rust.fbx",
+   "tex": "Container_20ft_Rust",
+   "alpha": false,
+   "size": 2048
+  },
+  "Crate_Wood": {
+   "fbx": "Models/Props/Crate_Wood.fbx",
+   "tex": "Crate_Wood",
+   "alpha": false,
+   "size": 512
+  },
+  "CrawlNet": {
+   "fbx": "Models/Props/CrawlNet.fbx",
+   "tex": "CrawlNet",
+   "alpha": true,
+   "size": 1024
+  },
+  "CzechHedgehog": {
+   "fbx": "Models/Props/CzechHedgehog.fbx",
+   "tex": "CzechHedgehog",
+   "alpha": false,
+   "size": 256
+  },
+  "DragonTooth": {
+   "fbx": "Models/Props/DragonTooth.fbx",
+   "tex": "DragonTooth",
+   "alpha": false,
+   "size": 256
+  },
+  "Dumpster": {
+   "fbx": "Models/Props/Dumpster.fbx",
+   "tex": "Dumpster",
+   "alpha": false,
+   "size": 512
+  },
+  "EquipmentCase": {
+   "fbx": "Models/Props/EquipmentCase.fbx",
+   "tex": "EquipmentCase",
+   "alpha": false,
+   "size": 512
+  },
+  "FallenLog": {
+   "fbx": "Models/Props/FallenLog.fbx",
+   "tex": "FallenLog",
+   "alpha": false,
+   "size": 512
+  },
+  "FenceSegment_3m": {
+   "fbx": "Models/Props/FenceSegment_3m.fbx",
+   "tex": "FenceSegment_3m",
+   "alpha": true,
+   "size": 512
+  },
+  "FiringPoint": {
+   "fbx": "Models/Props/FiringPoint.fbx",
+   "tex": "FiringPoint",
+   "alpha": false,
+   "size": 1024
+  },
+  "FloodlightPole": {
+   "fbx": "Models/Props/FloodlightPole.fbx",
+   "tex": "FloodlightPole",
+   "alpha": false,
+   "size": 512
+  },
+  "FuelTank": {
+   "fbx": "Models/Props/FuelTank.fbx",
+   "tex": "FuelTank",
+   "alpha": false,
+   "size": 1024
+  },
+  "GateLeaf_7m": {
+   "fbx": "Models/Props/GateLeaf_7m.fbx",
+   "tex": "GateLeaf_7m",
+   "alpha": true,
+   "size": 1024
+  },
+  "GatePost": {
+   "fbx": "Models/Props/GatePost.fbx",
+   "tex": "GatePost",
+   "alpha": false,
+   "size": 512
+  },
+  "Generator": {
+   "fbx": "Models/Props/Generator.fbx",
+   "tex": "Generator",
+   "alpha": false,
+   "size": 512
+  },
+  "GuardTower": {
+   "fbx": "Models/Props/GuardTower.fbx",
+   "tex": "GuardTower",
+   "alpha": false,
+   "size": 2048
+  },
+  "Hesco": {
+   "fbx": "Models/Props/Hesco.fbx",
+   "tex": "Hesco",
+   "alpha": false,
+   "size": 512
+  },
+  "Hurdle": {
+   "fbx": "Models/Props/Hurdle.fbx",
+   "tex": "Hurdle",
+   "alpha": false,
+   "size": 256
+  },
+  "JerryCan": {
+   "fbx": "Models/Props/JerryCan.fbx",
+   "tex": "JerryCan",
+   "alpha": false,
+   "size": 256
+  },
+  "JerseyBarrier": {
+   "fbx": "Models/Props/JerseyBarrier.fbx",
+   "tex": "JerseyBarrier",
+   "alpha": false,
+   "size": 512
+  },
+  "Ladder": {
+   "fbx": "Models/Props/Ladder.fbx",
+   "tex": "Ladder",
+   "alpha": false,
+   "size": 256
+  },
+  "LightPole": {
+   "fbx": "Models/Props/LightPole.fbx",
+   "tex": "LightPole",
+   "alpha": false,
+   "size": 256
+  },
+  "MetalBarrier": {
+   "fbx": "Models/Props/MetalBarrier.fbx",
+   "tex": "MetalBarrier",
+   "alpha": false,
+   "size": 256
+  },
+  "MilitarySign": {
+   "fbx": "Models/Props/MilitarySign.fbx",
+   "tex": "MilitarySign",
+   "alpha": false,
+   "size": 256
+  },
+  "ObstacleWall": {
+   "fbx": "Models/Props/ObstacleWall.fbx",
+   "tex": "ObstacleWall",
+   "alpha": false,
+   "size": 512
+  },
+  "Pallet": {
+   "fbx": "Models/Props/Pallet.fbx",
+   "tex": "Pallet",
+   "alpha": false,
+   "size": 256
+  },
+  "PalletStack": {
+   "fbx": "Models/Props/PalletStack.fbx",
+   "tex": "PalletStack",
+   "alpha": false,
+   "size": 512
+  },
+  "PicnicTable": {
+   "fbx": "Models/Props/PicnicTable.fbx",
+   "tex": "PicnicTable",
+   "alpha": false,
+   "size": 256
+  },
+  "PipeRun": {
+   "fbx": "Models/Props/PipeRun.fbx",
+   "tex": "PipeRun",
+   "alpha": false,
+   "size": 512
+  },
+  "PopupTarget": {
+   "fbx": "Models/Props/PopupTarget.fbx",
+   "tex": "PopupTarget",
+   "alpha": false,
+   "size": 256
+  },
+  "SandbagPosition": {
+   "fbx": "Models/Props/SandbagPosition.fbx",
+   "tex": "SandbagPosition",
+   "alpha": false,
+   "size": 1024
+  },
+  "SandbagWall_2m": {
+   "fbx": "Models/Props/SandbagWall_2m.fbx",
+   "tex": "SandbagWall_2m",
+   "alpha": false,
+   "size": 256
+  },
+  "SandbagWall_4m": {
+   "fbx": "Models/Props/SandbagWall_4m.fbx",
+   "tex": "SandbagWall_4m",
+   "alpha": false,
+   "size": 512
+  },
+  "SatelliteDish": {
+   "fbx": "Models/Props/SatelliteDish.fbx",
+   "tex": "SatelliteDish",
+   "alpha": false,
+   "size": 512
+  },
+  "TWall": {
+   "fbx": "Models/Props/TWall.fbx",
+   "tex": "TWall",
+   "alpha": false,
+   "size": 512
+  },
+  "TargetFrame": {
+   "fbx": "Models/Props/TargetFrame.fbx",
+   "tex": "TargetFrame",
+   "alpha": false,
+   "size": 256
+  },
+  "TireRun": {
+   "fbx": "Models/Props/TireRun.fbx",
+   "tex": "TireRun",
+   "alpha": false,
+   "size": 512
+  },
+  "TireStack": {
+   "fbx": "Models/Props/TireStack.fbx",
+   "tex": "TireStack",
+   "alpha": false,
+   "size": 512
+  },
+  "ToolRack": {
+   "fbx": "Models/Props/ToolRack.fbx",
+   "tex": "ToolRack",
+   "alpha": false,
+   "size": 512
+  },
+  "TrafficCone": {
+   "fbx": "Models/Props/TrafficCone.fbx",
+   "tex": "TrafficCone",
+   "alpha": false,
+   "size": 256
+  },
+  "TreeStump": {
+   "fbx": "Models/Props/TreeStump.fbx",
+   "tex": "TreeStump",
+   "alpha": false,
+   "size": 256
+  },
+  "Truck_6x6": {
+   "fbx": "Models/Props/Truck_6x6.fbx",
+   "tex": "Truck_6x6",
+   "alpha": false,
+   "size": 2048
+  },
+  "UtilityBox": {
+   "fbx": "Models/Props/UtilityBox.fbx",
+   "tex": "UtilityBox",
+   "alpha": false,
+   "size": 256
+  },
+  "Utility_4x4": {
+   "fbx": "Models/Props/Utility_4x4.fbx",
+   "tex": "Utility_4x4",
+   "alpha": false,
+   "size": 1024
+  },
+  "WarningSign": {
+   "fbx": "Models/Props/WarningSign.fbx",
+   "tex": "WarningSign",
+   "alpha": false,
+   "size": 256
+  }
+ },
+ "buildings": {
+  "BLD_Headquarters": {
+   "fbx": "Models/Buildings/BLD_Headquarters.fbx",
+   "tex": "BLD_Headquarters",
+   "alpha": false,
+   "size": 4096
+  },
+  "BLD_Barracks_A": {
+   "fbx": "Models/Buildings/BLD_Barracks_A.fbx",
+   "tex": "BLD_Barracks_A",
+   "alpha": false,
+   "size": 4096
+  },
+  "BLD_Barracks_B": {
+   "fbx": "Models/Buildings/BLD_Barracks_B.fbx",
+   "tex": "BLD_Barracks_B",
+   "alpha": false,
+   "size": 4096
+  },
+  "BLD_Medical": {
+   "fbx": "Models/Buildings/BLD_Medical.fbx",
+   "tex": "BLD_Medical",
+   "alpha": false,
+   "size": 4096
+  },
+  "BLD_Guardhouse": {
+   "fbx": "Models/Buildings/BLD_Guardhouse.fbx",
+   "tex": "BLD_Guardhouse",
+   "alpha": false,
+   "size": 2048
+  },
+  "BLD_Storage_01": {
+   "fbx": "Models/Buildings/BLD_Storage_01.fbx",
+   "tex": "BLD_Storage_01",
+   "alpha": false,
+   "size": 2048
+  },
+  "BLD_Storage_02": {
+   "fbx": "Models/Buildings/BLD_Storage_02.fbx",
+   "tex": "BLD_Storage_02",
+   "alpha": false,
+   "size": 2048
+  },
+  "BLD_Comms_Shelter": {
+   "fbx": "Models/Buildings/BLD_Comms_Shelter.fbx",
+   "tex": "BLD_Comms_Shelter",
+   "alpha": false,
+   "size": 2048
+  },
+  "BLD_Logistics_Warehouse": {
+   "fbx": "Models/Buildings/BLD_Logistics_Warehouse.fbx",
+   "tex": "BLD_Logistics_Warehouse",
+   "alpha": false,
+   "size": 4096
+  },
+  "BLD_Vehicle_Garage": {
+   "fbx": "Models/Buildings/BLD_Vehicle_Garage.fbx",
+   "tex": "BLD_Vehicle_Garage",
+   "alpha": false,
+   "size": 4096
+  },
+  "BLD_Maintenance_Workshop": {
+   "fbx": "Models/Buildings/BLD_Maintenance_Workshop.fbx",
+   "tex": "BLD_Maintenance_Workshop",
+   "alpha": false,
+   "size": 4096
+  },
+  "BLD_Checkpoint_Booth": {
+   "fbx": "Models/Buildings/BLD_Checkpoint_Booth.fbx",
+   "tex": "BLD_Checkpoint_Booth",
+   "alpha": false,
+   "size": 1024
+  },
+  "BLD_Range_Control": {
+   "fbx": "Models/Buildings/BLD_Range_Control.fbx",
+   "tex": "BLD_Range_Control",
+   "alpha": false,
+   "size": 2048
+  },
+  "BLD_ShootHouse_A": {
+   "fbx": "Models/Buildings/BLD_ShootHouse_A.fbx",
+   "tex": "BLD_ShootHouse_A",
+   "alpha": false,
+   "size": 2048
+  },
+  "BLD_ShootHouse_B": {
+   "fbx": "Models/Buildings/BLD_ShootHouse_B.fbx",
+   "tex": "BLD_ShootHouse_B",
+   "alpha": false,
+   "size": 2048
+  },
+  "BLD_ShootHouse_C": {
+   "fbx": "Models/Buildings/BLD_ShootHouse_C.fbx",
+   "tex": "BLD_ShootHouse_C",
+   "alpha": false,
+   "size": 2048
+  }
+ },
+ "unique": {
+  "Range_Berm_Back": {
+   "fbx": "Models/World/Range_Berm_Back.fbx",
+   "tex": "Range_Berm_Back",
+   "alpha": false,
+   "size": 1024
+  },
+  "Range_Berm_West": {
+   "fbx": "Models/World/Range_Berm_West.fbx",
+   "tex": "Range_Berm_West",
+   "alpha": false,
+   "size": 1024
+  },
+  "Range_Berm_East": {
+   "fbx": "Models/World/Range_Berm_East.fbx",
+   "tex": "Range_Berm_East",
+   "alpha": false,
+   "size": 1024
+  },
+  "Range_Berm_Mid": {
+   "fbx": "Models/World/Range_Berm_Mid.fbx",
+   "tex": "Range_Berm_Mid",
+   "alpha": false,
+   "size": 512
+  },
+  "Range_RedFlag": {
+   "fbx": "Models/World/Range_RedFlag.fbx",
+   "tex": "Range_RedFlag",
+   "alpha": false,
+   "size": 512
+  },
+  "Trench_Revetment": {
+   "fbx": "Models/World/Trench_Revetment.fbx",
+   "tex": "Trench_Revetment",
+   "alpha": false,
+   "size": 512
+  },
+  "Trench_Revetment.001": {
+   "fbx": "Models/World/Trench_Revetment_001.fbx",
+   "tex": "Trench_Revetment_001",
+   "alpha": false,
+   "size": 512
+  },
+  "Trench_Revetment.002": {
+   "fbx": "Models/World/Trench_Revetment_002.fbx",
+   "tex": "Trench_Revetment_002",
+   "alpha": false,
+   "size": 512
+  },
+  "Trench_Revetment.003": {
+   "fbx": "Models/World/Trench_Revetment_003.fbx",
+   "tex": "Trench_Revetment_003",
+   "alpha": false,
+   "size": 512
+  },
+  "Trench_Revetment.004": {
+   "fbx": "Models/World/Trench_Revetment_004.fbx",
+   "tex": "Trench_Revetment_004",
+   "alpha": false,
+   "size": 512
+  },
+  "Road_Main_Approach": {
+   "fbx": "Models/World/Road_Main_Approach.fbx",
+   "tile": "Asphalt"
+  },
+  "Road_Main_Approach_Shoulders": {
+   "fbx": "Models/World/Road_Main_Approach_Shoulders.fbx",
+   "tile": "RoadShoulder"
+  },
+  "Road_Main_Approach_Markings": {
+   "fbx": "Models/World/Road_Main_Approach_Markings.fbx",
+   "tile": "RoadPaint"
+  },
+  "Road_Base_Spine": {
+   "fbx": "Models/World/Road_Base_Spine.fbx",
+   "tile": "Asphalt"
+  },
+  "Road_Base_Spine_Shoulders": {
+   "fbx": "Models/World/Road_Base_Spine_Shoulders.fbx",
+   "tile": "RoadShoulder"
+  },
+  "Road_Base_Spine_Markings": {
+   "fbx": "Models/World/Road_Base_Spine_Markings.fbx",
+   "tile": "RoadPaint"
+  },
+  "Road_Base_Cross_S": {
+   "fbx": "Models/World/Road_Base_Cross_S.fbx",
+   "tile": "Asphalt"
+  },
+  "Road_Base_Cross_S_Shoulders": {
+   "fbx": "Models/World/Road_Base_Cross_S_Shoulders.fbx",
+   "tile": "RoadShoulder"
+  },
+  "Road_Base_Cross_S_Markings": {
+   "fbx": "Models/World/Road_Base_Cross_S_Markings.fbx",
+   "tile": "RoadPaint"
+  },
+  "Road_Base_Cross_N": {
+   "fbx": "Models/World/Road_Base_Cross_N.fbx",
+   "tile": "Asphalt"
+  },
+  "Road_Base_Cross_N_Shoulders": {
+   "fbx": "Models/World/Road_Base_Cross_N_Shoulders.fbx",
+   "tile": "RoadShoulder"
+  },
+  "Road_Base_Cross_N_Markings": {
+   "fbx": "Models/World/Road_Base_Cross_N_Markings.fbx",
+   "tile": "RoadPaint"
+  },
+  "Road_Training_Gravel": {
+   "fbx": "Models/World/Road_Training_Gravel.fbx",
+   "tile": "GravelRoad"
+  },
+  "Road_Forest_Trail_N": {
+   "fbx": "Models/World/Road_Forest_Trail_N.fbx",
+   "tile": "DirtRoad"
+  },
+  "Road_Forest_Trail_W": {
+   "fbx": "Models/World/Road_Forest_Trail_W.fbx",
+   "tile": "DirtRoad"
+  },
+  "Road_Range_Service": {
+   "fbx": "Models/World/Road_Range_Service.fbx",
+   "tile": "DirtRoad"
+  },
+  "Decal_AsphaltPatches": {
+   "fbx": "Models/World/Decal_AsphaltPatches.fbx",
+   "tile": "AsphaltPatch"
+  },
+  "Pad_VehicleYard": {
+   "fbx": "Models/World/Pad_VehicleYard.fbx",
+   "tile": "Concrete"
+  },
+  "Pad_HQ_Parking": {
+   "fbx": "Models/World/Pad_HQ_Parking.fbx",
+   "tile": "Asphalt"
+  },
+  "Pad_EquipmentYard": {
+   "fbx": "Models/World/Pad_EquipmentYard.fbx",
+   "tile": "GravelPad"
+  },
+  "Pad_ContainerYard": {
+   "fbx": "Models/World/Pad_ContainerYard.fbx",
+   "tile": "GravelPad"
+  },
+  "Pad_FuelArea": {
+   "fbx": "Models/World/Pad_FuelArea.fbx",
+   "tile": "ConcreteDark"
+  },
+  "Pad_Comms": {
+   "fbx": "Models/World/Pad_Comms.fbx",
+   "tile": "GravelPad"
+  },
+  "Pad_Training_Staging": {
+   "fbx": "Models/World/Pad_Training_Staging.fbx",
+   "tile": "GravelPad"
+  },
+  "Decal_ParkingLines": {
+   "fbx": "Models/World/Decal_ParkingLines.fbx",
+   "tile": "RoadPaint"
+  },
+  "Decal_Mud": {
+   "fbx": "Models/World/Decal_Mud.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.001": {
+   "fbx": "Models/World/Decal_Mud_001.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.002": {
+   "fbx": "Models/World/Decal_Mud_002.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.003": {
+   "fbx": "Models/World/Decal_Mud_003.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.004": {
+   "fbx": "Models/World/Decal_Mud_004.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.005": {
+   "fbx": "Models/World/Decal_Mud_005.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.006": {
+   "fbx": "Models/World/Decal_Mud_006.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.007": {
+   "fbx": "Models/World/Decal_Mud_007.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.008": {
+   "fbx": "Models/World/Decal_Mud_008.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.009": {
+   "fbx": "Models/World/Decal_Mud_009.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.010": {
+   "fbx": "Models/World/Decal_Mud_010.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.011": {
+   "fbx": "Models/World/Decal_Mud_011.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.012": {
+   "fbx": "Models/World/Decal_Mud_012.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.013": {
+   "fbx": "Models/World/Decal_Mud_013.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.014": {
+   "fbx": "Models/World/Decal_Mud_014.fbx",
+   "tile": "Mud"
+  },
+  "Decal_Mud.015": {
+   "fbx": "Models/World/Decal_Mud_015.fbx",
+   "tile": "Mud"
+  },
+  "Decal_OilStain": {
+   "fbx": "Models/World/Decal_OilStain.fbx",
+   "tile": "AsphaltPatch"
+  },
+  "Decal_OilStain.001": {
+   "fbx": "Models/World/Decal_OilStain_001.fbx",
+   "tile": "AsphaltPatch"
+  },
+  "Decal_OilStain.002": {
+   "fbx": "Models/World/Decal_OilStain_002.fbx",
+   "tile": "AsphaltPatch"
+  },
+  "Decal_OilStain.003": {
+   "fbx": "Models/World/Decal_OilStain_003.fbx",
+   "tile": "AsphaltPatch"
+  },
+  "Decal_OilStain.004": {
+   "fbx": "Models/World/Decal_OilStain_004.fbx",
+   "tile": "AsphaltPatch"
+  },
+  "Decal_OilStain.005": {
+   "fbx": "Models/World/Decal_OilStain_005.fbx",
+   "tile": "AsphaltPatch"
+  },
+  "Terrain_Distant_Horizon": {
+   "fbx": "Models/World/Terrain_Distant_Horizon.fbx",
+   "tex": "Terrain_Distant_Horizon",
+   "alpha": false,
+   "nometal": true
+  }
+ },
+ "veg": {
+  "G_Fern_0": {
+   "fbx": "Models/Vegetation/G_Fern_0.fbx",
+   "mats": "named"
+  },
+  "G_Fern_1": {
+   "fbx": "Models/Vegetation/G_Fern_1.fbx",
+   "mats": "named"
+  },
+  "G_GrassCard_0": {
+   "fbx": "Models/Vegetation/G_GrassCard_0.fbx",
+   "mats": "named"
+  },
+  "G_GrassCard_1": {
+   "fbx": "Models/Vegetation/G_GrassCard_1.fbx",
+   "mats": "named"
+  },
+  "G_GrassCard_2": {
+   "fbx": "Models/Vegetation/G_GrassCard_2.fbx",
+   "mats": "named"
+  },
+  "G_GrassCard_3": {
+   "fbx": "Models/Vegetation/G_GrassCard_3.fbx",
+   "mats": "named"
+  },
+  "M_Bush_0": {
+   "fbx": "Models/Vegetation/M_Bush_0.fbx",
+   "mats": "named"
+  },
+  "M_Bush_1": {
+   "fbx": "Models/Vegetation/M_Bush_1.fbx",
+   "mats": "named"
+  },
+  "M_Bush_2": {
+   "fbx": "Models/Vegetation/M_Bush_2.fbx",
+   "mats": "named"
+  },
+  "M_Sapling_0": {
+   "fbx": "Models/Vegetation/M_Sapling_0.fbx",
+   "mats": "named"
+  },
+  "M_YoungSpruce_0": {
+   "fbx": "Models/Vegetation/M_YoungSpruce_0.fbx",
+   "mats": "named"
+  },
+  "M_YoungSpruce_1": {
+   "fbx": "Models/Vegetation/M_YoungSpruce_1.fbx",
+   "mats": "named"
+  },
+  "M_YoungSpruce_2": {
+   "fbx": "Models/Vegetation/M_YoungSpruce_2.fbx",
+   "mats": "named"
+  },
+  "T_Beech_0": {
+   "fbx": "Models/Vegetation/T_Beech_0.fbx",
+   "mats": "named"
+  },
+  "T_Birch_0": {
+   "fbx": "Models/Vegetation/T_Birch_0.fbx",
+   "mats": "named"
+  },
+  "T_Birch_1": {
+   "fbx": "Models/Vegetation/T_Birch_1.fbx",
+   "mats": "named"
+  },
+  "T_Fir_0": {
+   "fbx": "Models/Vegetation/T_Fir_0.fbx",
+   "mats": "named"
+  },
+  "T_Fir_1": {
+   "fbx": "Models/Vegetation/T_Fir_1.fbx",
+   "mats": "named"
+  },
+  "T_Pine_0": {
+   "fbx": "Models/Vegetation/T_Pine_0.fbx",
+   "mats": "named"
+  },
+  "T_Pine_1": {
+   "fbx": "Models/Vegetation/T_Pine_1.fbx",
+   "mats": "named"
+  },
+  "T_Spruce_0": {
+   "fbx": "Models/Vegetation/T_Spruce_0.fbx",
+   "mats": "named"
+  },
+  "T_Spruce_1": {
+   "fbx": "Models/Vegetation/T_Spruce_1.fbx",
+   "mats": "named"
+  },
+  "T_Spruce_2": {
+   "fbx": "Models/Vegetation/T_Spruce_2.fbx",
+   "mats": "named"
+  },
+  "R_Rock_0": {
+   "fbx": "Models/Vegetation/R_Rock_0.fbx",
+   "tex": "R_Rock_0",
+   "alpha": false
+  },
+  "R_Rock_1": {
+   "fbx": "Models/Vegetation/R_Rock_1.fbx",
+   "tex": "R_Rock_1",
+   "alpha": false
+  },
+  "R_Rock_2": {
+   "fbx": "Models/Vegetation/R_Rock_2.fbx",
+   "tex": "R_Rock_2",
+   "alpha": false
+  },
+  "R_Rock_3": {
+   "fbx": "Models/Vegetation/R_Rock_3.fbx",
+   "tex": "R_Rock_3",
+   "alpha": false
+  },
+  "R_Boulder_0": {
+   "fbx": "Models/Vegetation/R_Boulder_0.fbx",
+   "tex": "R_Boulder_0",
+   "alpha": false
+  },
+  "G_LeafLitter_0": {
+   "fbx": "Models/Vegetation/G_LeafLitter_0.fbx",
+   "tex": "G_LeafLitter_0",
+   "alpha": false
+  },
+  "G_Branch_0": {
+   "fbx": "Models/Vegetation/G_Branch_0.fbx",
+   "tex": "G_Branch_0",
+   "alpha": false
+  },
+  "G_Branch_1": {
+   "fbx": "Models/Vegetation/G_Branch_1.fbx",
+   "tex": "G_Branch_1",
+   "alpha": false
+  },
+  "T_Far_Conifer": {
+   "fbx": "Models/Vegetation/T_Far_Conifer.fbx",
+   "tex": "T_Far_Conifer",
+   "alpha": false
+  }
+ },
+ "tiling": {
+  "Asphalt": {
+   "tex": "Asphalt",
+   "tile_m": [
+    7,
+    10
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "AsphaltPatch": {
+   "tex": "AsphaltPatch",
+   "tile_m": [
+    4,
+    4
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "RoadPaint": {
+   "tex": "RoadPaint",
+   "tile_m": [
+    2,
+    2
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "RoadShoulder": {
+   "tex": "RoadShoulder",
+   "tile_m": [
+    3,
+    10
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "DirtRoad": {
+   "tex": "DirtRoad",
+   "tile_m": [
+    5,
+    10
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "GravelRoad": {
+   "tex": "GravelRoad",
+   "tile_m": [
+    6,
+    10
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "GravelPad": {
+   "tex": "GravelPad",
+   "tile_m": [
+    10,
+    10
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Concrete": {
+   "tex": "Concrete",
+   "tile_m": [
+    10,
+    10
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "ConcreteDark": {
+   "tex": "ConcreteDark",
+   "tile_m": [
+    10,
+    10
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Mud": {
+   "tex": "Mud",
+   "tile_m": [
+    4,
+    4
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Terrain_Grass": {
+   "tex": "Terrain_Grass",
+   "tile_m": [
+    8,
+    8
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Terrain_ForestFloor": {
+   "tex": "Terrain_ForestFloor",
+   "tile_m": [
+    8,
+    8
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Terrain_Dirt": {
+   "tex": "Terrain_Dirt",
+   "tile_m": [
+    8,
+    8
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Terrain_Gravel": {
+   "tex": "Terrain_Gravel",
+   "tile_m": [
+    8,
+    8
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Terrain_Rock": {
+   "tex": "Terrain_Rock",
+   "tile_m": [
+    8,
+    8
+   ],
+   "alpha": false,
+   "folder": "Textures/Tiling"
+  },
+  "Card_Spruce": {
+   "tex": "Card_Spruce",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": true,
+   "folder": "Textures/Vegetation"
+  },
+  "Card_Fir": {
+   "tex": "Card_Fir",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": true,
+   "folder": "Textures/Vegetation"
+  },
+  "Card_Pine": {
+   "tex": "Card_Pine",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": true,
+   "folder": "Textures/Vegetation"
+  },
+  "Card_Birch": {
+   "tex": "Card_Birch",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": true,
+   "folder": "Textures/Vegetation"
+  },
+  "Card_Beech": {
+   "tex": "Card_Beech",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": true,
+   "folder": "Textures/Vegetation"
+  },
+  "Card_Bush": {
+   "tex": "Card_Bush",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": true,
+   "folder": "Textures/Vegetation"
+  },
+  "Card_Grass": {
+   "tex": "Card_Grass",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": true,
+   "folder": "Textures/Vegetation"
+  },
+  "Bark_Spruce": {
+   "tex": "Bark_Spruce",
+   "tile_m": [
+    3.3,
+    1.5
+   ],
+   "alpha": false,
+   "folder": "Textures/Vegetation"
+  },
+  "Bark_Birch": {
+   "tex": "Bark_Birch",
+   "tile_m": [
+    3.3,
+    1.0
+   ],
+   "alpha": false,
+   "folder": "Textures/Vegetation"
+  },
+  "Bark_Pine": {
+   "tex": "Bark_Pine",
+   "tile_m": [
+    3.3,
+    1.0
+   ],
+   "alpha": false,
+   "folder": "Textures/Vegetation"
+  },
+  "Deadwood": {
+   "tex": "Deadwood",
+   "tile_m": [
+    3.3,
+    1.0
+   ],
+   "alpha": false,
+   "folder": "Textures/Vegetation"
+  },
+  "Fern": {
+   "tex": "Fern",
+   "tile_m": [
+    1,
+    1
+   ],
+   "alpha": false,
+   "folder": "Textures/Vegetation"
+  },
+  "Foliage_Far": {
+   "tex": "Foliage_Far",
+   "tile_m": [
+    4,
+    4
+   ],
+   "alpha": false,
+   "folder": "Textures/Vegetation"
+  }
+ },
+ "vegmat": {
+  "M_Bark_Spruce": "Bark_Spruce",
+  "M_Bark_Birch": "Bark_Birch",
+  "M_Bark_PineUpper": "Bark_Pine",
+  "M_Deadwood": "Deadwood",
+  "M_Card_Spruce": "Card_Spruce",
+  "M_Card_Fir": "Card_Fir",
+  "M_Card_Pine": "Card_Pine",
+  "M_Card_Birch": "Card_Birch",
+  "M_Card_Beech": "Card_Beech",
+  "M_Card_Bush": "Card_Bush",
+  "M_Card_Grass": "Card_Grass",
+  "M_Fern": "Fern"
+ }
+}

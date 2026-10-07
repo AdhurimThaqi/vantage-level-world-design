@@ -1,0 +1,50 @@
+VANTAGE playtest  2026-10-06_17-28-02
+Level 2 seed: 55875
+Session length: 0s   Completed: no   Furthest: Fire Escape   Backtracks: 5
+
+Time per space
+  Yard               15s   deaths 0
+  L1 Lobby           27s   deaths 0
+  L2 Corridors       60s   deaths 0
+  Fire Escape        38s   deaths 0
+  L3 Collapsed        0s   deaths 0
+  Roof                0s   deaths 0
+
+Kills
+  Drone          8
+  Soldier        2
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Level 2 layout seed 55875
+[    0.0s] Session started
+[    4.1s] Picked up Pistol
+[    8.7s] Killed Drone in Yard
+[   10.8s] Killed Drone in Yard
+[   15.2s] Yard -> L1 Lobby
+[   18.9s] Killed Drone in L1 Lobby
+[   25.7s] L1 Lobby -> L2 Corridors
+[   28.6s] Killed Drone in L2 Corridors
+[   34.2s] Killed Soldier in L2 Corridors
+[   37.6s] Killed Drone in L2 Corridors
+[   45.7s] Killed Drone in L2 Corridors
+[   52.3s] L2 Corridors -> Fire Escape
+[   53.4s] Killed Soldier in Fire Escape
+[   64.9s] Fire Escape -> L2 Corridors
+[   64.9s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[   67.2s] Killed Drone in L2 Corridors
+[   74.0s] L2 Corridors -> Fire Escape
+[   94.9s] Fire Escape -> L2 Corridors
+[   94.9s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[  108.6s] L2 Corridors -> L1 Lobby
+[  108.6s] BACKTRACK to L1 Lobby (furthest so far: Fire Escape)
+[  113.9s] Killed Drone in L2 Corridors
+[  124.7s] L1 Lobby -> L2 Corridors
+[  124.7s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)
+[  130.4s] L2 Corridors -> Fire Escape
+[  135.1s] Fire Escape -> L2 Corridors
+[  135.1s] BACKTRACK to L2 Corridors (furthest so far: Fire Escape)

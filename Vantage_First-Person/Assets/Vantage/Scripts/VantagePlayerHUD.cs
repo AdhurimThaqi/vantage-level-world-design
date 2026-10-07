@@ -38,7 +38,6 @@ namespace Vantage
         private readonly Image[] _pips = new Image[MaxPips];
 
         private int _kills;
-        private int _waveCount;
         private float _toastUntil = -1f;
         private float _deathTime = -1f;
 
@@ -57,7 +56,6 @@ namespace Vantage
         {
             VantageEvents.EnemyKilled += onEnemyKilled;
             VantageEvents.WeaponPickedUp += onWeaponPickedUp;
-            VantageEvents.WaveStarted += onWaveStarted;
             VantageEvents.LevelCompleted += onLevelCompleted;
         }
 
@@ -65,15 +63,11 @@ namespace Vantage
         {
             VantageEvents.EnemyKilled -= onEnemyKilled;
             VantageEvents.WeaponPickedUp -= onWeaponPickedUp;
-            VantageEvents.WaveStarted -= onWaveStarted;
             VantageEvents.LevelCompleted -= onLevelCompleted;
         }
 
         private void Start()
         {
-            var waves = FindFirstObjectByType<VantageWaveSpawner>();
-            _waveCount = waves != null ? waves.Waves.Count : 0;
-
             if (HideTemplateHUD)
                 hideTemplateHUD();
         }
@@ -102,12 +96,6 @@ namespace Vantage
         private void onEnemyKilled(string enemy, Vector3 position) => _kills++;
 
         private void onWeaponPickedUp(string weapon) => toast(weapon.ToUpperInvariant() + " ACQUIRED");
-
-        private void onWaveStarted(int wave, int count)
-        {
-            _wave.text = _waveCount > 0 ? $"ROOF  ·  WAVE {wave}/{_waveCount}" : $"ROOF  ·  WAVE {wave}";
-            _wave.color = Accent;
-        }
 
         private void onLevelCompleted()
         {
@@ -148,7 +136,8 @@ namespace Vantage
             var critical = fraction <= CriticalHealth;
             var colour = critical ? Danger : Color.white;
 
-            _hpValue.text = Mathf.CeilToInt(_health.Health).ToString();
+            var hp = Mathf.CeilToInt(_health.Health);
+            if (hp != _shownHp) { _shownHp = hp; _hpValue.text = hp.ToString(); }
             _hpValue.color = colour;
             _hpAccent.color = critical ? Danger : Accent;
 
@@ -188,6 +177,8 @@ namespace Vantage
 
             if (gun == null)
             {
+                _shownGun = null;
+                _shownLoaded = _shownReserve = int.MinValue;
                 _weaponName.text = "UNARMED";
                 _weaponStatus.text = "FIND A WEAPON";
                 _weaponStatus.color = Accent;
@@ -204,10 +195,12 @@ namespace Vantage
             var size = magazine != null ? Mathf.Max(1, magazine.MagazineSize) : Mathf.Max(1, loaded);
             var low = loaded <= Mathf.CeilToInt(size * 0.25f);
 
-            _weaponName.text = gun.Name.ToUpperInvariant();
-            _ammo.text = loaded.ToString();
+            // Strings are only rebuilt when the value changes (no garbage every frame).
+            if (gun != _shownGun) { _shownGun = gun; _weaponName.text = gun.Name.ToUpperInvariant(); _shownLoaded = _shownReserve = int.MinValue; }
+            if (loaded != _shownLoaded) { _shownLoaded = loaded; _ammo.text = loaded.ToString(); }
             _ammo.color = loaded == 0 ? Danger : low ? Accent : Color.white;
-            _reserve.text = magazine == null ? "" : magazine.BulletInventory >= 999 ? "/ ∞" : "/ " + magazine.BulletInventory;
+            var reserve = magazine == null ? -1 : magazine.BulletInventory;
+            if (reserve != _shownReserve) { _shownReserve = reserve; _reserve.text = reserve < 0 ? "" : reserve >= 999 ? "/ ∞" : "/ " + reserve; }
 
             if (_motor.IsReloading)
             {
@@ -236,7 +229,52 @@ namespace Vantage
 
         private void updateInfo()
         {
+            var levels = VantageTowerLevels.Instance;
+            if (levels == null || levels.Current < 0)
+            {
+                showKills();
+                return;
+            }
+
+            if (_levels != levels)
+            {
+                _levels = levels;
+                levels.LevelCleared += onTowerLevelCleared;
+            }
+            if (levels.Completed)
+            {
+                showKills();
+                return;
+            }
+            var remaining = levels.Remaining;
+            if (remaining != _shownRemaining) { _shownRemaining = remaining; _shownKills = -1; _hostiles.text = "HOSTILES LEFT   " + remaining; }
+            if (levels.Current != _shownLevel && _wave.color != Color.white)
+            {
+                _shownLevel = levels.Current;
+                _wave.text = $"LEVEL {levels.Current + 1}/{levels.Levels.Count}  ·  {levels.CurrentName.ToUpperInvariant()}";
+                _wave.color = Accent;
+            }
+        }
+
+        private void showKills()
+        {
+            if (_kills == _shownKills) return;
+            _shownKills = _kills;
+            _shownRemaining = -1;
             _hostiles.text = "HOSTILES DOWN   " + _kills;
+        }
+
+        // Last values written to the texts, so strings are only built when something changed.
+        private int _shownHp = int.MinValue, _shownLoaded = int.MinValue, _shownReserve = int.MinValue;
+        private int _shownRemaining = -1, _shownKills = -1, _shownLevel = -1;
+        private BaseGun _shownGun;
+
+        private VantageTowerLevels _levels;
+
+        private void onTowerLevelCleared(int level)
+        {
+            var l = _levels.Levels[level];
+            toast(string.IsNullOrEmpty(l.ClearedMessage) ? $"LEVEL {level + 1} CLEARED  ·  STAIRS UNLOCKED" : l.ClearedMessage);
         }
 
         private void updateOverlays(bool dead)
@@ -311,7 +349,7 @@ namespace Vantage
             image(rect("Accent", _info, new Vector2(1, 0), new Vector2(1, 0), Vector2.zero, new Vector2(6, 70)), Accent);
             _hostiles = text(_info, "Hostiles", 18, TextAnchor.UpperRight, FontStyle.Bold, new Vector2(10, 36), new Vector2(300, 26));
             _wave = text(_info, "Wave", 15, TextAnchor.UpperRight, FontStyle.Bold, new Vector2(10, 10), new Vector2(300, 24));
-            _wave.text = "FOLLOW THE YELLOW LINE TO THE ROOF";
+            _wave.text = "";
             _wave.color = new Color(1, 1, 1, 0.6f);
 
             // Pickup notice, below the centre.

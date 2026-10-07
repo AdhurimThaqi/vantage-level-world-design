@@ -1,94 +1,176 @@
-# VANTAGE — project notes for Claude
+# VANTAGE — project notes for Claude and agents
 
-Solo student project for the HSLU module I.BA_LWD (Level & World Design, HS26). A third-person level in Unity (it started as first person; that was dropped on 2026-10-05): the player climbs an abandoned military watchtower that is still guarded by its automated defence. The design source of truth is `VANTAGE — Level & World Design Concept.md` in this folder. Read it before changing gameplay or layout. The module assesses level design (layout, pacing, guidance, storytelling, procedural methods, performance, playtesting) more than systems.
+This file describes the project **as it is now** and how to change it safely. It is the source of truth for any agent working here (e.g. `.claude/agents/vantage-watchdog.md`). If you change architecture, tools or rules, update this file in the same change.
 
-## Layout
+## The project
 
-- `Vantage_First-Person/` is the Unity project (Unity **6000.0.58f2**, URP). The level scene is `Assets/Scenes/SampleScene.unity`.
-- `_Backups/` holds scene copies taken before each automated change.
-- The professor's template it was built from is at `C:\Users\at488\Downloads\LWD-TPCST-6000.3` (Built-in RP, "Third Person Cover Shooter" package). Use it as a reference only. Its binary `LightingData`/`NavMesh`/terrain assets and `Main Camera.prefab` are corrupted at the source (a git eol rule on binaries), so never copy them.
+- Solo student project by Adhurim Thaqi for the HSLU module **I.BA_LWD (Level & World Design, HS26)**. The module grades **level design** (layout, pacing, guidance, environmental storytelling, procedural methods, performance, playtesting) more than systems code. Weigh every change against that.
+- The user may make it a **commercial game** later. So prefer root-cause fixes, verify gameplay changes with the autoplay test, keep the code lean, and flag licensing questions (the course template and Pistol Animset Pro must be licensed for commercial use before shipping).
+- **The game:** a third-person shooter level. You start unarmed in front of a six-storey military command tower in a military training base, in a 1 km forested valley. You fight up through **four levels of rising difficulty**: ground + F1, F2 + F3, F4 + F5, then the roof. Every enemy on a level must die before red shutters on the inner stairs and the fire escape open to the next level. Clearing the roof ends the game ("THE TOWER IS SILENT").
+- **Design source of truth:** `VANTAGE — Level & World Design Concept.md`. Read it before changing gameplay or layout. When the design changes, add a row to its *Revisions* table (it is a graded deliverable).
+- Player-facing documentation is `README.md`; keep it in step.
 
-## What is in the Unity project
+## Repository
 
-- `Assets/ThirdPersonCoverShooter`, `Assets/PistolAnimsetPro`: the template package (enemy AI, health, guns, hit reactions, third-person player). Treat them as third-party code.
-- `Assets/Vantage/` contains all of our own code, materials, prefabs and volume profiles:
-  - `Scripts/`
-    - `VantageArsenal`: makes the "Cowboy" player start unarmed; weapons unlock through pickups.
-    - `WeaponPickup`: the pistol and rifle pickups (unlocks them in `VantageArsenal`).
-    - `VantageThirdPersonPlayer`: player health (100 HP, delayed regen up to 60 %; replaces the template's 400 HP + 5 HP/s that made him unkillable), death and level restart. Adds `VantagePlayerHUD`.
-    - `VantagePlayerHUD`: our uGUI HUD built in code (vitals, weapon/ammo, hostiles/waves, pickup notice, damage flash, low-HP pulse, death screen). Hides the template's HealthBar/GunAmmo for the player.
-    - `VantageCameraFader`: fades walls between the third-person camera and the player (URP).
-    - `VantageCoverUtil`: adds template-style cover markers to tower pieces, props and level 2 walls.
-    - `VantageDrone`: drones and the mast turret.
-    - `VantageWaveSpawner`: the roof waves.
-    - `VantageLevel2Generator`: seeded procedural layout for level 2.
-    - `VantageProceduralAudio`: synthesised wind, hum and radio.
-    - `VantagePlaytestLogger`, `VantagePerfCapture`: playtest logs and performance captures.
-    - `VantageEvents`, `VantageKillReporter`: shared gameplay events and soldier kill reporting.
-    - Unused leftovers from the first-person version (they still compile, nothing in the scene uses them): `VantagePlayer`, `VantageWeapons`, `VantageHUD`, `VantageViewSwitch`. The V view switch is gone from the game. Remove these together with their references in `VantageSetup`, `VantageAutoSetup`, `VantageEnhance` and `VantageThirdPerson`.
-  - `Editor/`: the **Vantage** menu.
-    - `VantageTowerBuilder` (+ `.Compound.cs`, `.Entrance.cs`, `.Guidance.cs`): builds the tower blockout from ProBuilder shapes, the military compound, the entrance, and the way-up guidance (glowing yellow floor line, chevrons, yellow step edges, framed fire escape doors; no colliders).
-    - `VantageUnusedAssets`: moves unused pack files out to `../_UnusedAssets/`.
-    - `VantageEnhance`: drones, approach, waves, mood, logging, NavMesh.
-    - `VantageAutoSetup`: the full one-shot setup.
-    - `VantageAtmosphere`: per-space Volumes, sound sources and occlusion areas.
-    - `VantageThirdPerson`: extracts the third-person rig from the template.
-    - `VantageSetup`: player setup, pickups, NavMesh bake, particle material fix.
-- The tower (`VANTAGE Tower` in the scene) is **generated** by `VantageTowerBuilder`. Rebuilding it replaces manual edits made inside it. Change the builder code, or tell the user first.
+- This folder is a **git repository** (`origin` = `github.com/AdhurimThaqi/vantage-level-world-design`, branch `main`). Commit only when the user asks.
+- **Git LFS** is used for models, textures, audio, `.raw` terrain data and `*_TerrainData.asset` (see `.gitattributes`). NavMesh, LightingData, OcclusionCullingData, terrain layers and TerrainData are marked `binary` so line-ending conversion can't corrupt them.
+- `_Backups/` holds scene copies taken before every automated change; `_UnusedAssets/` holds asset files moved out of the project, with a list in `MOVED_FILES.txt`. Both are git-ignored and local only.
+- `Vantage_First-Person/` is the Unity project: **Unity 6000.0.58f2, URP** (PC_RPAsset). The only level scene is `Assets/Scenes/SampleScene.unity`.
+- `Vantage_First-Person/Documentation/` has screenshots and maps for the hand-in (`tower_*`, `world_*`). The `level2_plan_seed_*.png` files are from the removed blockout tower.
+- `Vantage_First-Person/Playtests/` is created on play: session reports, CSV position trails and performance captures.
+- The lecturer's template original is at `C:\Users\at488\Downloads\LWD-TPCST-6000.3`. Use it as a reference only: its binary LightingData/NavMesh/terrain assets and `Main Camera.prefab` are corrupted at the source.
 
-## Running setup without the editor
+## Assets
 
-Unity must be **closed** on this project, otherwise batch mode fails on the project lock:
+| Folder | What | Rules |
+|---|---|---|
+| `Assets/Blender_Asset/CommandTower_Unity` | **User's own** six-storey tower (structure per storey, furniture, 32 doors, 108 lights, 202 `CommandTowerKit.GameplayMarker`s: 94 EnemySpawn, DroneSpawn, Patrol, PlayerEntry, Objective…). Has its own importer (Tools → Command Tower). | Source art, read-only. **Never edit inside the `CommandTower` prefab instance**; use instance overrides only (lights, static flags, ramp collider off). |
+| `Assets/Blender_Asset/Military_Env_Unity` | **User's own** 1 km world: terrain data, forest, military base, props, tiling textures. Its `MilitaryEnvBuilder` (Tools → Military Env → Build Everything) builds a *separate* scene; harmless, but not our level. | Read-only. Our world is built by `VantageMilitaryBase`, which only calls the pack's material step. |
+| `Assets/ThirdPersonCoverShooter`, `Assets/PistolAnimsetPro` | Course template: character, soldier AI, cover, weapons, hit effects, animations. | Third-party. **One deliberate edit**: `CharacterMotor.AlwaysUpdateIK` (see Rules). Re-apply it if the package is ever reimported. |
+| `Assets/Vantage` | All our code, prefabs, materials and generated data. | See below. |
+| `Assets/Vantage/World` | Generated by tools: terrain data and layers, reshaped road meshes, tree prefabs with colliders, `Sky_GoldenHour.mat`, `Minimap.png`, `Tower/` stair surface meshes. | Regenerated by the tools; don't hand-edit. |
 
-```
-"C:\Program Files\Unity\Hub\Editor\6000.0.58f2\Editor\Unity.exe" -batchmode -projectPath "<...>\Vantage_First-Person" -executeMethod Vantage.EditorTools.VantageEnhance.RunBatch -vantageShots "<scratch>\shots" -logFile "<scratch>\unity.log"
-```
+Removed, don't reintroduce:
+- the industrial pack (`RPG_FPS_game_assets_industrial`)
+- `Starter Assets` (first-person)
+- `TutorialInfo` and `Readme.asset`
 
-- `VantageEnhance.RunBatch` rebuilds the tower in place, enemies, mood, logging and NavMesh, bakes occlusion, and saves screenshots plus `Documentation/level2_plan_seed_*.png`.
-- `VantageAutoSetup.RunBatch` is the full setup from a bare scene.
-- The log lines to look for start with `[Vantage]`.
-- Back up `SampleScene.unity` to `_Backups/` before running.
+All of these are in `_UnusedAssets/`.
 
-Before launching Unity, check the C# offline with `dotnet build` on a scratch csproj built from `Assembly-CSharp-Editor.csproj`. The steps: drop its `<Compile>`, `<ProjectReference>` and `<Analyzer>` items, make the `Library\...` HintPaths absolute, add `Assets/ThirdPersonCoverShooter/Scripts/**` and `Assets/Vantage/**`, and reference `Library/ScriptAssemblies/Unity.StarterAssets.dll` and `Unity.AI.Navigation.dll`.
+## Scene (`SampleScene`) root objects
 
-## Rules that are easy to get wrong
+| Object | Made by | Contents |
+|---|---|---|
+| `CommandTower` (prefab, at (5.2, 4.04, -66), rotated 180°) | placed by the user | The main building. |
+| `VANTAGE Tower Setup` | `VantageCommandTower.Setup` | Entrance walk ramps, 18 smooth stair surfaces, 6 level gates, furniture covers, `Tower Levels` (the level manager), pistol and rifle pickups. |
+| `VANTAGE World - Military Base` | `VantageMilitaryBase.Build` | Terrain, buildings, props, roads, distant forest, ~600 covers, world-edge walls. |
+| `Third Person Rig` (prefab) | template rig | The player "Cowboy" (`VantageArsenal`, `VantageThirdPersonPlayer`), and the camera with `VantageCameraFader`. |
+| `VANTAGE Minimap` | `bakeMinimap` | `VantageMinimap` settings (baked map, world rect, tower). |
+| `VANTAGE Playtest Tools` | tools | `VantagePlaytestLogger`, `VantagePerfCapture`. |
+| `NavMesh` | `VantageSetup.BakeNavMesh` | `NavMeshSurface` (saved as an asset next to the scene). |
+| `Global Volume`, `Directional Light` | — | Post-processing; golden-hour sun at 24°. |
 
-- The template character **cannot step up ledges** (velocity is kept horizontal on flat ground; the template has ramps, never stairs). Every stair gets an invisible `Walk Ramp` BoxCollider instead of its step MeshCollider (`AddWalkRamp`), and floors the player walks onto must be flush or ramped.
-- `VantageEnhance.Apply` keeps existing `Drone.prefab`/`Turret.prefab` (the user tunes them in the editor). Only **Vantage → Drones → Rebuild Drone Prefabs From Code** regenerates them.
+## Code map (`Assets/Vantage`)
 
-- The template AI only targets objects on **layer 10 "Character"** with a `BaseActor` whose `Side` differs from theirs. Enemies are side 0, the player is side 1. Layers 8–11 (Cover, Scope, Character, Zones) are hard-coded in `CoverShooter.Layers`.
-- Damage travels as `SendMessage("OnHit", CoverShooter.Hit)` to the hit collider. `CharacterHealth.Hurt` never fires (bug in the package), so use `Changed`.
-- A NavMesh baked from script must be saved as an asset (`VantageSetup.saveNavMeshAsset`). Otherwise the scene silently saves as binary.
-- The per-space Volumes sit on layer 2 (Ignore Raycast) so they never block bullets or AI sight. Cameras need that layer in their volume mask.
-- The template's player uses the old Input Manager. Its 15 custom axes (Fire, Zoom, TakeCover, Roll*, Grenade, and so on) were merged into `ProjectSettings/InputManager.asset`. Active input handling is "Both".
-- `Assets/AlterunaFPS/Scripts` is renamed to `Scripts~` (disabled) because the Alteruna package is not installed and it broke all compilation. Rename it back to re-enable it.
-- This folder is not a git repository. The surrounding repo is the user's home directory, so don't commit there.
+### Runtime (`Scripts/`)
 
-## Status (2026-10-06)
+| Script | Role |
+|---|---|
+| `VantageTowerLevels` | The four levels. Spawns each level's soldiers and drones (and the roof turret) from the tower's markers with a **seed** (spread over rooms first) when the level starts. Opens that level's `VantageFloorGate`s when everyone is dead, activates the level's reward, and switches tower lights per level. Exposes `Instance`, `Current`, `Remaining`, `LevelAt()`, `LevelCleared`. Difficulty per level is in its `Levels` list (Inspector). |
+| `VantageFloorGate` | Red stair shutter: BoxCollider over the whole flight plus a carving `NavMeshObstacle`. `Open()` rolls it up and turns it green. |
+| `VantageEnemyAggression` | On every soldier: starts idle, avoid distance 1.2 m, never retreats, cover only within 9 m; locks on and fires when it sees the player on its floor. |
+| `VantageDrone` | Drones and the turret (`Mobile = false`). Telegraphs shots with its eye; `All` lists live drones. |
+| `VantageArsenal`, `WeaponPickup` | Player starts unarmed; pickups unlock Pistol/Rifle in the template inventory. Pickups don't refill ammo for an owned weapon. |
+| `VantageThirdPersonPlayer` | Player health (100 HP, delayed regen to 60 %), death, level restart after 3 s. Adds `VantagePlayerHUD`. |
+| `VantagePlayerHUD` | uGUI built in code: vitals, weapon/ammo, level and hostiles left, toasts, damage flash, death screen. |
+| `VantageMinimap` | Top-left minimap, built in code: baked image, north up, player arrow, tower pinned to the edge, nearby enemies, distance, current space. |
+| `VantageCameraFader` | Execution order 1000. Keeps the camera 0.3 m clear of walls (sphere cast from the head) and fades only objects ≤ 5 m. |
+| `VantageCoverUtil` | Adds template cover markers (layer 8 triggers); `AddForOriented` follows the prop's rotation. |
+| `VantagePlaytestLogger`, `VantagePerfCapture` | Session reports, spaces = outside + 4 levels, F8 mark, F9 perf capture, F10 occlusion toggle. |
+| `VantageEvents`, `VantageKillReporter`, `VantageProceduralAudio` | Shared events (`ActivePlayer()`, kills, pickups, seed, completion); soldier kill reports; synthesised drone hum. |
+| `Testing/VantageAutoplayBot` | Editor-only (`#if UNITY_EDITOR`) automated playtest; see *Workflow*. |
 
-- Done and verified: template merged, tower blockout, first enemy pass. The user approved the result in the editor. (First-person combat and the V view switch were built first, then removed; see below.)
-- Applied and verified via batch screenshots: the `VantageEnhance` pass.
-  - Guard-hut approach with the pistol, 2 door drones, a slow drone in the lobby.
-  - Procedural level 2 with 3 drones; plans for seeds 1234 and 52071 are in `Vantage_First-Person/Documentation/`.
-  - 2 soldiers + 2 drones on level 3; turret and 1 soldier on the roof, plus the 3 roof waves.
-  - Per-space Volumes, sound guidance, golden-hour sun, occlusion areas (baked), playtest logger and performance capture.
-  - The user moved the tower to (65.4, -0.4, 39.5); rebuilds keep it there.
-- **Third person only (user decision, 2026-10-05).** The first-person rig, Starter Assets cameras and V switch were removed from the scene. The player is the template's "Cowboy" (in the `Third Person Rig` instance).
-  - `VantageArsenal` makes him start unarmed; pickups unlock Pistol, then Rifle (the Sniper stays locked).
-  - `VantageThirdPersonPlayer` handles death and restart; `VantageCameraFader` fades blockers for URP.
-  - The first-person scripts (`VantagePlayer`, `VantageWeapons`, `VantageHUD`, `VantageViewSwitch`) are unused but still compile. They can be removed together with their editor references.
-  - The concept doc was updated to third person on 2026-10-06 (see its *Revisions* section).
-- Cover: `VantageCoverUtil` adds template-style covers (layer 8 trigger boxes, forward into the obstacle) to tower cover pieces, props and generated level 2 walls. The roof gets no cover by design.
-- Look: the tower uses the industrial pack's concrete textures; industrial props are placed by `dressWithProps`.
-- Size (2026-10-06): `VantageUnusedAssets.MoveBatch` moved 1,856 unused pack files (812 MB) to `../_UnusedAssets/` (list in `MOVED_FILES.txt`). It verified missing references stayed at 20 before and after; those 20 already existed. Assets are now 607 MB, of which 576 MB is LFS-tracked. Files our editor tools name by path are kept. To restore a file, move it back with its `.meta`.
-  - `.gitignore` excludes `_UnusedAssets/` and `_Backups/`.
-  - `.gitattributes` marks binary NavMesh/LightingData/OcclusionCullingData as `binary`.
-- The tower stands on the asphalt yard: `footprintGround` sets its base to the median ground height. It was buried 2.5 m after the user moved it onto the raised asphalt.
-- Military compound (`VantageTowerBuilder.Compound.cs`): perimeter wall, checkpoint, sandbag nests, depot, tents, floodlights and flag. Every piece is ground-snapped and skipped if blocked; the build log lists why each skip happened.
-- Environment sound: template wind bed (2D), procedural sea, generators and floodlight buzz.
-- Tower textures use world-space UVs (continuous across pieces).
-- **Not yet playtested in Play mode** (batch mode cannot play). Things to watch first: drone movement and wall sliding in tight level 2 rooms, drone accuracy and damage balance, whether soldiers walk through runtime-generated level 2 walls (they rely on NavMeshObstacle carving), and the roof waves triggering.
-- 2026-10-06 fixes (code compiled offline, **not yet tested in Play mode**): free-standing drone hum fades when no living drone is on its floor (`VantageDrone.All`); player health; new HUD; stair walk ramps + entrance + hut floor via the patch menu item. Backups: `_Backups/SampleScene_before_stairs_entrance_*.unity`, `_Backups/Drone_user_tuned_*.prefab`.
-- 2026-10-06 17:21: tower rebuilt in batch with all of the above. The user found the climb unclear, so the route is now: entrance → yellow line → lobby stairs → level 2 **authored L-shaped hall** (generated rooms only beside it, `VantageLevel2Generator.Halls`) → wide framed door → fire escape stairs → wide framed door → level 3 (shaft railed, fallen slab moved) → ramp. Checked visually with `VantageEnhance.RouteShotsBatch -vantageShots <folder>` (route screenshots, scene untouched). Walking it in Play mode is still untested.
-- Documentation renders without touching the scene: `-executeMethod Vantage.EditorTools.VantageEnhance.DocumentationBatch`.
-- Open ideas: styled uGUI HUD instead of IMGUI, remove the unused first-person scripts, a full art pass on the roof (vertical slice), Asset Store links for the README asset table.
+### Editor (`Editor/`, the **Vantage** menu)
+
+| Script | Menu / batch | Role |
+|---|---|---|
+| `VantageCommandTower` | **Tower → Set Up Command Tower** / `SetupBatch` | Turns the tower into the level. It removes old setup objects, then: sets static flags (structure: occluder, occludee, batching; furniture: occludee, batching; doors stay dynamic), raises the sun to 24°, makes the tower lights realtime, adds entrance walk ramps, builds the **smooth stair surfaces** (disabling the tower's own ramp collider), builds the gates, adds furniture covers, rebuilds **our soldier prefab**, creates the level manager and pickups, sets the player start, and bakes the NavMesh. `SetupBatch` also bakes occlusion, renders shots and runs a gate check. |
+| | `AnalyseBatch`, `StairProfileBatch`, `WalkLineBatch`, `ZFightBatch` | Diagnostics: tower layout, steps above ramps, steps on the walking line, coincident surfaces. |
+| `VantageMilitaryBase` | **World → Build Military World** / `RunBatch` | Builds the world at Blender coordinates, fits the plot to the `CommandTower` (required), levels the terrain under it and relaxes it into slopes, places the base and covers, then runs the tower setup, checks paths out (breaches fences if needed), and bakes the minimap. |
+| | **World → Rebake Minimap** / `MinimapBatch`; `LedgeReportBatch` | Minimap only; ledge/slope and NavMesh connectivity maps around the tower. |
+| `VantageAutoplay` | **Test → Run Autoplay Test** / `RunBatch` | Runs the bot in Play mode; batch exit code 0 = passed. |
+| `VantageSetup` | **Bake NavMesh For Enemies**, Add Pistol/Rifle Pickup, Fix Particle Materials | Also `VantageLayers` (ensures layers 8–11 exist). |
+| `VantageEditorUtil` | **Performance → Bake Occlusion Culling** | `ScenePath`, prefab paths, `Shot()` (batch screenshots). |
+| `VantageUnusedAssets` | **Project → Report Unused Pack Assets** / `MoveBatch` | Moves unused pack files to `../_UnusedAssets/`. |
+
+### Prefabs (`Prefabs/`)
+
+- `Soldier.prefab`: **generated by Setup**, a variant of the template soldier with its guns in a real `CharacterInventory`, `AlwaysUpdateIK` on, Animator set to always animate, `VantageEnemyAggression` and `VantageKillReporter`.
+- `Drone.prefab`, `Turret.prefab`: tuned by hand; nothing regenerates them.
+- `Third Person Rig.prefab`: the player rig.
+
+## Workflow for changes
+
+1. **Unity must be closed** for batch mode (it fails on the project lock). Check `Vantage_First-Person/Temp/UnityLockfile`. If Unity is open with unsaved changes, ask the user to save and close it.
+2. **Back up** `Assets/Scenes/SampleScene.unity` to `_Backups/SampleScene_before_<what>_<date>.unity` before any scene change.
+3. **Compile offline first.** Build a scratch csproj from `Assembly-CSharp-Editor.csproj`:
+   1. Drop its `<Compile>`, `<ProjectReference>` and `<Analyzer>` items.
+   2. Make the `Library\...` HintPaths absolute.
+   3. Add `Assets/ThirdPersonCoverShooter/Scripts/**`, `Assets/Vantage/**` and `Assets/Blender_Asset/*/Scripts/**`.
+   4. Reference `Library/ScriptAssemblies/Unity.AI.Navigation.dll`.
+   5. Run `dotnet build`.
+4. **Run the tool in batch mode:**
+   ```
+   "C:\Program Files\Unity\Hub\Editor\6000.0.58f2\Editor\Unity.exe" -batchmode -projectPath "<...>\Vantage_First-Person" -executeMethod Vantage.EditorTools.VantageCommandTower.SetupBatch -vantageShots "<scratch>\shots" -logFile "<scratch>\unity.log"
+   ```
+   Our log lines start with `[Vantage]`. Look at the screenshots: batch mode can't play, but it can render.
+5. **Verify gameplay** with `-executeMethod Vantage.EditorTools.VantageAutoplay.RunBatch`. It enters Play mode, so start it with `Start-Process … -PassThru` and a timeout of about 8 minutes, then read the lines starting with `[Bot]`. It checks that soldiers fire and deal damage, that clearing level 1 opens its gates and spawns level 2, and that every opened flight is climbed without stalling. Extend the bot when you add gameplay.
+6. **Re-run what the change requires:**
+
+   | Changed | Re-run |
+   |---|---|
+   | Tower, gates, stairs, enemies, levels, pickups | Tower → Set Up Command Tower |
+   | World, terrain, plot, base props | World → Build Military World (includes the tower setup) |
+   | Navigable geometry | Bake NavMesh For Enemies |
+   | Layout visible from above | World → Rebake Minimap |
+   | Occluders, static flags | Performance → Bake Occlusion Culling |
+   | Any gameplay | Test → Run Autoplay Test |
+7. **Update docs** in the same change: this file, `README.md`, and the concept doc's *Revisions* table if the design changed. Report what's verified and what isn't.
+
+## Rules that break silently
+
+- **Targeting:** the template AI only targets objects on **layer 10 "Character"** with a `BaseActor` whose `Side` differs from theirs. Enemies are side 0, the player side 1. Layers 8–11 (Cover, Scope, Character, Zones) are hard-coded in `CoverShooter.Layers`.
+- **Damage** arrives as `SendMessage("OnHit", CoverShooter.Hit)`. `CharacterHealth.Hurt` never fires (package bug); use `Changed`.
+- **Soldiers must use `Assets/Vantage/Prefabs/Soldier.prefab`.** The template `Soldier.prefab` keeps its guns in the deprecated `CharacterMotor.Weapons`, while the AI arms from `CharacterInventory`. Template soldiers spawn unarmed and run away.
+- **`CharacterMotor.AlwaysUpdateIK`** (template edit, marked "VANTAGE change"). Template IK, and with it `gun.Allow`, only runs while the character is visible on screen. Without the flag, off-screen soldiers can never fire.
+- **No step-ups:** the template character cannot step up ledges (its velocity is kept horizontal). Every stair or step needs a smooth walkable surface, and floors must be flush or ramped. The tower's own `TWR_StairColliders` are **disabled on purpose**: their step edges sat 15 cm above them, and on the fire escape they run backwards and formed a ceiling. `smoothStairs` replaces them, using the slope-limited upper envelope of the real steps (≤ 25.6°, the template slows above 26°). Flight direction is decided against the real geometry (`rampPieces` misfit test).
+- **Camera:** tower storeys are single meshes. Never fade by size above ~5 m (whole floors went transparent); keep the clearance cast instead.
+- **NavMesh:** a NavMesh baked from script must be saved as an asset (`VantageSetup.saveNavMeshAsset`), otherwise the scene silently saves as binary. Gates are excluded from the bake (`NavMeshModifier`) and block agents with carving obstacles.
+- **Input:** the player uses the **old Input Manager**; its 15 custom axes are merged into `ProjectSettings/InputManager.asset`, and active input handling is "Both". TakeCover is **Space**.
+- **Render pipeline mapping:** `GraphicsSettings` default must be **`PC_RPAsset`**. Quality levels Medium–Ultra use the default; Very Low and Low use `Mobile_RPAsset` (80 % render scale, one shadow cascade). Until 2026-10-07 the default was the mobile asset and "Ultra" pointed at a missing asset, so the game rendered at 80 % with mobile shadows and every PC setting was ignored. Tune the asset that is actually used, and don't edit `ProjectSettings/*` while Unity is open (it can overwrite them).
+- **Lighting:** shadow bias in PC_RPAsset must stay around 1/1. At 0.1/0.5 with a low sun you get shadow acne (the "flickering textures" bug). The tower's lights were Baked, which does nothing in URP without a lightmap bake; Setup makes them realtime without shadows.
+- **URP materials:** pack vegetation and terrain layers need low/constant smoothness, otherwise they mirror the sky (handled by the world tool).
+- **Batch screenshots** need `ShaderUtil.allowAsyncCompilation = false` (`VantageEditorUtil.Shot` does it).
+- **Batch Play mode** (the bot): the scripting domain reloads on entering Play mode, so request and result travel via `SessionState`. Batch mode never renders a game view, so anything gated on visibility (`Renderer.isVisible`, Animator culling) behaves as off-screen there.
+
+## Performance notes
+
+- **Rendering:** Forward+ (PC_Renderer), soft shadow quality medium, additional-light shadows off (none of our lights cast shadows), shadow distance 50 m with 4 cascades, SSAO on.
+- **Tower:** the structure is occluder, occludee and batching static, furniture occludee and batching static, doors dynamic; occlusion is baked. Only the lights around the player's level are on.
+- **AI:** enemies spawn level by level, so only one level's AI runs at a time.
+- **World:** trees are meshes without LODs (~26k) at a 450 m tree distance and 80 m grass distance.
+- **Per-frame code:**
+  - The HUD rebuilds its strings only when a value changes.
+  - `VantageTowerLevels.Remaining` counts once per frame with cached component references.
+  - `VantageCameraFader` caches each obstacle's renderers.
+  - Keep new code free of per-frame `Find*`, `GetComponent`, LINQ and string building.
+- **Measure, don't guess:** F9 in Play mode (once with F10 occlusion on, once off). Batch-mode frame times mean nothing because nothing renders.
+
+## Known gaps and open work
+
+- **Not yet checked by a human in Play mode:**
+  - camera feel near walls
+  - damage balance and ammo across four levels (pickups don't refill ammo once a weapon is owned)
+  - drones inside small rooms and around gates
+  - minimap readability
+  - frame time on the roof and outside (F9)
+- **Environmental storytelling** (five story props) and **per-space mood volumes** belonged to the old blockout tower and are not yet rebuilt in the command tower. The profiles still exist in `Assets/Vantage/Volumes/`; the scene only uses `Global Volume`.
+- **Procedural methods** are now only the seeded enemy placement. The procedural level-2 generator went with the old tower.
+- The fire-escape gate shutter looks bright orange in the editor (its darker tint is applied at runtime).
+- `README.md` asset table still needs the Asset Store links and publisher check before hand-in.
+- Ideas: ammo pickups or refills per level, story props in the tower, per-level post-processing, LODs for trees.
+
+## History (short)
+
+- **2026-10-05:** first-person dropped; third person only (the template "Cowboy").
+- **2026-10-06:** generated ProBuilder blockout tower with a procedural level 2, roof waves, compound, HUD and playtest logging. 1,856 unused pack files moved out.
+- **2026-10-07:**
+  - The user's Blender **military world** replaced the bought industrial yard (pack removed), and the minimap was added.
+  - The user's **command tower** replaced the blockout, with the four-level kill-to-unlock structure.
+  - **Playtest fixes**, found with the new autoplay bot:
+    - soldiers armed and able to fire off-screen
+    - smooth stairs
+    - camera clearance instead of floor fading
+    - shadow acne fixed
+    - static flags and occlusion
+  - **Cleanup:** 14 dead scripts removed (first-person, the old tower builder, level 2 generator, waves), along with Starter Assets and the tutorial files.

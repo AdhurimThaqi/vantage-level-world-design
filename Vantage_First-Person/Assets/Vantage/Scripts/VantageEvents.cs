@@ -11,21 +11,17 @@ namespace Vantage
         public static event Action<string, Vector3> PlayerDied;             // cause, position
         public static event Action<string, Vector3> EnemyKilled;            // enemy name, position
         public static event Action<string> WeaponPickedUp;                  // weapon name
-        public static event Action<bool> ViewSwitched;                      // true = third person
-        public static event Action<int> LayoutGenerated;                    // level 2 seed
-        public static event Action<int, int> WaveStarted;                   // wave number, drone count
+        public static event Action<int> LayoutGenerated;                    // enemy placement seed
         public static event Action LevelCompleted;
 
         public static void RaisePlayerDied(string cause, Vector3 position) => PlayerDied?.Invoke(cause, position);
         public static void RaiseEnemyKilled(string name, Vector3 position) => EnemyKilled?.Invoke(name, position);
         public static void RaiseWeaponPickedUp(string weapon) => WeaponPickedUp?.Invoke(weapon);
-        public static void RaiseViewSwitched(bool thirdPerson) => ViewSwitched?.Invoke(thirdPerson);
         public static void RaiseLayoutGenerated(int seed) => LayoutGenerated?.Invoke(seed);
-        public static void RaiseWaveStarted(int wave, int count) => WaveStarted?.Invoke(wave, count);
         public static void RaiseLevelCompleted() => LevelCompleted?.Invoke();
 
         /// <summary>
-        /// The player object that is currently being controlled (first or third person), or null.
+        /// The player character, or null while it is dead or not spawned.
         /// </summary>
         public static CoverShooter.BaseActor ActivePlayer()
         {

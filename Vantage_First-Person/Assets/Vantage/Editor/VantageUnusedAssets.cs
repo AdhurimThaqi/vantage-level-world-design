@@ -17,7 +17,7 @@ namespace Vantage.EditorTools
         private static readonly string[] Packs =
         {
             "Assets/ThirdPersonCoverShooter", "Assets/PistolAnimsetPro", "Assets/LoafbrrAssets",
-            "Assets/RPG_FPS_game_assets_industrial", "Assets/AlterunaFPS", "Assets/TutorialInfo",
+            "Assets/AlterunaFPS", "Assets/TutorialInfo", // the industrial pack was moved out whole on 2026-10-07
         };
 
         private static readonly string[] AlwaysKeepExtensions = { ".cs", ".shader", ".cginc", ".hlsl", ".asmdef", ".asmref", ".compute", ".dll" };
@@ -40,7 +40,7 @@ namespace Vantage.EditorTools
         public static string Write()
         {
             // Roots: the level scene, all of our own assets, project settings assets, Resources and editor resources.
-            var roots = new List<string> { VantageAutoSetup.ScenePath };
+            var roots = new List<string> { VantageEditorUtil.ScenePath };
             roots.AddRange(AssetDatabase.FindAssets("", new[] { "Assets/Vantage", "Assets/Settings" }).Select(AssetDatabase.GUIDToAssetPath));
             roots.AddRange(AssetDatabase.GetAllAssetPaths().Where(p => p.StartsWith("Assets/") && (p.Contains("/Resources/") || p.Contains("/Editor Default Resources/"))));
 
@@ -212,7 +212,7 @@ namespace Vantage.EditorTools
         private static int countMissingReferences()
         {
             var count = 0;
-            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(VantageAutoSetup.ScenePath, UnityEditor.SceneManagement.OpenSceneMode.Single);
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, UnityEditor.SceneManagement.OpenSceneMode.Single);
             foreach (var root in scene.GetRootGameObjects())
                 count += missingIn(root);
 

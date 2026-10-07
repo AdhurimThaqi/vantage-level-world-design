@@ -3,12 +3,12 @@ using UnityEngine;
 namespace Vantage
 {
     /// <summary>
-    /// Unlocks a weapon on VantageWeapons when the player walks into it.
+    /// Unlocks a weapon in the player's VantageArsenal when the player walks into it.
     /// Uses a distance check, so it needs no collider or rigidbody.
     /// </summary>
     public class WeaponPickup : MonoBehaviour
     {
-        [Tooltip("Must match a weapon Name on the player's VantageWeapons.")]
+        [Tooltip("Must match a weapon in the player's inventory (e.g. Pistol, Rifle).")]
         public string WeaponName = "Rifle";
 
         public int ExtraAmmo = 30;
@@ -24,7 +24,6 @@ namespace Vantage
             if (SpinSpeed != 0)
                 transform.Rotate(0, SpinSpeed * Time.deltaTime, 0, Space.World);
 
-            // Whoever is being played: the third-person character (VantageArsenal) or the first-person rig (VantageWeapons).
             var player = VantageEvents.ActivePlayer();
             if (player == null)
                 return;
@@ -34,9 +33,7 @@ namespace Vantage
                 return;
 
             var arsenal = player.GetComponent<VantageArsenal>();
-            var weapons = player.GetComponentInChildren<VantageWeapons>();
-            var taken = arsenal != null ? arsenal.Unlock(WeaponName) : weapons != null && weapons.Unlock(WeaponName, ExtraAmmo);
-            if (!taken)
+            if (arsenal == null || !arsenal.Unlock(WeaponName))
                 return;
 
             VantageEvents.RaiseWeaponPickedUp(WeaponName);

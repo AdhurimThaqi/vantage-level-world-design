@@ -1,0 +1,72 @@
+VANTAGE playtest  2026-10-07_09-05-06
+Enemy placement seed: 78281
+Session length: 0s   Completed: no   Furthest: Level 3 (F4, F5)   Backtracks: 8
+
+Time per space
+  Military Base      52s   deaths 0
+  Level 1 (ground, F1)    155s   deaths 0
+  Level 2 (F2, F3)    231s   deaths 0
+  Level 3 (F4, F5)    166s   deaths 0
+  Level 4 (roof)      0s   deaths 0
+
+Kills
+  Soldier        17
+  Drone          6
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 78281
+[    0.0s] Session started
+[    8.8s] Picked up Pistol
+[   17.4s] Military Base -> Level 1 (ground, F1)
+[   19.1s] Killed Soldier in Level 1 (ground, F1)
+[   29.8s] Level 1 (ground, F1) -> Military Base
+[   29.8s] BACKTRACK to Military Base (furthest so far: Level 1 (ground, F1))
+[   47.1s] Military Base -> Level 1 (ground, F1)
+[   79.2s] Killed Soldier in Level 1 (ground, F1)
+[  103.7s] Killed Drone in Level 1 (ground, F1)
+[  118.4s] Killed Soldier in Level 1 (ground, F1)
+[  137.5s] Killed Soldier in Level 1 (ground, F1)
+[  151.3s] Picked up Rifle
+[  157.3s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[  165.3s] Killed Soldier in Level 2 (F2, F3)
+[  182.6s] Killed Soldier in Level 2 (F2, F3)
+[  199.4s] Killed Soldier in Level 2 (F2, F3)
+[  220.2s] Killed Soldier in Level 2 (F2, F3)
+[  263.8s] Killed Soldier in Level 2 (F2, F3)
+[  286.1s] Killed Drone in Level 2 (F2, F3)
+[  300.7s] Killed Drone in Level 2 (F2, F3)
+[  365.0s] Killed Soldier in Level 2 (F2, F3)
+[  378.3s] Killed Soldier in Level 2 (F2, F3)
+[  387.3s] Killed Soldier in Level 3 (F4, F5)
+[  388.5s] Level 2 (F2, F3) -> Level 3 (F4, F5)
+[  415.1s] Killed Soldier in Level 3 (F4, F5)
+[  435.4s] Killed Soldier in Level 3 (F4, F5)
+[  444.1s] Killed Soldier in Level 3 (F4, F5)
+[  471.5s] Killed Drone in Level 3 (F4, F5)
+[  486.3s] Killed Soldier in Level 3 (F4, F5)
+[  492.7s] Killed Drone in Level 3 (F4, F5)
+[  505.3s] Killed Drone in Level 3 (F4, F5)
+[  511.3s] Level 3 (F4, F5) -> Military Base
+[  511.3s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[  513.5s] Military Base -> Level 3 (F4, F5)
+[  515.0s] Level 3 (F4, F5) -> Military Base
+[  515.0s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[  517.1s] Military Base -> Level 3 (F4, F5)
+[  526.9s] Killed Soldier in Level 3 (F4, F5)
+[  545.9s] Level 3 (F4, F5) -> Military Base
+[  545.9s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[  546.3s] Military Base -> Level 3 (F4, F5)
+[  546.6s] Level 3 (F4, F5) -> Military Base
+[  546.6s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[  552.4s] Military Base -> Level 3 (F4, F5)
+[  564.9s] Level 3 (F4, F5) -> Level 2 (F2, F3)
+[  564.9s] BACKTRACK to Level 2 (F2, F3) (furthest so far: Level 3 (F4, F5))
+[  564.9s] Level 2 (F2, F3) -> Military Base
+[  564.9s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[  571.7s] Military Base -> Level 1 (ground, F1)
+[  571.7s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 3 (F4, F5))

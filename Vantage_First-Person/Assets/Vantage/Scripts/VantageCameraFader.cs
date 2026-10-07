@@ -6,18 +6,27 @@ using UnityEngine.Rendering;
 namespace Vantage
 {
     /// <summary>
-    /// Makes walls and props between the third-person camera and the character see-through, then restores them.
-    /// The template's own fader only lowers the colour alpha, which does nothing on opaque URP materials;
-    /// this swaps in transparent copies of the materials instead.
+    /// Keeps the third-person view clear without seeing through the level:
+    /// - Clearance: after the template camera has moved (late execution order), a sphere cast from the character's
+    ///   head to the camera pulls the camera in front of any wall, with a radius wider than the near plane, so the
+    ///   view never clips into geometry. (The template's own check uses 0.1 m rays, the same as the near plane.)
+    /// - Fading: only small objects (props, furniture) between camera and character turn see-through. Large meshes
+    ///   are never faded: the command tower's walls, floors and stairs are one mesh per storey, and fading them
+    ///   made whole floors transparent.
+    /// The template's own fader only lowers colour alpha, which does nothing on opaque URP materials; this swaps
+    /// in transparent copies of the materials instead.
     /// </summary>
     [RequireComponent(typeof(Camera))]
+    [DefaultExecutionOrder(1000)]
     public class VantageCameraFader : MonoBehaviour
     {
-        [Range(0, 1)] public float FadedAlpha = 0.22f;
+        [Range(0, 1)] public float FadedAlpha = 0.25f;
         public float FadeSpeed = 6f;
-        public float ProbeRadius = 0.25f;
-        [Tooltip("Objects larger than this (e.g. the ground) are never faded.")]
-        public float MaxObjectSize = 60f;
+        public float ProbeRadius = 0.2f;
+        [Tooltip("Only objects smaller than this are faded; bigger ones block the camera instead.")]
+        public float MaxObjectSize = 5f;
+        [Tooltip("The camera stays at least this far from walls.")]
+        public float Clearance = 0.3f;
 
         private class Faded
         {
@@ -31,7 +40,9 @@ namespace Vantage
         private readonly Dictionary<Renderer, Faded> _faded = new Dictionary<Renderer, Faded>();
         private readonly RaycastHit[] _hits = new RaycastHit[32];
         private readonly List<Renderer> _remove = new List<Renderer>();
+        private readonly Dictionary<Collider, Renderer[]> _renderersOf = new Dictionary<Collider, Renderer[]>();
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        private const int Mask = ~((1 << 2) | (1 << VantageCoverUtil.CoverLayer) | (1 << 10) | (1 << 11));
 
         private void LateUpdate()
         {
@@ -41,28 +52,63 @@ namespace Vantage
             var player = VantageEvents.ActivePlayer();
             if (player != null)
             {
-                var target = player.Collider != null ? player.Collider.bounds.center + Vector3.up * 0.5f : player.transform.position + Vector3.up * 1.4f;
-                var vector = target - transform.position;
-                var mask = ~((1 << 2) | (1 << VantageCoverUtil.CoverLayer) | (1 << 11));
-                var count = Physics.SphereCastNonAlloc(transform.position, ProbeRadius, vector.normalized, _hits, vector.magnitude - 0.3f, mask, QueryTriggerInteraction.Ignore);
+                var head = player.transform.position + Vector3.up * 1.6f;
+                keepClear(head);
+                fadeBetween(player, head);
+            }
+            updateFades();
+        }
 
-                for (int i = 0; i < count; i++)
+        /// <summary>Pulls the camera in front of the nearest large obstacle between the head and the camera.</summary>
+        private void keepClear(Vector3 head)
+        {
+            var toCamera = transform.position - head;
+            var distance = toCamera.magnitude;
+            if (distance < 0.01f)
+                return;
+            var dir = toCamera / distance;
+            var count = Physics.SphereCastNonAlloc(head, Clearance, dir, _hits, distance, Mask, QueryTriggerInteraction.Ignore);
+            var nearest = distance;
+            for (int i = 0; i < count; i++)
+            {
+                var h = _hits[i];
+                if (h.distance <= 0f || isSmall(h.collider)) continue; // small props fade instead
+                nearest = Mathf.Min(nearest, h.distance);
+            }
+            if (nearest < distance)
+                transform.position = head + dir * Mathf.Max(0.2f, nearest);
+        }
+
+        private void fadeBetween(BaseActor player, Vector3 head)
+        {
+            var vector = head - transform.position;
+            var count = Physics.SphereCastNonAlloc(transform.position, ProbeRadius, vector.normalized, _hits, Mathf.Max(0f, vector.magnitude - 0.3f), Mask, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                var hit = _hits[i].collider;
+                if (hit.transform.IsChildOf(player.transform) || !isSmall(hit))
+                    continue;
+                if (!_renderersOf.TryGetValue(hit, out var renderers))
+                    _renderersOf[hit] = renderers = hit.GetComponentsInChildren<Renderer>();
+                foreach (var r in renderers)
                 {
-                    var hit = _hits[i].collider;
-                    if (hit.transform.IsChildOf(player.transform))
+                    if (r == null) continue;
+                    if (r is ParticleSystemRenderer || r.bounds.size.magnitude > MaxObjectSize)
                         continue;
-
-                    foreach (var r in hit.GetComponentsInChildren<Renderer>())
-                    {
-                        if (r is ParticleSystemRenderer || r.bounds.size.magnitude > MaxObjectSize)
-                            continue;
-                        if (!_faded.TryGetValue(r, out var f))
-                            f = _faded[r] = begin(r);
-                        f.Wanted = true;
-                    }
+                    // Never fade what the character stands on or inside of.
+                    if (r.bounds.Contains(player.transform.position + Vector3.up * 0.1f))
+                        continue;
+                    if (!_faded.TryGetValue(r, out var f))
+                        f = _faded[r] = begin(r);
+                    f.Wanted = true;
                 }
             }
+        }
 
+        private bool isSmall(Collider c) => c.bounds.size.magnitude <= MaxObjectSize;
+
+        private void updateFades()
+        {
             _remove.Clear();
             foreach (var f in _faded.Values)
             {
@@ -108,9 +154,7 @@ namespace Vantage
             return new Faded { Renderer = r, Original = original, Transparent = transparent };
         }
 
-        /// <summary>
-        /// URP Lit / Simple Lit / Unlit: switch the material copy to alpha-blended transparency.
-        /// </summary>
+        /// <summary>URP Lit / Simple Lit / Unlit: switch the material copy to alpha-blended transparency.</summary>
         private static void makeTransparent(Material m)
         {
             m.SetFloat("_Surface", 1f);
