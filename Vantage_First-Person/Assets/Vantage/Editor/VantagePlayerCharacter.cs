@@ -386,10 +386,34 @@ namespace Vantage.EditorTools
             foreach (var top in oldBones.Where(b => b != null && b.parent == body).ToList())
                 Object.DestroyImmediate(top.gameObject);
 
+            disableFaceWithoutShapes(body.root);
             animator.avatar = avatar;
             body.name = model.name;
             Debug.Log($"[Vantage] Body swap: {oldRenderers.Count} old meshes and {oldBones.Count} old bones replaced by {added.Count} objects from {model.name}; "
                       + $"{moved} attachments moved, {remapped} references remapped; height {oldHeight:F2} m → {newHeight:F2} m.");
+        }
+
+        /// <summary>
+        /// The template's CharacterFace sets blend shapes 0–9 by index (the Cowboy's angry, closed-eyes, mouth shapes …).
+        /// A body without them would throw every frame, so the face is switched off; one with ten or more shapes keeps
+        /// it, with a note that the indices may mean something else on that mesh.
+        /// </summary>
+        private static void disableFaceWithoutShapes(Transform root)
+        {
+            const int shapesUsed = 10;
+            foreach (var face in root.GetComponentsInChildren<CoverShooter.CharacterFace>(true))
+            {
+                var mesh = face.Mesh != null ? face.Mesh.GetComponent<SkinnedMeshRenderer>() : null;
+                var count = mesh != null && mesh.sharedMesh != null ? mesh.sharedMesh.blendShapeCount : 0;
+                if (count >= shapesUsed)
+                {
+                    Debug.Log($"[Vantage] CharacterFace drives the first {shapesUsed} blend shapes of {mesh.name}; check they are facial expressions.");
+                    continue;
+                }
+                face.Mesh = null;
+                face.enabled = false;
+                Debug.Log($"[Vantage] CharacterFace switched off: the body has {count} blend shapes, the face needs {shapesUsed}.");
+            }
         }
 
         private static void collectBones(Transform parent, HashSet<string> names, List<Transform> bones)
