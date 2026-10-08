@@ -50,6 +50,9 @@ namespace Vantage.Testing
             }
             _health = _motor.GetComponent<CharacterHealth>();
             _controller = _motor.GetComponent<ThirdPersonController>();
+            // The player snaps into cover when standing still next to it (template AutoTakeCover); the bot stands
+            // still a lot and is teleported, so it would end up crouched out of sight or held in place by the cover.
+            if (_controller != null) _controller.AutoTakeCover = false;
             var input = _motor.GetComponent<ThirdPersonInput>();
             if (input != null) input.enabled = false; // the bot drives MovementInput itself
             _controller.WaitForUpdateCall = false;   // the input component normally ticks the controller
@@ -425,6 +428,7 @@ namespace Vantage.Testing
 
         private void teleport(Vector3 position, Vector3 lookAt)
         {
+            if (_motor.IsInCover) _motor.InputLeaveCover();
             var body = _motor.GetComponent<Rigidbody>();
             if (body != null) { body.linearVelocity = Vector3.zero; body.position = position + Vector3.up * 0.05f; }
             var look = lookAt - position; look.y = 0;

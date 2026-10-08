@@ -56,6 +56,14 @@ namespace Vantage.EditorTools
             EditorApplication.Exit(ok ? 0 : 1);
         }
 
+        /// <summary>Batch: only the player screenshots (-vantageShots folder), no changes.</summary>
+        public static void ShotsBatch()
+        {
+            EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
+            Shots(VantageEditorUtil.Arg("-vantageShots") ?? "PlayerShots");
+            EditorApplication.Exit(0);
+        }
+
         public static bool Apply(string modelPath)
         {
             var avatar = importAsHumanoid(modelPath);
@@ -269,21 +277,29 @@ namespace Vantage.EditorTools
             var bodyLayer = template != null ? template.gameObject.layer : body.gameObject.layer;
             var boneLayer = oldBones.Count > 0 ? oldBones[0].gameObject.layer : body.gameObject.layer;
 
+            var oldHeight = height(body, oldBones, oldDescription);
+            applyTPose(body, oldBones, oldDescription);
+
+            // The new body takes the old body's pose through the humanoid muscles, the same mapping the animations
+            // use at runtime: then a hand on one is turned exactly like the hand on the other, and a gun moved across
+            // with its world pose sits in the new hand as it did in the old one. (The two avatars' own T-poses differ:
+            // matching those left the guns floating beside the hands.)
+            var instance = Object.Instantiate(model, body.position, body.rotation);
+            var pose = new HumanPose();
+            using (var from = new HumanPoseHandler(animator.avatar, body))
+                from.GetHumanPose(ref pose);
+            using (var to = new HumanPoseHandler(avatar, instance.transform))
+                to.SetHumanPose(ref pose);
+
             // The new body goes directly under the Animator, as in the model file, so the avatar's bone paths match.
-            var instance = Object.Instantiate(model);
             var added = instance.transform.Cast<Transform>().ToList();
             foreach (var child in added)
-                child.SetParent(body, false);
+                child.SetParent(body, true);
             Object.DestroyImmediate(instance);
             var newBones = added.SelectMany(c => c.GetComponentsInChildren<Transform>(true)).ToList();
             var newByName = new Dictionary<string, Transform>();
             foreach (var t in newBones)
                 newByName[t.name] = t;
-
-            var oldHeight = height(body, oldBones, oldDescription);
-            var newHeight = height(body, newBones, newDescription);
-            applyTPose(body, oldBones, oldDescription);
-            applyTPose(body, newBones, newDescription);
 
             // Old bone → new bone: the humanoid mapping first, then the same name without a rig prefix (mixamorig:).
             var oldToHuman = oldDescription.human.ToDictionary(h => h.boneName, h => h.humanName);
@@ -295,13 +311,16 @@ namespace Vantage.EditorTools
                 var bare = old.name.Substring(old.name.LastIndexOf(':') + 1);
                 return newByName.TryGetValue(bare, out t) ? t : null;
             }
-            Transform nearest(Transform old)
+            Transform nearest(Transform old) => nearestWithAnchor(old, out _);
+            // The new bone for 'old' or its closest mapped ancestor; 'anchor' is the old bone it was matched from.
+            Transform nearestWithAnchor(Transform old, out Transform anchor)
             {
                 for (var t = old; t != null && t != body; t = t.parent)
                 {
                     var c = oldBoneSet.Contains(t) ? counterpart(t) : null;
-                    if (c != null) return c;
+                    if (c != null) { anchor = t; return c; }
                 }
+                anchor = body;
                 return newByName.TryGetValue(newDescription.human.First(h => h.humanName == "Hips").boneName, out var hips) ? hips : body;
             }
 
@@ -335,7 +354,11 @@ namespace Vantage.EditorTools
                     var isBone = oldBoneSet.Contains(child);
                     if (isBone && (counterpart(child) != null || !(referenced.Contains(child) || hasAttachment(child, oldBoneSet))))
                         continue;
-                    child.SetParent(nearest(bone), true);
+                    // Same muscle pose: the new bone is turned like the old one, but may sit elsewhere (other
+                    // proportions, hips placed by human scale). Keep the world rotation and the offset from the bone.
+                    var target = nearestWithAnchor(bone, out var anchor);
+                    child.position += target.position - anchor.position;
+                    child.SetParent(target, true);
                     moved++;
                 }
             }
@@ -386,6 +409,9 @@ namespace Vantage.EditorTools
             foreach (var top in oldBones.Where(b => b != null && b.parent == body).ToList())
                 Object.DestroyImmediate(top.gameObject);
 
+            // Back to the model's own rest pose (the attachments follow their bones).
+            applyTPose(body, newBones, newDescription);
+            var newHeight = height(body, newBones, newDescription);
             disableFaceWithoutShapes(body.root);
             animator.avatar = avatar;
             body.name = model.name;
@@ -474,6 +500,39 @@ namespace Vantage.EditorTools
             VantageEditorUtil.Shot(folder, "player_front", chest + t.forward * 2.6f + Vector3.up * 0.2f, chest, false, 0);
             VantageEditorUtil.Shot(folder, "player_back", chest - t.forward * 3f + t.right * 0.8f + Vector3.up * 0.5f, chest + t.forward * 2f, false, 0);
             VantageEditorUtil.Shot(folder, "player_side", chest + t.right * 2.4f, chest, false, 0);
+
+            // In a pistol pose from the character's own animations: the gun must sit in the hand.
+            var animator = player.GetComponent<Animator>();
+            var clips = animator != null && animator.runtimeAnimatorController != null ? animator.runtimeAnimatorController.animationClips : new AnimationClip[0];
+            Debug.Log("[Vantage] Pistol clips: " + string.Join(", ", clips.Where(c => c.name.ToLowerInvariant().Contains("pistol")).Select(c => c.name).Distinct().Take(20)));
+            var clip = clips.FirstOrDefault(c => c.isHumanMotion && c.name == "Pistol_Idle")
+                       ?? clips.FirstOrDefault(c => c.isHumanMotion && c.name.ToLowerInvariant().Contains("pistol"));
+            if (clip == null) return;
+            // Only the pistol in the hand (in the editor all of the inventory's guns are shown).
+            var inventory = player.GetComponent<CoverShooter.CharacterInventory>();
+            if (inventory != null && inventory.Weapons != null)
+                foreach (var w in inventory.Weapons)
+                    if (w.RightItem != null) w.RightItem.SetActive(w.RightItem.name == "Pistol");
+            // Batch renders run outside the player loop, where skinning isn't refreshed: force it per render.
+            foreach (var r in player.GetComponentsInChildren<SkinnedMeshRenderer>())
+                r.forceMatrixRecalculationPerRender = true;
+            AnimationMode.StartAnimationMode();
+            try
+            {
+                AnimationMode.BeginSampling();
+                AnimationMode.SampleAnimationClip(animator.gameObject, clip, clip.length * 0.5f);
+                AnimationMode.EndSampling();
+                var hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                Debug.Log($"[Vantage] Hand shots in pose '{clip.name}'.");
+                VantageEditorUtil.Shot(folder, "player_hand_side", hand.position + t.right * 0.7f + Vector3.up * 0.1f, hand.position, false, 0);
+                VantageEditorUtil.Shot(folder, "player_hand_top", hand.position + Vector3.up * 0.7f + t.right * 0.05f, hand.position, false, 0);
+                VantageEditorUtil.Shot(folder, "player_hand_front", hand.position + t.forward * 1.1f + t.right * 0.3f + Vector3.up * 0.2f, hand.position, false, 0);
+                VantageEditorUtil.Shot(folder, "player_pose", chest + t.forward * 2.4f + t.right * 1.2f + Vector3.up * 0.3f, chest, false, 0);
+            }
+            finally
+            {
+                AnimationMode.StopAnimationMode();
+            }
         }
     }
 

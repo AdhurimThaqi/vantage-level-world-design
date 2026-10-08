@@ -4,6 +4,7 @@ using System.Linq;
 using CommandTowerKit;
 using CoverShooter;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Vantage
 {
@@ -120,6 +121,9 @@ namespace Vantage
         private int _playerLevel = -2;
         private Bounds _footprint;
         private int _topStorey;
+        // Spawn markers with walkable NavMesh on their own floor, and that NavMesh point.
+        private readonly Dictionary<GameplayMarker, Vector3> _ground = new Dictionary<GameplayMarker, Vector3>();
+        private const float GroundSearch = 1f, GroundMaxDrop = 0.5f;
 
         private void Awake()
         {
@@ -131,7 +135,12 @@ namespace Vantage
 
         private void Start()
         {
-            if (RandomSeedEachPlay)
+            // -vantageSeed N on the command line replays a layout (a playtest report or bot log gives the seed).
+            var args = Environment.GetCommandLineArgs();
+            var seedArg = Array.IndexOf(args, "-vantageSeed");
+            if (seedArg >= 0 && seedArg + 1 < args.Length && int.TryParse(args[seedArg + 1], out var forced))
+                Seed = forced;
+            else if (RandomSeedEachPlay)
                 Seed = (Environment.TickCount & 0x7fffffff) % 100000;
             _random = new System.Random(Seed);
             VantageEvents.RaiseLayoutGenerated(Seed);
@@ -139,10 +148,7 @@ namespace Vantage
             _gates = FindObjectsByType<VantageFloorGate>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             _lights = Tower != null ? Tower.GetComponentsInChildren<Light>(true) : new Light[0];
             _markers = Tower != null ? Tower.GetComponentsInChildren<GameplayMarker>(true) : new GameplayMarker[0];
-            var misfiled = _markers.Count(m => (m.markerType == EnemySpawnMarker || m.markerType == DroneSpawnMarker)
-                                               && StoreyAt(Tower.InverseTransformPoint(m.transform.position).y) != m.floor);
-            if (misfiled > 0)
-                Debug.Log($"[Vantage] {misfiled} spawn markers have a floor field that doesn't match their height; spawning goes by height.");
+            findGround();
             foreach (var l in Levels)
                 if (l.Reward != null)
                     l.Reward.SetActive(false);
@@ -229,6 +235,31 @@ namespace Vantage
             return insideFootprint(local) && Array.IndexOf(storeys, StoreyAt(local.y)) >= 0;
         }
 
+        /// <summary>
+        /// Enemy spawn markers need NavMesh on their own floor: where the bake left none (13 of the tower's markers,
+        /// e.g. in the F1 canteen), the AI snaps a soldier to the nearest NavMesh, which can be a floor above or below.
+        /// Such markers are skipped (and logged); soldiers spawn on the NavMesh point next to the marker.
+        /// </summary>
+        private void findGround()
+        {
+            _ground.Clear();
+            var skipped = new List<string>();
+            foreach (var m in _markers)
+            {
+                if (m.markerType != EnemySpawnMarker) continue;
+                var p = m.transform.position;
+                if (NavMesh.SamplePosition(p, out var hit, GroundSearch, NavMesh.AllAreas) && Mathf.Abs(hit.position.y - p.y) <= GroundMaxDrop)
+                    _ground[m] = hit.position;
+                else
+                    skipped.Add(m.name);
+            }
+            if (skipped.Count > 0)
+                Debug.Log($"[Vantage] {skipped.Count} enemy spawn markers have no NavMesh on their floor and are not used: {string.Join(", ", skipped)}.");
+        }
+
+        /// <summary>Where a soldier stands for a marker: its NavMesh point, else the marker itself.</summary>
+        private Vector3 standAt(GameplayMarker m) => _ground.TryGetValue(m, out var p) ? p : m.transform.position;
+
         /// <summary>The storey whose floor is under a point (ceiling lights belong to the storey below them).</summary>
         private int storeyBelow(float localY) => Mathf.Clamp(Mathf.FloorToInt((localY - GroundFloor) / StoreyHeight), 0, _topStorey);
 
@@ -280,7 +311,7 @@ namespace Vantage
             var level = Levels[index];
             var spawns = pick(EnemySpawnMarker, level.Storeys, level.Soldiers);
             foreach (var m in spawns)
-                spawnSoldier(level, m.transform);
+                spawnSoldier(level, m);
 
             // Drones: drone pads/hangars on the level first, then hovering over free enemy spawns.
             var droneSpots = pick(DroneSpawnMarker, level.Storeys, level.Drones);
@@ -306,7 +337,8 @@ namespace Vantage
         {
             // Judged by where the marker is, not its floor field (some exported markers carry the wrong floor), and
             // only inside the tower: an enemy spawned outside (a drone pad on a ledge) can't be reached.
-            var pool = _markers.Where(m => m.markerType == type && isOn(m, storeys) && (exclude == null || !exclude.Contains(m)))
+            var pool = _markers.Where(m => m.markerType == type && isOn(m, storeys) && (type != EnemySpawnMarker || _ground.ContainsKey(m))
+                                           && (exclude == null || !exclude.Contains(m)))
                                .OrderBy(_ => _random.Next()).ToList();
             var result = new List<GameplayMarker>();
             var rooms = new HashSet<string>();
@@ -319,11 +351,11 @@ namespace Vantage
             return result;
         }
 
-        private void spawnSoldier(Level level, Transform at)
+        private void spawnSoldier(Level level, GameplayMarker at)
         {
             if (SoldierPrefab == null) return;
-            var go = Instantiate(SoldierPrefab, at.position + Vector3.up * SoldierSpawnLift, Quaternion.Euler(0, at.eulerAngles.y, 0));
-            go.name = $"Soldier - {level.Name}";
+            var go = Instantiate(SoldierPrefab, standAt(at) + Vector3.up * SoldierSpawnLift, Quaternion.Euler(0, at.transform.eulerAngles.y, 0));
+            go.name = $"Soldier - {level.Name} ({at.name})";
             var actor = go.GetComponent<BaseActor>();
             if (actor != null) actor.Side = EnemySide;
             foreach (var gun in go.GetComponentsInChildren<BaseGun>(true))
@@ -401,7 +433,7 @@ namespace Vantage
                     _aliveDrones[i].Relocate(marker.transform.position + Vector3.up * DroneSpawnHeight);
                 else
                 {
-                    var position = marker.transform.position + Vector3.up * SoldierSpawnLift;
+                    var position = standAt(marker) + Vector3.up * SoldierSpawnLift;
                     var body = enemy.GetComponent<Rigidbody>();
                     if (body != null) { body.position = position; body.linearVelocity = Vector3.zero; }
                     enemy.position = position;
