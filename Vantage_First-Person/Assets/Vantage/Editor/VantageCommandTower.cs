@@ -16,8 +16,6 @@ namespace Vantage.EditorTools
         public const string InstanceName = "CommandTower";
 
         public const string SetupName = "VANTAGE Tower Setup";
-        /// <summary>Root name of the old generated blockout tower; removed if a scene still has it.</summary>
-        public const string LegacyTowerName = "VANTAGE Tower";
         private const string Prefabs = "Assets/ThirdPersonCoverShooter/Assets/Prefabs/";
         private const float GroundFloor = 0.45f, Storey = 4f;
 
@@ -37,7 +35,7 @@ namespace Vantage.EditorTools
         }
 
         /// <summary>
-        /// Makes the command tower the level: removes the old generated tower, sets up lights, entrance ramps,
+        /// Makes the command tower the level: fixes furniture placement, sets up lights, entrance ramps,
         /// gates between the four levels, furniture cover, the level manager, pickups and the player start, and
         /// bakes the NavMesh. Safe to re-run: everything it adds lives under "VANTAGE Tower Setup".
         /// </summary>
@@ -49,13 +47,16 @@ namespace Vantage.EditorTools
             var t = tower.transform;
 
             foreach (var root in EditorSceneManager.GetActiveScene().GetRootGameObjects())
-                if (root.name == LegacyTowerName || root.name == "VANTAGE Enemies" || root.name == SetupName)
+                if (root.name == SetupName)
                 {
                     Debug.Log($"[Vantage] Removed '{root.name}'.");
                     Object.DestroyImmediate(root);
                 }
 
             var setup = new GameObject(SetupName).transform;
+            placeFurniture(t);
+            openDoors(t);
+            clearEntranceRails(t);
             staticFlags(t);
             sunAngle();
             realtimeLights(tower);
@@ -141,225 +142,312 @@ namespace Vantage.EditorTools
             Debug.Log("[Vantage] Tower screenshots written to " + folder);
         }
 
-        /// <summary>
-        /// Stair profile: along each ramp piece, how far the other geometry (the real steps, landings) sticks up above
-        /// the smooth ramp surface. Anything above ~3 cm can catch the template character's capsule.
-        /// -executeMethod Vantage.EditorTools.VantageCommandTower.StairProfileBatch
-        /// </summary>
-        public static void StairProfileBatch()
-        {
-            var exitCode = 0;
-            try
-            {
-                EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
-                var t = FindTower().transform;
-                Physics.SyncTransforms();
-                var stairs = t.GetComponentsInChildren<MeshFilter>(true).First(f => f.name.Contains("StairColliders"));
-                var rampCollider = stairs.GetComponent<Collider>();
-                Debug.Log($"[Vantage] Ramp collider: {(rampCollider != null ? rampCollider.GetType().Name + " enabled=" + rampCollider.enabled + " layer " + stairs.gameObject.layer : "NONE")}");
-                var fe = t.GetComponentsInChildren<MeshFilter>(true).First(f => f.name.Contains("FireEscape"));
-                var feCol = fe.GetComponent<MeshCollider>();
-                Debug.Log($"[Vantage] FireEscape: render tris {fe.sharedMesh.triangles.Length / 3}, collider {(feCol != null ? $"{(feCol.sharedMesh != null ? feCol.sharedMesh.triangles.Length / 3 : -1)} tris convex={feCol.convex} enabled={feCol.enabled} same mesh={feCol.sharedMesh == fe.sharedMesh}" : "NONE")}, bounds r {fe.GetComponent<Renderer>().bounds.size} c {(feCol != null ? feCol.bounds.size : Vector3.zero)}");
-                foreach (var probe in new[] { new Vector3(10.5f, 4.47f, -14f), new Vector3(11.5f, 4.47f, -12.4f), new Vector3(-10.5f, 4.47f, -12.4f), new Vector3(-10.5f, 4.47f, -14f), new Vector3(0f, 2.5f, -12.4f), new Vector3(0f, 6.5f, -14f) })
-                {
-                    var hits = Physics.RaycastAll(t.TransformPoint(probe + Vector3.up * 1f), Vector3.down, 2f).OrderBy(h => h.distance).Select(h => $"{t.InverseTransformPoint(h.point).y:F2} {h.collider.name}");
-                    Debug.Log($"[Vantage]   probe {probe}: {string.Join(" | ", hits)}");
-                }
-                foreach (var piece in rampPieces(t, stairs).Where(p => p.bottom.y < 9f).OrderBy(p => p.bottom.y))
-                {
-                    var flat = piece.top - piece.bottom; flat.y = 0;
-                    var dir = flat.normalized;
-                    var side = Vector3.Cross(Vector3.up, dir);
-                    var rise = piece.top.y - piece.bottom.y;
-                    float worst = -1f; string worstWhat = "";
-                    int above = 0, samples = 0;
-                    var rows = new List<string>();
-                    for (float k = -0.6f; k <= flat.magnitude + 0.6f; k += 0.1f)
-                        foreach (var lateral in new[] { -0.35f, 0f, 0.35f })
-                        {
-                            var local = piece.bottom + dir * k + side * lateral * piece.width;
-                            var rampY = piece.bottom.y + Mathf.Clamp01(k / flat.magnitude) * rise;
-                            var world = t.TransformPoint(local + Vector3.up * 1.5f);
-                            var hits = Physics.RaycastAll(world, Vector3.down, 3f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore);
-                            var top = hits.Where(h => h.collider != rampCollider).OrderBy(h => h.distance).FirstOrDefault();
-                            if (top.collider == null) continue;
-                            samples++;
-                            var dy = t.InverseTransformPoint(top.point).y - rampY;
-                            if (dy > 0.03f) above++;
-                            if (dy > worst) { worst = dy; worstWhat = $"{top.collider.name} at k={k:F1} lateral={lateral:F2}"; }
-                            if (lateral == 0f && Mathf.Abs(k * 10 - Mathf.Round(k * 10)) < 0.01f && Mathf.RoundToInt(k * 10) % 3 == 0)
-                                rows.Add($"{k:F1}:{dy:+0.00;-0.00}");
-                        }
-                    Debug.Log($"[Vantage] {piece.side} flight y {piece.bottom.y:F2}->{piece.top.y:F2} run {flat.magnitude:F1} width {piece.width:F1}: geometry above ramp at {above}/{samples} samples, worst +{worst:F2} m ({worstWhat})");
-                    Debug.Log($"[Vantage]   centre line (distance:height above ramp): {string.Join(" ", rows)}");
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                exitCode = 1;
-            }
-            EditorApplication.Exit(exitCode);
-        }
-
-        /// <summary>
-        /// Finds z-fighting: surfaces that lie on top of another surface (within 3 mm, facing the same way), in the
-        /// tower and in the world's roads/decals/pads (against the terrain). Logs the worst offenders.
-        /// -executeMethod Vantage.EditorTools.VantageCommandTower.ZFightBatch
-        /// </summary>
-        public static void ZFightBatch()
-        {
-            var exitCode = 0;
-            try
-            {
-                EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
-                // Roads, markings and decals have no colliders (removed for walking); give them temporary ones so
-                // they take part in the scan. The scene is not saved.
-                foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
-                    if (r.GetComponent<Collider>() == null && r.GetComponent<MeshFilter>()?.sharedMesh != null && fullName(r.transform).Contains("Roads, Pads"))
-                        r.gameObject.AddComponent<MeshCollider>();
-                Physics.SyncTransforms();
-                var results = new List<(string name, int hits, int samples, string with)>();
-                var terrain = Object.FindFirstObjectByType<Terrain>();
-                foreach (var mf in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
-                {
-                    var mesh = mf.sharedMesh;
-                    var r = mf.GetComponent<Renderer>();
-                    if (mesh == null || r == null || !r.enabled) continue;
-                    Vector3[] v; int[] tri;
-                    try { v = mesh.vertices; tri = mesh.triangles; } catch { continue; }
-                    if (tri.Length == 0) continue;
-                    var own = mf.GetComponent<Collider>();
-                    int samples = 0, fights = 0;
-                    var with = new Dictionary<string, int>();
-                    var stride = Mathf.Max(1, tri.Length / 3 / 400) * 3;
-                    for (int i = 0; i < tri.Length; i += stride)
-                    {
-                        var a = mf.transform.TransformPoint(v[tri[i]]);
-                        var b = mf.transform.TransformPoint(v[tri[i + 1]]);
-                        var c = mf.transform.TransformPoint(v[tri[i + 2]]);
-                        var n = Vector3.Cross(b - a, c - a);
-                        if (n.sqrMagnitude < 1e-8f) continue;
-                        n.Normalize();
-                        var centre = (a + b + c) / 3f;
-                        samples++;
-                        // Another collider's surface at the same spot facing the same way?
-                        foreach (var h in Physics.RaycastAll(centre + n * 0.02f, -n, 0.025f, ~0, QueryTriggerInteraction.Ignore))
-                            if (h.collider != own && Mathf.Abs(h.distance - 0.02f) < 0.003f && Vector3.Dot(h.normal, n) > 0.95f)
-                            {
-                                fights++;
-                                var sameInstance = PrefabUtility.GetOutermostPrefabInstanceRoot(h.collider.gameObject) == PrefabUtility.GetOutermostPrefabInstanceRoot(mf.gameObject)
-                                                   && PrefabUtility.GetOutermostPrefabInstanceRoot(mf.gameObject) != null;
-                                var key = (sameInstance ? "SAME MODEL " : "") + h.collider.name + "/" + submeshMaterial(h);
-                                key += " <- " + r.sharedMaterials[Mathf.Min(submeshOf(mesh, i), r.sharedMaterials.Length - 1)]?.name;
-                                with[key] = with.TryGetValue(key, out var w) ? w + 1 : 1;
-                                break;
-                            }
-                        // Flat pieces lying on the terrain.
-                        if (terrain != null && n.y > 0.95f && !mf.transform.IsChildOf(terrain.transform))
-                        {
-                            var ty = terrain.SampleHeight(centre) + terrain.transform.position.y;
-                            if (Mathf.Abs(centre.y - ty) < 0.02f) { fights++; with["Terrain"] = with.TryGetValue("Terrain", out var w) ? w + 1 : 1; }
-                        }
-                    }
-                    if (fights > 0) results.Add((fullName(mf.transform), fights, samples, string.Join(", ", with.OrderByDescending(x => x.Value).Take(3).Select(x => x.Key + " x" + x.Value))));
-                }
-                // Group by object type (name without parents and clone numbers).
-                foreach (var g in results.GroupBy(r => System.Text.RegularExpressions.Regex.Replace(r.name.Split('/').Last(), @"( \(\d+\)|_\d+)$", ""))
-                                         .OrderByDescending(g => g.Sum(r => r.hits)).Take(30))
-                    Debug.Log($"[Vantage] Z-fight {g.Key}: {g.Count()} objects, {g.Sum(r => r.hits)}/{g.Sum(r => r.samples)} samples; e.g. {g.First().name} overlaps {g.First().with}");
-                Debug.Log($"[Vantage] Z-fight scan: {results.Count} meshes with coincident surfaces.");
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                exitCode = 1;
-            }
-            EditorApplication.Exit(exitCode);
-        }
-
-        private static int submeshOf(Mesh mesh, int triangleStart)
-        {
-            int index = triangleStart;
-            for (int s = 0; s < mesh.subMeshCount; s++)
-            {
-                var d = mesh.GetSubMesh(s);
-                if (index >= d.indexStart && index < d.indexStart + d.indexCount) return s;
-            }
-            return 0;
-        }
-
-        private static string submeshMaterial(RaycastHit h)
-        {
-            var mc = h.collider as MeshCollider;
-            var r = h.collider.GetComponent<Renderer>();
-            if (mc == null || mc.sharedMesh == null || r == null || h.triangleIndex < 0) return "?";
-            var s = submeshOf(mc.sharedMesh, h.triangleIndex * 3);
-            return r.sharedMaterials.Length > s && r.sharedMaterials[s] != null ? r.sharedMaterials[s].name : "?";
-        }
-
-        private static string fullName(Transform t)
-        {
-            var name = t.name;
-            for (var p = t.parent; p != null && name.Length < 160; p = p.parent) name = p.name + "/" + name;
-            return name;
-        }
-
-        /// <summary>
-        /// Walk-line check over the finished setup: along the centre of every gated flight (foot to top, plus a
-        /// metre either side) the top walkable surface every 5 cm, listing every step up of more than 4 cm.
-        /// -executeMethod Vantage.EditorTools.VantageCommandTower.WalkLineBatch
-        /// </summary>
-        public static void WalkLineBatch()
-        {
-            var exitCode = 0;
-            try
-            {
-                EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
-                var t = FindTower().transform;
-                foreach (var g in Object.FindObjectsByType<VantageFloorGate>(FindObjectsSortMode.None)) g.Blocker.enabled = false;
-                Physics.SyncTransforms();
-                var stairs = t.GetComponentsInChildren<MeshFilter>(true).First(f => f.name.Contains("StairColliders"));
-                foreach (var piece in rampPieces(t, stairs).Where(p => p.bottom.y < 9f).OrderBy(p => p.bottom.y))
-                {
-                    var flat = piece.top - piece.bottom; flat.y = 0;
-                    var dir = flat.normalized;
-                    var steps = new List<string>();
-                    float? last = null; var lastK = 0f;
-                    var line = new List<string>();
-                    for (float k = -1f; k <= flat.magnitude + 1f; k += 0.05f)
-                    {
-                        var local = piece.bottom + dir * k;
-                        var expected = piece.bottom.y + Mathf.Clamp01(k / flat.magnitude) * (piece.top.y - piece.bottom.y);
-                        float best = float.NegativeInfinity; string what = "";
-                        foreach (var h in Physics.RaycastAll(t.TransformPoint(new Vector3(local.x, expected + 1.2f, local.z)), Vector3.down, 3f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
-                        {
-                            if (h.normal.y < 0.5f) continue;
-                            var y = t.InverseTransformPoint(h.point).y;
-                            if (y <= expected + 0.6f && y > best) { best = y; what = h.collider.name; }
-                        }
-                        if (float.IsNegativeInfinity(best)) { line.Add($"{k:F2}:hole"); last = null; continue; }
-                        if (last.HasValue && best - last.Value > 0.04f) steps.Add($"k={k:F2} +{best - last.Value:F2} onto {what}");
-                        if (Mathf.Abs(k * 4 - Mathf.Round(k * 4)) < 0.01f) line.Add($"{k:F2}:{best:F2}");
-                        last = best; lastK = k;
-                    }
-                    Debug.Log($"[Vantage] Walk {piece.side} {piece.bottom.y:F2}->{piece.top.y:F2} (foot {piece.bottom:F1}): {(steps.Count == 0 ? "no steps" : string.Join("; ", steps.Take(8)))}");
-                    Debug.Log($"[Vantage]   {string.Join(" ", line)}");
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                exitCode = 1;
-            }
-            EditorApplication.Exit(exitCode);
-        }
-
         private static Transform group(Transform parent, string name)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
             return go.transform;
+        }
+
+        /// <summary>
+        /// The doors stand open and nothing closes them, but their leaves still collided: the character caught on
+        /// them in the doorways (playtest: stuck at the doors behind the tower). Leaves are set open and lose their
+        /// colliders; the frames still block.
+        /// </summary>
+        private static void openDoors(Transform t)
+        {
+            var doors = t.GetComponentsInChildren<CommandTowerKit.TowerDoor>(true);
+            foreach (var door in doors)
+            {
+                door.isOpen = true;
+                door.transform.localRotation = door.openRotation;
+                foreach (var c in door.GetComponentsInChildren<Collider>(true))
+                    c.enabled = false;
+                EditorUtility.SetDirty(door);
+            }
+            Debug.Log($"[Vantage] {doors.Length} doors open, leaves without collision.");
+        }
+
+        /// <summary>
+        /// The fire escape's ground platform has guard rails straight across the top of its entrance steps (export
+        /// error), at knee and at chest height: the character runs into them (bot and playtest: stuck at the door
+        /// behind the tower). Along every ground entrance, rays at every height from 0.25 to 1.8 m, from outside and
+        /// from inside (a mesh collider is only hit from the front of its faces), look for a bar across the way: a
+        /// connected piece of mesh that is thin in height and depth but at least 1 m wide. Each bar is cut from a copy
+        /// of that mesh, used for rendering and collision (instance override; the prefab is not touched).
+        /// </summary>
+        private static void clearEntranceRails(Transform t)
+        {
+            Physics.SyncTransforms();
+            var cut = new Dictionary<MeshCollider, (Mesh source, Mesh mesh, int removed)>();
+            foreach (var entry in t.GetComponentsInChildren<CommandTowerKit.GameplayMarker>(true).Where(m => m.markerType == "PlayerEntry" && m.floor < 0))
+            {
+                var local = t.InverseTransformPoint(entry.transform.position);
+                var inward = t.TransformDirection(Mathf.Abs(local.x) > Mathf.Abs(local.z) ? new Vector3(-Mathf.Sign(local.x), 0, 0) : new Vector3(0, 0, -Mathf.Sign(local.z)));
+                for (var h = 0.25f; h <= 1.8f; h += 0.05f)
+                {
+                    var outside = t.TransformPoint(new Vector3(local.x, GroundFloor + h, local.z)) - inward;
+                    foreach (var (origin, direction) in new[] { (outside, inward), (outside + inward * 3.5f, -inward) })
+                    {
+                        if (!Physics.Raycast(origin, direction, out var hit, 3.5f, FurnitureMask, QueryTriggerInteraction.Ignore)
+                            || !(hit.collider is MeshCollider collider) || collider.sharedMesh == null || hit.triangleIndex < 0)
+                            continue;
+                        var island = connectedTriangles(collider.sharedMesh, hit.triangleIndex);
+                        if (!isBarAcross(collider, island, inward))
+                            continue;
+
+                        if (!cut.TryGetValue(collider, out var c))
+                        {
+                            var copy = Object.Instantiate(collider.sharedMesh);
+                            copy.name = collider.sharedMesh.name.Replace(" (entrance open)", "") + " (entrance open)";
+                            c = (collider.sharedMesh, copy, 0);
+                        }
+                        removeTriangles(c.mesh, island);
+                        cut[collider] = (c.source, c.mesh, c.removed + island.Count);
+                        // The next rays must see the mesh without this bar.
+                        collider.sharedMesh = c.mesh;
+                        Physics.SyncTransforms();
+                        Debug.Log($"[Vantage] {entry.name}: bar across the entrance on {collider.name} at {h:F2} m removed ({island.Count} triangles).");
+                    }
+                }
+            }
+
+            foreach (var pair in cut)
+            {
+                var (collider, (source, mesh, removed)) = (pair.Key, pair.Value);
+                saveMesh(mesh, collider.name + " Entrance Open");
+                var filter = collider.GetComponent<MeshFilter>();
+                if (filter != null && (filter.sharedMesh == source || filter.sharedMesh == null)) { filter.sharedMesh = mesh; EditorUtility.SetDirty(filter); }
+                collider.sharedMesh = mesh;
+                EditorUtility.SetDirty(collider);
+            }
+        }
+
+        /// <summary>Thin (≤ 15 cm) in height and along the way in, and at least 1 m wide across it.</summary>
+        private static bool isBarAcross(MeshCollider collider, HashSet<int> island, Vector3 inward)
+        {
+            var across = Vector3.Cross(Vector3.up, inward);
+            var vertices = collider.sharedMesh.vertices;
+            var triangles = collider.sharedMesh.triangles;
+            float minUp = float.MaxValue, maxUp = float.MinValue, minIn = float.MaxValue, maxIn = float.MinValue, minAcross = float.MaxValue, maxAcross = float.MinValue;
+            foreach (var tri in island)
+                for (int j = 0; j < 3; j++)
+                {
+                    var v = collider.transform.TransformPoint(vertices[triangles[tri * 3 + j]]);
+                    minUp = Mathf.Min(minUp, v.y); maxUp = Mathf.Max(maxUp, v.y);
+                    var d = Vector3.Dot(v, inward); minIn = Mathf.Min(minIn, d); maxIn = Mathf.Max(maxIn, d);
+                    var a = Vector3.Dot(v, across); minAcross = Mathf.Min(minAcross, a); maxAcross = Mathf.Max(maxAcross, a);
+                }
+            return maxUp - minUp <= 0.15f && maxIn - minIn <= 0.15f && maxAcross - minAcross >= 1f;
+        }
+
+        /// <summary>Triangles connected to 'start' through shared vertex positions (one modelled piece).</summary>
+        private static HashSet<int> connectedTriangles(Mesh mesh, int start)
+        {
+            var vertices = mesh.vertices;
+            var triangles = mesh.triangles;
+            Vector3Int key(int i) => Vector3Int.RoundToInt(vertices[i] * 1000f);
+            var byPosition = new Dictionary<Vector3Int, List<int>>();
+            for (int i = 0; i < triangles.Length; i++)
+            {
+                var k = key(triangles[i]);
+                if (!byPosition.TryGetValue(k, out var list)) byPosition[k] = list = new List<int>();
+                list.Add(i / 3);
+            }
+            var island = new HashSet<int> { start };
+            var queue = new Queue<int>();
+            queue.Enqueue(start);
+            while (queue.Count > 0)
+            {
+                var tri = queue.Dequeue();
+                for (int j = 0; j < 3; j++)
+                    foreach (var next in byPosition[key(triangles[tri * 3 + j])])
+                        if (island.Add(next))
+                            queue.Enqueue(next);
+            }
+            return island;
+        }
+
+        /// <summary>Removes triangles by their index in Mesh.triangles (all sub-meshes in order).</summary>
+        private static void removeTriangles(Mesh mesh, HashSet<int> remove)
+        {
+            var offset = 0;
+            for (int s = 0; s < mesh.subMeshCount; s++)
+            {
+                var triangles = mesh.GetTriangles(s);
+                var kept = new List<int>(triangles.Length);
+                for (int i = 0; i < triangles.Length; i += 3)
+                    if (!remove.Contains(offset + i / 3))
+                    {
+                        kept.Add(triangles[i]); kept.Add(triangles[i + 1]); kept.Add(triangles[i + 2]);
+                    }
+                offset += triangles.Length / 3;
+                mesh.SetTriangles(kept, s);
+            }
+        }
+
+        // ---------------- furniture ----------------
+
+        /// <summary>Hung on a wall: kept at their height but moved flat against the wall.</summary>
+        private static readonly string[] WallMounted = { "FireExtinguisher", "WallScreen", "Whiteboard", "ExitSign" };
+        /// <summary>Stand on the floor with their back to a wall.</summary>
+        private static readonly string[] WallBacked = { "WeaponRack" };
+
+        /// <summary>
+        /// Fixes furniture placement from the tower export, as instance overrides (the prefab is not touched):
+        /// - pieces hovering above the floor are set down on it;
+        /// - wall pieces standing off their wall are moved against it; one with no wall within 0.6 m
+        ///   (an extinguisher in mid-air) is set down on the floor instead;
+        /// - pieces in a doorway or in the swing of its door are moved out of the way (see clearDoorway).
+        /// Once everything is in place, re-running it moves nothing.
+        /// </summary>
+        private static void placeFurniture(Transform t)
+        {
+            var furniture = t.Find("Furniture");
+            var structure = t.Find("Structure");
+            if (furniture == null || structure == null) return;
+            Physics.SyncTransforms();
+            var doorways = t.GetComponentsInChildren<CommandTowerKit.TowerDoor>(true).Select(doorZone).Where(z => z.HasValue).Select(z => z.Value).ToList();
+            var moves = new List<string>();
+
+            foreach (Transform piece in furniture)
+            {
+                if (piece.name.Contains("CeilingLight") || !worldBounds(piece, out var b)) continue;
+                var own = piece.GetComponentsInChildren<Collider>(true);
+                var before = piece.position;
+                var mounted = WallMounted.Any(piece.name.Contains);
+                var backed = WallBacked.Any(piece.name.Contains);
+
+                if (mounted || backed)
+                {
+                    var wall = nearestWall(t, b, structure, out var towards);
+                    if (wall > 0.02f && wall < 0.6f)
+                        piece.position += towards * (wall - 0.01f);
+                    else if (wall >= 0.6f)
+                        mounted = false; // nothing to hang on: stand it on the floor
+                }
+                if (!mounted)
+                {
+                    worldBounds(piece, out b);
+                    var gap = floorGap(b, own);
+                    if (gap > 0.03f && gap < 1.5f)
+                        piece.position += Vector3.down * gap;
+                }
+                if (!mounted)
+                {
+                    Physics.SyncTransforms();
+                    worldBounds(piece, out b);
+                    foreach (var zone in doorways)
+                        if (piece.gameObject.activeSelf)
+                            clearDoorway(piece, ref b, zone, own);
+                }
+
+                if ((piece.position - before).sqrMagnitude > 1e-6f)
+                {
+                    EditorUtility.SetDirty(piece);
+                    worldBounds(piece, out b);
+                    var storey = Mathf.FloorToInt((t.InverseTransformPoint(b.min).y - GroundFloor + 0.5f) / Storey);
+                    moves.Add($"{piece.name} (storey {storey}) by {t.InverseTransformVector(piece.position - before):F2}");
+                    Physics.SyncTransforms();
+                }
+            }
+            Debug.Log($"[Vantage] Furniture: {moves.Count} pieces moved. {string.Join("; ", moves)}");
+        }
+
+        private static bool worldBounds(Transform piece, out Bounds b)
+        {
+            b = default;
+            var renderers = piece.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) return false;
+            b = renderers[0].bounds;
+            foreach (var r in renderers) b.Encapsulate(r.bounds);
+            return true;
+        }
+
+        private static int FurnitureMask => VantagePhysics.Solid;
+
+        /// <summary>Smallest drop from the piece's underside to whatever is below it (5 samples), or -1.</summary>
+        private static float floorGap(Bounds b, Collider[] own)
+        {
+            var gap = float.MaxValue;
+            foreach (var o in new[] { Vector2.zero, new Vector2(-0.3f, -0.3f), new Vector2(0.3f, -0.3f), new Vector2(-0.3f, 0.3f), new Vector2(0.3f, 0.3f) })
+            {
+                var from = new Vector3(b.center.x + o.x * b.size.x, b.min.y + 0.05f, b.center.z + o.y * b.size.z);
+                var below = Physics.RaycastAll(from, Vector3.down, 3f, FurnitureMask, QueryTriggerInteraction.Ignore)
+                                   .Where(h => !own.Contains(h.collider)).OrderBy(h => h.distance).ToList();
+                if (below.Count == 0) return -1f;
+                gap = Mathf.Min(gap, below[0].distance - 0.05f);
+            }
+            return gap;
+        }
+
+        /// <summary>Distance from the piece's side to the nearest structure wall along the tower's axes.</summary>
+        private static float nearestWall(Transform t, Bounds b, Transform structure, out Vector3 towards)
+        {
+            var best = float.MaxValue;
+            towards = Vector3.zero;
+            foreach (var d in new[] { t.right, -t.right, t.forward, -t.forward })
+            {
+                var extent = Mathf.Abs(d.x) * b.extents.x + Mathf.Abs(d.z) * b.extents.z;
+                // Low, middle and high, so a window opening behind one part doesn't count as "no wall".
+                foreach (var y in new[] { b.min.y + 0.15f, b.center.y, b.max.y - 0.15f })
+                foreach (var h in Physics.RaycastAll(new Vector3(b.center.x, y, b.center.z), d, extent + 3f, FurnitureMask, QueryTriggerInteraction.Ignore))
+                {
+                    if (!h.collider.transform.IsChildOf(structure) || Mathf.Abs(h.normal.y) > 0.3f) continue;
+                    var gap = h.distance - extent;
+                    if (gap > -0.05f && gap < best) { best = gap; towards = d; }
+                }
+            }
+            return best;
+        }
+
+        private struct DoorZone { public Bounds Area; public Vector3 Along; public Vector3 Centre; }
+
+        /// <summary>The doorway and the door's swing: the closed leaf's box 1.2 m deep each side, plus the open leaf.</summary>
+        private static DoorZone? doorZone(CommandTowerKit.TowerDoor door)
+        {
+            var t = door.transform;
+            var rotation = t.localRotation;
+            t.localRotation = door.closedRotation;
+            var closed = worldBounds(t, out var c);
+            t.localRotation = door.openRotation;
+            var open = worldBounds(t, out var o);
+            t.localRotation = rotation;
+            if (!closed || !open) return null;
+            var along = c.size.x >= c.size.z ? Vector3.right : Vector3.forward;
+            var normal = along == Vector3.right ? Vector3.forward : Vector3.right;
+            var area = new Bounds(c.center, c.size + normal * 2.4f + along * 0.2f);
+            area.Encapsulate(new Bounds(o.center, o.size + new Vector3(0.3f, 0, 0.3f)));
+            return new DoorZone { Area = area, Along = along, Centre = c.center };
+        }
+
+        /// <summary>
+        /// Moves a piece out of a doorway zone: along the door's wall first, else straight into the room, wherever
+        /// the new spot is free of walls and other furniture. A piece that fits nowhere is hidden (an override that
+        /// can be reverted in the Inspector): a clear doorway matters more than one more locker.
+        /// </summary>
+        private static void clearDoorway(Transform piece, ref Bounds b, DoorZone zone, Collider[] own)
+        {
+            var z = zone.Area;
+            if (b.min.y > z.max.y || b.max.y < z.min.y || b.min.x >= z.max.x || b.max.x <= z.min.x || b.min.z >= z.max.z || b.max.z <= z.min.z)
+                return;
+            var normal = zone.Along == Vector3.right ? Vector3.forward : Vector3.right;
+            foreach (var axis in new[] { zone.Along, normal })
+            {
+                var side = Mathf.Sign(Vector3.Dot(b.center - zone.Centre, axis));
+                var shift = (side > 0 ? Vector3.Dot(z.max - b.min, axis) : Vector3.Dot(b.max - z.min, axis)) + 0.05f;
+                if (shift > 2.5f) continue;
+                var offset = axis * side * shift;
+                var moved = new Bounds(b.center + offset, b.size - Vector3.one * 0.06f);
+                if (Physics.OverlapBox(moved.center, moved.extents, Quaternion.identity, FurnitureMask, QueryTriggerInteraction.Ignore).Any(c => !own.Contains(c)))
+                    continue;
+                piece.position += offset;
+                b.center += offset;
+                return;
+            }
+            Debug.Log($"[Vantage] Furniture: {piece.name} at {b.center:F1} blocks a doorway and fits nowhere near it; hidden.");
+            piece.gameObject.SetActive(false);
+            EditorUtility.SetDirty(piece.gameObject);
         }
 
         /// <summary>
@@ -452,7 +540,7 @@ namespace Vantage.EditorTools
         {
             var best = 0f;
             var found = false;
-            foreach (var h in Physics.RaycastAll(t.TransformPoint(local + Vector3.up * 1.3f), Vector3.down, 3f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
+            foreach (var h in Physics.RaycastAll(t.TransformPoint(local + Vector3.up * 1.3f), Vector3.down, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
             {
                 if (h.normal.y < 0.7f) continue;
                 var y = t.InverseTransformPoint(h.point).y;
@@ -479,7 +567,7 @@ namespace Vantage.EditorTools
 
         /// <summary>
         /// The tower's own stair ramps sit in the inner corners of the steps, so every step edge sticks up to 15 cm
-        /// above them and catches the template character (measured by StairProfileBatch; the autoplay bot stalled
+        /// above them and catches the template character (the autoplay bot stalled
         /// 2–5 s per flight). Over each flight this lays an invisible surface that is the slope-limited upper envelope
         /// of the real walkable geometry: it is never below a step edge, never steeper than MaxSlope (under the 26°
         /// where the template starts slowing down), and meets the floors and landings flush at both ends.
@@ -495,7 +583,7 @@ namespace Vantage.EditorTools
             // runs into (found by the autoplay bot). The surfaces built here replace them everywhere.
             var towerRamps = stairs.GetComponent<Collider>();
             Physics.SyncTransforms();
-            var mask = ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11));
+            var mask = VantagePhysics.Solid;
             int flights = 0;
 
             foreach (var piece in rampPieces(t, stairs))
@@ -659,7 +747,7 @@ namespace Vantage.EditorTools
                         var expected = Mathf.Lerp(lo, hi, footAtMin ? f : 1f - f);
                         var probe = alongX ? new Vector3(a, hi + 1f, b.center.z) : new Vector3(b.center.x, hi + 1f, a);
                         var best = float.MaxValue;
-                        foreach (var h in Physics.RaycastAll(t.TransformPoint(probe), Vector3.down, hi - lo + 3f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
+                        foreach (var h in Physics.RaycastAll(t.TransformPoint(probe), Vector3.down, hi - lo + 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                         {
                             if (h.collider == rampCollider || h.collider.transform.root.name == SetupName || h.normal.y < 0.5f) continue;
                             best = Mathf.Min(best, Mathf.Abs(t.InverseTransformPoint(h.point).y - expected));
@@ -790,7 +878,7 @@ namespace Vantage.EditorTools
             var local = entry != null ? t.InverseTransformPoint(entry.transform.position) : new Vector3(0, 0, 14f);
             var outward = Mathf.Abs(local.x) > Mathf.Abs(local.z) ? new Vector3(Mathf.Sign(local.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(local.z));
             var world = t.TransformPoint(local + outward * 7f);
-            if (Physics.Raycast(world + Vector3.up * 20f, Vector3.down, out var hit, 40f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(world + Vector3.up * 20f, Vector3.down, out var hit, 40f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                 world = hit.point;
 
             // Face the door.
@@ -904,98 +992,6 @@ namespace Vantage.EditorTools
                 tools.AddComponent<VantagePlaytestLogger>().Tower = t;
                 tools.AddComponent<VantagePerfCapture>();
             }
-        }
-
-        /// <summary>
-        /// Logs the tower's stairs (ramp collider pieces), doors, markers and entrance ground, in tower-local metres.
-        /// -executeMethod Vantage.EditorTools.VantageCommandTower.AnalyseBatch
-        /// </summary>
-        public static void AnalyseBatch()
-        {
-            var exitCode = 0;
-            try
-            {
-                EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
-                var tower = FindTower();
-                if (tower == null) throw new Exception("No CommandTower in the scene.");
-                var t = tower.transform;
-                Debug.Log($"[Vantage] Tower at {t.position} rot {t.eulerAngles} children {t.childCount}");
-                foreach (Transform c in t)
-                    Debug.Log($"[Vantage]  child {c.name} ({c.childCount}) local {c.localPosition}");
-
-                foreach (var mf in tower.GetComponentsInChildren<MeshFilter>(true))
-                {
-                    if (!mf.name.Contains("Stair") && !mf.name.Contains("FireEscape")) continue;
-                    var mesh = mf.sharedMesh;
-                    if (mesh == null) continue;
-                    Vector3[] v;
-                    try { v = mesh.vertices; } catch { Debug.Log("[Vantage] unreadable " + mf.name); continue; }
-                    var tri = mesh.triangles;
-                    var parent = Enumerable.Range(0, v.Length).ToArray();
-                    int find(int x) { while (parent[x] != x) x = parent[x] = parent[parent[x]]; return x; }
-                    var weld = new Dictionary<Vector3Int, int>();
-                    for (int i = 0; i < v.Length; i++)
-                    {
-                        var k = Vector3Int.RoundToInt(v[i] * 100);
-                        if (weld.TryGetValue(k, out var j)) parent[find(i)] = find(j); else weld[k] = i;
-                    }
-                    for (int i = 0; i < tri.Length; i += 3) { parent[find(tri[i])] = find(tri[i + 1]); parent[find(tri[i + 1])] = find(tri[i + 2]); }
-                    var groups = new Dictionary<int, Bounds>();
-                    for (int i = 0; i < v.Length; i++)
-                    {
-                        var p = t.InverseTransformPoint(mf.transform.TransformPoint(v[i]));
-                        var r = find(i);
-                        if (groups.TryGetValue(r, out var b)) { b.Encapsulate(p); groups[r] = b; } else groups[r] = new Bounds(p, Vector3.zero);
-                    }
-                    Debug.Log($"[Vantage] {mf.name}: {groups.Count} pieces");
-                    if (mf.name.Contains("Stair"))
-                        foreach (var b in groups.Values.OrderBy(b => b.min.y).ThenBy(b => b.center.x))
-                            Debug.Log($"[Vantage]   ramp x {b.min.x:F1}..{b.max.x:F1} y {b.min.y:F2}..{b.max.y:F2} z {b.min.z:F1}..{b.max.z:F1}");
-                    else
-                    {
-                        var all = groups.Values.Aggregate((a, b) => { a.Encapsulate(b); return a; });
-                        Debug.Log($"[Vantage]   fire escape bounds {all.min:F1}..{all.max:F1}");
-                    }
-                }
-
-                foreach (var d in tower.GetComponentsInChildren<CommandTowerKit.TowerDoor>(true))
-                {
-                    var p = t.InverseTransformPoint(d.transform.position);
-                    Debug.Log($"[Vantage] Door {d.name} parent {d.transform.parent.name} local {p:F1} open {d.isOpen} locked {d.locked}");
-                }
-
-                var markers = tower.GetComponentsInChildren<CommandTowerKit.GameplayMarker>(true);
-                foreach (var m in markers.Where(m => m.markerType == "PlayerEntry" || m.markerType == "Objective"))
-                    Debug.Log($"[Vantage] Marker {m.name} {m.markerType} floor {m.floor} local {t.InverseTransformPoint(m.transform.position):F1}");
-
-                // Floor heights: ground under the tower centre per storey, and the ground just outside the main entrance.
-                Physics.SyncTransforms();
-                for (float y = 0; y < 34; y += 0.5f)
-                {
-                    var o = t.TransformPoint(new Vector3(0, y + 0.45f, 0));
-                    if (Physics.Raycast(o, Vector3.down, out var h, 0.5f))
-                        Debug.Log($"[Vantage] centre floor surface at local y {t.InverseTransformPoint(h.point).y:F2} ({h.collider.name})");
-                }
-                var entry = markers.FirstOrDefault(m => m.name.Contains("MainEntrance"));
-                if (entry != null)
-                {
-                    var e = t.InverseTransformPoint(entry.transform.position);
-                    for (float dz = -4f; dz <= 6f; dz += 0.5f)
-                    {
-                        var p = t.TransformPoint(new Vector3(e.x, 3f, e.z + dz));
-                        var hits = Physics.RaycastAll(p, Vector3.down, 8f).OrderBy(h => h.distance).Select(h => $"{t.InverseTransformPoint(h.point).y:F2} {h.collider.name}");
-                        Debug.Log($"[Vantage] entrance z {e.z + dz:F1}: {string.Join(" | ", hits)}");
-                    }
-                }
-                var lights = tower.GetComponentsInChildren<Light>(true);
-                Debug.Log($"[Vantage] Lights {lights.Length}, modes {string.Join(",", lights.Select(l => l.lightmapBakeType.ToString()).Distinct())}");
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                exitCode = 1;
-            }
-            EditorApplication.Exit(exitCode);
         }
     }
 }

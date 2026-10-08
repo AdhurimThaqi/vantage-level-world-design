@@ -61,12 +61,9 @@ U="C:\Program Files\Unity\Hub\Editor\6000.0.58f2\Editor\Unity.exe"
 
 | Question | Method | Read |
 | --- | --- | --- |
-| Do soldiers fire, do gates open, can every flight be climbed? | `Vantage.EditorTools.VantageAutoplay.RunBatch` (enters Play mode, so use `Start-Process … -PassThru` with an ~8 min timeout; exit 0 = passed) | `[Bot] PASS/FAIL` lines |
-| Rebuild the tower setup, gate check, screenshots | `Vantage.EditorTools.VantageCommandTower.SetupBatch` | `[Vantage] Check …` lines and `tower_*.png` |
+| Do soldiers fire, do gates open, can every flight be climbed? What does the HUD look like? | `Vantage.EditorTools.VantageAutoplay.RunBatch [-vantageShots <dir>]` (enters Play mode, so use `Start-Process … -PassThru` with an ~8 min timeout; exit 0 = passed) | `[Bot] PASS/FAIL` lines; `hud_*.png` |
+| Rebuild the tower setup, furniture fix, gate check, screenshots | `Vantage.EditorTools.VantageCommandTower.SetupBatch` | `[Vantage] Furniture:` and `[Vantage] Check …` lines, `tower_*.png` |
 | Ledges around the tower, NavMesh connectivity | `Vantage.EditorTools.VantageMilitaryBase.LedgeReportBatch -vantageShots <dir>` | `ledges.png`, `navmesh.png`, path lines |
-| Steps on the walking line of each flight | `Vantage.EditorTools.VantageCommandTower.WalkLineBatch` | "no steps" per flight |
-| Geometry above the stair surfaces | `…VantageCommandTower.StairProfileBatch` | worst height per flight |
-| Coincident surfaces (z-fighting) | `…VantageCommandTower.ZFightBatch` | grouped offenders |
 
 **Offline compile check before launching Unity:** build a scratch csproj from `Assembly-CSharp-Editor.csproj`:
 1. Drop its `<Compile>`, `<ProjectReference>` and `<Analyzer>` items.
@@ -118,7 +115,7 @@ The path is **upward**: level by level to the roof of the command tower. Guidanc
 
 **Proactively warn** when a change introduces objective markers, waypoints, quest arrows, floating icons, text logs, readable notes, subtitles explaining the space, tutorial popups, or any on-screen text that tells the player where to go. The concept document commits to their absence.
 
-**Approved, not clutter:** `VantagePlayerHUD` (vitals, weapon/ammo, level and hostiles left, "LEVEL n CLEAR · STAIRS OPEN" toast, damage flash, death screen) and `VantageMinimap` (position, tower marker, nearby enemies). Flag *additions* that cross into telling the player where to go: a route line, a "go upstairs" prompt, an objective string.
+**Approved, not clutter:** `VantagePlayerHUD` (health, weapon/ammo, level name with one pip per enemy, aimed-at enemy health, kill marker, "LEVEL n CLEAR · STAIRS OPEN" banner, damage flash, death screen) and `VantageMinimap` (position, tower marker, nearby enemies). Flag *additions* that cross into telling the player where to go: a route line, a "go upstairs" prompt, an objective string.
 
 **Environmental storytelling** is planned as five props told without text: inward-facing sandbags, a door barricaded from the player's side, too few bunks, a body beside the rifle, and a radio transmitting to nobody. They belonged to the blockout tower and are **not yet rebuilt** in the command tower (a known gap). When they come back, protect them. A pickup note or audio log is a regression.
 

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using CoverShooter;
 using Unity.AI.Navigation;
 using UnityEditor;
@@ -81,7 +80,7 @@ namespace Vantage.EditorTools
                 surface.collectObjects = CollectObjects.All;
 
                 // Characters and trigger zones should not shape the walkable area.
-                surface.layerMask = ~((1 << VantageLayers.Character) | (1 << 11) | (1 << 2) | (1 << 5));
+                surface.layerMask = ~(Layers.Character | Layers.Zones | (1 << VantagePhysics.IgnoreRaycastLayer) | (1 << LayerMask.NameToLayer("UI")));
             }
 
             surface.BuildNavMesh();
@@ -142,115 +141,6 @@ namespace Vantage.EditorTools
 
             Selection.activeGameObject = pickup;
             return pickup;
-        }
-
-        #endregion
-
-        #region URP
-
-        [MenuItem("Vantage/Fix Cover Shooter Particle Materials For URP", priority = 40)]
-        public static void FixParticleMaterials()
-        {
-            var urpParticles = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (urpParticles == null)
-            {
-                Debug.LogError("[Vantage] URP particle shader not found.");
-                return;
-            }
-
-            var converted = 0;
-            var skipped = new List<string>();
-
-            foreach (var guid in AssetDatabase.FindAssets("t:Material", new[] { "Assets/ThirdPersonCoverShooter", "Assets/PistolAnimsetPro" }))
-            {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-                if (material == null || material.shader == null)
-                    continue;
-
-                var shaderName = material.shader.name;
-                var isLegacyParticle = shaderName.Contains("Particles/") && !shaderName.StartsWith("Universal Render Pipeline") && !shaderName.Contains("Standard");
-
-                if (!isLegacyParticle)
-                {
-                    if (shaderName.StartsWith("Hidden/InternalErrorShader"))
-                        skipped.Add(path);
-                    continue;
-                }
-
-                convertParticle(material, urpParticles, shaderName);
-                converted++;
-            }
-
-            AssetDatabase.SaveAssets();
-            Debug.Log($"[Vantage] Converted {converted} legacy particle materials to URP Particles/Unlit.");
-
-            if (skipped.Count > 0)
-                Debug.LogWarning("[Vantage] These materials use a shader that no longer exists and need a manual fix:\n" + string.Join("\n", skipped));
-        }
-
-        private static void convertParticle(Material material, Shader shader, string legacyName)
-        {
-            Undo.RecordObject(material, "Convert Particle Material");
-
-            var texture = material.HasProperty("_MainTex") ? material.GetTexture("_MainTex") : null;
-            var scale = material.HasProperty("_MainTex") ? material.GetTextureScale("_MainTex") : Vector2.one;
-            var offset = material.HasProperty("_MainTex") ? material.GetTextureOffset("_MainTex") : Vector2.zero;
-
-            // Legacy particle shaders treat a tint of 0.5 grey as neutral.
-            var color = Color.white;
-            if (material.HasProperty("_TintColor"))
-            {
-                color = material.GetColor("_TintColor") * 2f;
-                color.a = Mathf.Clamp01(color.a);
-            }
-            else if (material.HasProperty("_Color"))
-                color = material.GetColor("_Color");
-
-            material.shader = shader;
-            material.SetTexture("_BaseMap", texture);
-            material.SetTextureScale("_BaseMap", scale);
-            material.SetTextureOffset("_BaseMap", offset);
-            material.SetColor("_BaseColor", color);
-
-            // URP particle blend modes: 0 alpha, 2 additive, 3 multiply.
-            var blend = 0;
-            if (legacyName.Contains("Additive"))
-                blend = 2;
-            else if (legacyName.Contains("Multiply"))
-                blend = 3;
-
-            material.SetFloat("_Surface", 1);
-            material.SetFloat("_Blend", blend);
-            material.SetFloat("_ZWrite", 0);
-            material.SetFloat("_Cull", 0);
-
-            switch (blend)
-            {
-                case 2:
-                    setBlend(material, UnityEngine.Rendering.BlendMode.SrcAlpha, UnityEngine.Rendering.BlendMode.One);
-                    break;
-                case 3:
-                    setBlend(material, UnityEngine.Rendering.BlendMode.DstColor, UnityEngine.Rendering.BlendMode.Zero);
-                    material.EnableKeyword("_ALPHAMODULATE_ON");
-                    break;
-                default:
-                    setBlend(material, UnityEngine.Rendering.BlendMode.SrcAlpha, UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                    break;
-            }
-
-            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            material.SetOverrideTag("RenderType", "Transparent");
-            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-            EditorUtility.SetDirty(material);
-        }
-
-        private static void setBlend(Material material, UnityEngine.Rendering.BlendMode src, UnityEngine.Rendering.BlendMode dst)
-        {
-            material.SetFloat("_SrcBlend", (float)src);
-            material.SetFloat("_DstBlend", (float)dst);
-            material.SetFloat("_SrcBlendAlpha", (float)src);
-            material.SetFloat("_DstBlendAlpha", (float)dst);
         }
 
         #endregion

@@ -1,0 +1,31 @@
+VANTAGE playtest  2026-10-07_15-05-20
+Enemy placement seed: 93406
+Session length: 0s   Completed: no   Furthest: Level 1 (ground, F1)   Backtracks: 1
+
+Time per space
+  Military Base      37s   deaths 0
+  Level 1 (ground, F1)    209s   deaths 0
+  Level 2 (F2, F3)      0s   deaths 0
+  Level 3 (F4, F5)      0s   deaths 0
+  Level 4 (roof)      0s   deaths 0
+
+Kills
+  Soldier        2
+  Drone          1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  268.5s] Session started
+[  268.5s] Enemy placement seed 93406
+[  298.5s] Picked up Pistol
+[  301.3s] Military Base -> Level 1 (ground, F1)
+[  302.0s] Level 1 (ground, F1) -> Military Base
+[  302.0s] BACKTRACK to Military Base (furthest so far: Level 1 (ground, F1))
+[  305.7s] Military Base -> Level 1 (ground, F1)
+[  321.7s] Killed Soldier in Level 1 (ground, F1)
+[  414.3s] Killed Soldier in Level 1 (ground, F1)
+[  462.9s] Killed Drone in Level 1 (ground, F1)

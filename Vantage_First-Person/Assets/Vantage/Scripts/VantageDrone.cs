@@ -1,5 +1,6 @@
 using CoverShooter;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Vantage
 {
@@ -83,10 +84,10 @@ namespace Vantage
         private float _nextStrafeFlip;
         private float _tracerOff;
         private Color _eyeIdle = new Color(1f, 0.25f, 0.1f);
+        private Material _eyeMaterial;
+        private float _shownCharge = -1f;
         private static readonly RaycastHit[] _hits = new RaycastHit[16];
-
-        private const int ObstacleMask = ~((1 << 2) | (1 << 10) | (1 << 11));
-        private const int SightMask = ~((1 << 2) | (1 << 11));
+        private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
         private void Awake()
         {
@@ -97,6 +98,18 @@ namespace Vantage
             _nextShot = Time.time + Random.Range(0.5f, FireInterval);
             if (Tracer != null)
                 Tracer.enabled = false;
+            // One material instance per drone, made once (Renderer.material copies on first access).
+            if (Eye != null && Eye.material.HasProperty(EmissionColor))
+                _eyeMaterial = Eye.material;
+        }
+
+        /// <summary>Moves the drone and makes that spot its new post (used when it has left its level).</summary>
+        public void Relocate(Vector3 position)
+        {
+            transform.position = position;
+            _home = _patrolTarget = position;
+            _alerted = false;
+            _cornerCount = 0;
         }
 
         private void OnEnable() => All.Add(this);
@@ -117,9 +130,10 @@ namespace Vantage
             if (Tracer != null && Tracer.enabled && Time.time > _tracerOff)
                 Tracer.enabled = false;
 
-            acquireTarget();
-
-            var canSee = _target != null && canSeeTarget(out _);
+            // The whole decision: in sight → attack and hold position; lost → follow to where it was last seen;
+            // last enemies of the level → come to the player; otherwise guard the post.
+            _target = VantageEvents.ActivePlayer();
+            var canSee = _target != null && inSightRange(_target) && canSeeTarget(out _);
             if (canSee)
             {
                 _alerted = true;
@@ -135,20 +149,10 @@ namespace Vantage
 
         #region Senses
 
-        private void acquireTarget()
+        private bool inSightRange(BaseActor target)
         {
-            var player = VantageEvents.ActivePlayer();
-            if (player == null)
-            {
-                _target = null;
-                return;
-            }
-
             var range = _alerted ? ChaseRange : DetectRange;
-            _target = Vector3.Distance(player.transform.position, transform.position) <= range ? player : null;
-
-            if (_target == null)
-                _alerted = false;
+            return (target.transform.position - transform.position).sqrMagnitude <= range * range;
         }
 
         private bool canSeeTarget(out Vector3 point)
@@ -156,7 +160,7 @@ namespace Vantage
             point = aimPoint(_target);
             var origin = Muzzle != null ? Muzzle.position : transform.position;
             var direction = point - origin;
-            var count = Physics.RaycastNonAlloc(origin, direction.normalized, _hits, direction.magnitude + 0.5f, SightMask, QueryTriggerInteraction.Ignore);
+            var count = Physics.RaycastNonAlloc(origin, direction.normalized, _hits, direction.magnitude + 0.5f, VantagePhysics.Sight, QueryTriggerInteraction.Ignore);
 
             var closest = float.MaxValue;
             Transform first = null;
@@ -171,11 +175,7 @@ namespace Vantage
             return first != null && first.IsChildOf(_target.transform);
         }
 
-        private static Vector3 aimPoint(BaseActor actor)
-        {
-            var collider = actor.Collider;
-            return collider != null ? collider.bounds.center + Vector3.up * 0.35f : actor.transform.position + Vector3.up * 1.4f;
-        }
+        private static Vector3 aimPoint(BaseActor actor) => VantagePhysics.AimPoint(actor);
 
         #endregion
 
@@ -183,42 +183,98 @@ namespace Vantage
 
         private void move(bool canSee)
         {
-            Vector3 desired;
-
-            if (_alerted && _target != null)
-            {
-                var targetPos = canSee ? aimPoint(_target) : _lastKnown;
-                var flat = transform.position - targetPos;
-                flat.y = 0;
-                if (flat.sqrMagnitude < 0.01f)
-                    flat = transform.forward;
-
-                if (Time.time > _nextStrafeFlip)
-                {
-                    _strafeSign = Random.value < 0.5f ? -1f : 1f;
-                    _nextStrafeFlip = Time.time + Random.Range(1.5f, 3.5f);
-                }
-
-                // Hold the preferred distance, circle sideways, stay a bit above the player's eye line.
-                var keep = targetPos + flat.normalized * (canSee ? PreferredDistance : 1.5f);
-                var side = Vector3.Cross(Vector3.up, flat.normalized) * _strafeSign * (canSee ? 2.5f : 0f);
-                desired = keep + side;
-                desired.y = targetPos.y + HoverHeight * 0.6f;
-            }
+            var levels = VantageTowerLevels.Instance;
+            Vector3 step;
+            if (canSee)
+                step = towards(combatPosition(), Speed);                          // attack: hold distance, strafe
+            else if (_target != null && levels != null && levels.Hunting)
+                step = alongPath(_target.transform.position, Speed);              // last enemies come to the player
+            else if (_alerted)
+                step = followLastKnown();                                         // lost sight: go where it was seen
             else
-            {
-                if (Vector3.Distance(transform.position, _patrolTarget) < 0.5f)
-                    _patrolTarget = _home + new Vector3(Random.Range(-PatrolRadius, PatrolRadius), Random.Range(-0.4f, 0.4f), Random.Range(-PatrolRadius, PatrolRadius));
-                desired = _patrolTarget;
-            }
+                step = guard();
 
-            var speed = _alerted ? Speed : Speed * 0.4f;
-            var step = Vector3.ClampMagnitude(desired - transform.position, speed * Time.deltaTime);
-            step = avoid(step);
-            transform.position += step;
-
+            transform.position += avoid(step);
             // Gentle bob so it never looks parked.
             transform.position += Vector3.up * Mathf.Sin(Time.time * 2.1f + GetInstanceID()) * 0.002f;
+        }
+
+        /// <summary>In sight: keep the preferred distance, circle sideways, stay a little above the player's eyes.</summary>
+        private Vector3 combatPosition()
+        {
+            var targetPos = aimPoint(_target);
+            var away = transform.position - targetPos;
+            away.y = 0;
+            if (away.sqrMagnitude < 0.01f)
+                away = transform.forward;
+            away.Normalize();
+
+            if (Time.time > _nextStrafeFlip)
+            {
+                _strafeSign = Random.value < 0.5f ? -1f : 1f;
+                _nextStrafeFlip = Time.time + Random.Range(1.5f, 3.5f);
+            }
+            var position = targetPos + away * PreferredDistance + Vector3.Cross(Vector3.up, away) * _strafeSign * 2.5f;
+            position.y = targetPos.y + HoverHeight * 0.6f;
+            return position;
+        }
+
+        private Vector3 followLastKnown()
+        {
+            var step = alongPath(_lastKnown, Speed);
+            var flat = _lastKnown - transform.position;
+            flat.y = 0;
+            if (flat.sqrMagnitude < 2.25f)
+                _alerted = false; // reached the spot and the player is gone: back to the post
+            return step;
+        }
+
+        /// <summary>Idle: drift around the post; if chasing took it far away, fly back along the NavMesh.</summary>
+        private Vector3 guard()
+        {
+            if ((transform.position - _home).sqrMagnitude > PatrolRadius * PatrolRadius * 4f)
+                return alongPath(_home, Speed * 0.6f);
+            if ((transform.position - _patrolTarget).sqrMagnitude < 0.25f)
+                _patrolTarget = _home + new Vector3(Random.Range(-PatrolRadius, PatrolRadius), Random.Range(-0.4f, 0.4f), Random.Range(-PatrolRadius, PatrolRadius));
+            return towards(_patrolTarget, Speed * 0.4f);
+        }
+
+        private Vector3 towards(Vector3 point, float speed) => Vector3.ClampMagnitude(point - transform.position, speed * Time.deltaTime);
+
+        // ---- path following: the NavMesh path the soldiers walk, flown at PathHeight above its corners ----
+
+        [Tooltip("Height above the walkable floor while following a path (low enough to pass under door frames).")]
+        public float PathHeight = 1.5f;
+        private const float RepathInterval = 0.5f;
+        private NavMeshPath _path;
+        private readonly Vector3[] _corners = new Vector3[24];
+        private int _cornerCount, _corner;
+        private float _nextRepath;
+        private Vector3 _pathGoal;
+
+        private Vector3 alongPath(Vector3 goal, float speed)
+        {
+            if (Time.time >= _nextRepath || (goal - _pathGoal).sqrMagnitude > 4f)
+                repath(goal);
+            if (_cornerCount == 0)
+                return towards(goal + Vector3.up * PathHeight, speed); // no path (off the NavMesh): fly straight
+
+            while (_corner < _cornerCount - 1 && (_corners[_corner] + Vector3.up * PathHeight - transform.position).sqrMagnitude < 0.36f)
+                _corner++;
+            return towards(_corners[_corner] + Vector3.up * PathHeight, speed);
+        }
+
+        private void repath(Vector3 goal)
+        {
+            _nextRepath = Time.time + RepathInterval;
+            _pathGoal = goal;
+            _cornerCount = 0;
+            _path ??= new NavMeshPath();
+            if (NavMesh.SamplePosition(transform.position + Vector3.down * PathHeight, out var from, 2.5f, NavMesh.AllAreas)
+                && NavMesh.SamplePosition(goal, out var to, 2.5f, NavMesh.AllAreas)
+                && NavMesh.CalculatePath(from.position, to.position, NavMesh.AllAreas, _path))
+                _cornerCount = _path.GetCornersNonAlloc(_corners);
+            _corner = Mathf.Min(1, Mathf.Max(0, _cornerCount - 1)); // corner 0 is where the drone already is
         }
 
         /// <summary>
@@ -230,10 +286,10 @@ namespace Vantage
             if (distance < 0.0001f)
                 return step;
 
-            if (Physics.SphereCast(transform.position, 0.5f, step / distance, out var hit, distance + 0.3f, ObstacleMask, QueryTriggerInteraction.Ignore))
+            if (Physics.SphereCast(transform.position, 0.5f, step / distance, out var hit, distance + 0.3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
             {
                 step = Vector3.ProjectOnPlane(step, hit.normal);
-                if (Physics.SphereCast(transform.position, 0.5f, step.normalized, out _, step.magnitude + 0.3f, ObstacleMask, QueryTriggerInteraction.Ignore))
+                if (Physics.SphereCast(transform.position, 0.5f, step.normalized, out _, step.magnitude + 0.3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                     return Vector3.zero;
             }
 
@@ -315,7 +371,7 @@ namespace Vantage
             var direction = (target - origin).normalized;
             var end = origin + direction * Range;
 
-            if (Physics.Raycast(origin, direction, out var rayHit, Range, SightMask, QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(origin, direction, out var rayHit, Range, VantagePhysics.Sight, QueryTriggerInteraction.Ignore))
             {
                 end = rayHit.point;
                 if (!rayHit.collider.transform.IsChildOf(transform))
@@ -348,9 +404,13 @@ namespace Vantage
 
         private void setEye(float charge)
         {
-            var glow = Color.Lerp(_eyeIdle, new Color(1f, 0.95f, 0.6f), Mathf.Clamp01(charge));
-            if (Eye != null && Eye.material.HasProperty("_EmissionColor"))
-                Eye.material.SetColor("_EmissionColor", glow * (2f + charge * 6f));
+            charge = Mathf.Clamp01(charge);
+            if (charge == _shownCharge)
+                return; // idle drones would otherwise rewrite the same colour every frame
+            _shownCharge = charge;
+            var glow = Color.Lerp(_eyeIdle, new Color(1f, 0.95f, 0.6f), charge);
+            if (_eyeMaterial != null)
+                _eyeMaterial.SetColor(EmissionColor, glow * (2f + charge * 6f));
             if (EyeLight != null)
             {
                 EyeLight.color = glow;
@@ -375,7 +435,7 @@ namespace Vantage
             if (hit.Attacker != null)
             {
                 var attacker = hit.Attacker.GetComponentInParent<BaseActor>();
-                if (attacker != null && attacker.Side != 0)
+                if (attacker != null && attacker.Side != VantageTowerLevels.EnemySide)
                 {
                     _alerted = true;
                     _lastKnown = aimPoint(attacker);
@@ -392,9 +452,8 @@ namespace Vantage
                 return;
 
             IsDead = true;
-            setEye(0f);
-            if (Eye != null)
-                Eye.material.SetColor("_EmissionColor", Color.black);
+            if (_eyeMaterial != null)
+                _eyeMaterial.SetColor(EmissionColor, Color.black);
             if (EyeLight != null)
                 EyeLight.enabled = false;
             if (Tracer != null)

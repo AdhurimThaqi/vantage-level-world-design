@@ -13,7 +13,7 @@ namespace Vantage.EditorTools
 {
     /// <summary>
     /// Builds the game world from the user's own Blender "Military Training Environment"
-    /// (Assets/Blender_Asset/Military_Env_Unity): 1 km terrain with forest, the training base, roads and the horizon,
+    /// (Assets/Blender_Asset/MilitaryEnvUnity): 1 km terrain with forest, the training base, roads and the horizon,
     /// at the same coordinates as in Blender, so a tower modelled there in place lands in the right spot.
     ///
     /// - The tower plot is fitted to the user's CommandTower wherever it stands: its terrain is levelled at the
@@ -199,7 +199,7 @@ namespace Vantage.EditorTools
                 plotUnder(probe, tower.gameObject);
                 var plot = probe.Plot;
                 Physics.SyncTransforms();
-                var mask = ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11));
+                var mask = VantagePhysics.Solid;
                 const float s = 0.5f;
                 var area = Rect.MinMaxRect(plot.xMin - 30, plot.yMin - 30, plot.xMax + 30, plot.yMax + 30);
                 int w = (int)(area.width / s), h = (int)(area.height / s);
@@ -336,7 +336,7 @@ namespace Vantage.EditorTools
             var player = Object.FindFirstObjectByType<CoverShooter.ThirdPersonInput>();
             if (player == null)
                 return opened;
-            var mask = ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11));
+            var mask = VantagePhysics.Solid;
             // The base on both sides of the plot, and the forest beyond the base fence.
             var site = ground.TowerSite;
             var targets = new[]

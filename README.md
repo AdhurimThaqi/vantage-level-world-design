@@ -32,6 +32,7 @@ Open `Vantage_First-Person` in Unity **6000.0.58f2**, open `Assets/Scenes/Sample
 | Melee | F |
 
 Playtest hotkeys:
+- **F1** shows the playtest overlay (seed, current space, hotkeys).
 - **F8** marks a moment in the playtest log.
 - **F9** records a 10-second performance capture.
 - **F10** toggles occlusion culling, to compare captures with it on and off.
@@ -49,7 +50,12 @@ The tower (my own Blender model, `Assets/Blender_Asset/CommandTower_Unity`) has 
 
 - **Gates.** Each way up to the next level (the inner stairs and the outside fire escape) is closed by a red shutter. When the last enemy of the level dies, all shutters to the next level roll up and turn green, and the HUD shows *LEVEL n CLEAR · STAIRS OPEN*. Going back down is always possible.
 - **Rewards.** The pistol lies in front of the entrance. The **rifle** appears at the inner-stairs shutter when level 1 is cleared.
-- **HUD.** Top-right shows the level and how many hostiles are left; the minimap (top-left) shows nearby enemies.
+- **HUD.** Kept to what you act on:
+  - Top centre: the level, its name and one marker per enemy, which dims when that enemy dies.
+  - Bottom left: health, with a tick where regeneration stops.
+  - Bottom right: weapon and ammo.
+  - Centre: the enemy you aim at shows a small health bar.
+  - Top left: the minimap, with nearby enemies, the distance to the tower and the floor you are on.
 - **Lights.** Only the floors around your level are lit; the levels above wait in the dark until you get there.
 
 If you die, the level restarts after three seconds.
@@ -65,7 +71,7 @@ The level is set in a 1 km valley I built in Blender: forested hills and a fence
 A **minimap** in the top-left corner shows where you are (north up, the arrow turns with you), the tower (pinned to the edge when it is out of view, so the goal is always on screen), nearby enemies as red dots, the distance to the tower and the space you're in.
 
 It is built by **Vantage → World → Build Military World** (`VantageMilitaryBase`), not by hand:
-- **The world.** The Blender export (`Assets/Blender_Asset/Military_Env_Unity`) is placed at its Blender coordinates, so anything modelled in place in Blender lines up in Unity.
+- **The world.** The Blender export (`Assets/Blender_Asset/MilitaryEnvUnity`) is placed at its Blender coordinates, so anything modelled in place in Blender lines up in Unity.
 - **The tower plot.** The plot is fitted to the command tower wherever it stands: its terrain is levelled at the tower's base height and the base props inside its footprint are cleared.
 - **Walkable ground.** The template character cannot step up ledges, so around the plot the terrain is relaxed into smooth slopes (a Laplace membrane) out to the hills. Roads and pads are bent to follow it, and those lying flush on the terrain lose their collider, so kerbs can't block you.
 - **Collision and limits.** Trees and rocks have colliders, and invisible walls stop you 25 m before the edge of the world.
@@ -144,7 +150,8 @@ Level_World_Design_/
    │  │  ├─ Materials/  Volumes/               surfaces and post-processing profiles
    │  ├─ ThirdPersonCoverShooter/              character, AI, weapons (course template)
    │  ├─ PistolAnimsetPro/                     character animations
-   │  ├─ Blender_Asset/Military_Env_Unity/     my Blender world: terrain, forest, the military base, props and textures
+   │  ├─ Blender_Asset/MilitaryEnvUnity/       my Blender world: terrain, forest, the military base, props and textures
+   │  ├─ Blender_Asset/AdhurimCharacter/       my player character (Avaturn avatar, exported from Blender)
    │  └─ Blender_Asset/CommandTower_Unity/     my Blender command tower: 6 floors, interiors, doors, lights, gameplay markers
    ├─ Documentation/                           screenshots and maps for the documentation
    └─ Playtests/                               session logs and performance captures (created on play)
@@ -180,7 +187,9 @@ Bought-in and provided assets build the bricks. The level layout, floor plans, v
 | *Third Person Cover Shooter* 1.6 (course template, provided by the lecturer) | Eduardas Funka (Unity Asset Store) | Player character, enemy soldier AI, cover system, weapons, hit effects, HUD |
 | *Pistol Animset Pro* | Kubold ([kubold.com](https://www.kubold.com)) | Character animations (required by the template) |
 | *Command Tower* (`Assets/Blender_Asset/CommandTower_Unity`) | My own work, built in Blender | The main building: structure, interiors, furniture, doors, lights, spawn markers |
-| *Military Training Environment* (`Assets/Blender_Asset/Military_Env_Unity`) | My own work, built in Blender | The whole world: terrain, forest, the military base, props, and the concrete textures on the tower |
+| *Military Training Environment* (`Assets/Blender_Asset/MilitaryEnvUnity`) | My own work, built in Blender | The whole world: terrain, forest, the military base, props, and the concrete textures on the tower |
+| *Player character* (`Assets/Blender_Asset/AdhurimCharacter`) | My own avatar, made with Avaturn and exported from Blender | The player's body; it uses the template's animations through Unity's humanoid retargeting (Vantage → Player → Use Character Model). Check Avaturn's terms before a commercial release. |
+| *TextMesh Pro* (Unity, Essential Resources) | Unity Technologies | Text rendering for the HUD and minimap |
 
 <!-- TODO before hand-in: check the publisher names against the Asset Store pages and add the store links. -->
 

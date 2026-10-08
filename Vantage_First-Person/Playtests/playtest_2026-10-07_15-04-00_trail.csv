@@ -1,0 +1,68 @@
+time,x,y,z,space
+196.4,5.20,4.10,-87.02,Military Base
+197.4,5.20,4.05,-87.02,Military Base
+198.5,5.23,4.05,-86.89,Military Base
+199.5,5.27,4.05,-85.20,Military Base
+200.5,4.00,4.05,-83.67,Military Base
+201.5,5.13,4.05,-80.26,Military Base
+202.6,4.27,4.30,-78.28,Military Base
+203.6,4.09,4.19,-78.62,Military Base
+204.6,3.38,4.05,-79.23,Military Base
+205.7,1.24,4.05,-78.07,Military Base
+206.8,1.77,4.05,-79.40,Military Base
+207.8,3.58,4.39,-77.98,Level 1 (ground, F1)
+208.8,3.43,4.49,-77.29,Level 1 (ground, F1)
+209.8,2.37,4.49,-77.30,Level 1 (ground, F1)
+210.8,2.62,4.05,-79.95,Military Base
+211.8,3.09,4.05,-81.77,Military Base
+212.9,3.09,4.05,-81.77,Military Base
+213.9,3.09,4.05,-81.77,Military Base
+214.9,1.94,4.05,-80.99,Military Base
+216.0,1.98,4.05,-79.63,Military Base
+217.0,1.98,4.05,-79.63,Military Base
+218.1,1.98,4.05,-79.63,Military Base
+219.1,1.98,4.05,-79.63,Military Base
+220.2,1.98,4.05,-79.63,Military Base
+221.3,1.98,4.05,-79.63,Military Base
+222.5,1.98,4.05,-79.63,Military Base
+223.6,1.98,4.05,-79.63,Military Base
+224.6,1.98,4.05,-79.63,Military Base
+225.6,1.98,4.05,-79.63,Military Base
+226.7,1.98,4.05,-79.63,Military Base
+227.7,1.98,4.05,-79.63,Military Base
+228.8,1.98,4.05,-79.63,Military Base
+229.8,3.22,4.05,-79.37,Military Base
+230.8,4.28,4.05,-79.04,Military Base
+231.9,4.28,4.05,-79.04,Military Base
+232.9,4.28,4.05,-79.05,Military Base
+234.0,4.28,4.05,-79.05,Military Base
+235.0,4.28,4.05,-79.05,Military Base
+236.0,4.28,4.05,-79.05,Military Base
+237.0,3.06,4.05,-79.50,Military Base
+238.1,4.16,4.05,-80.42,Military Base
+239.1,5.48,4.05,-79.34,Military Base
+240.1,5.48,4.05,-79.34,Military Base
+241.2,5.48,4.05,-79.34,Military Base
+242.2,5.52,4.05,-79.48,Military Base
+243.2,5.25,4.05,-82.08,Military Base
+244.2,4.74,4.05,-84.81,Military Base
+245.3,2.97,4.05,-84.64,Military Base
+246.3,4.30,4.05,-79.05,Military Base
+247.4,5.56,4.49,-74.90,Level 1 (ground, F1)
+248.4,5.78,4.49,-74.27,Level 1 (ground, F1)
+249.4,5.78,4.49,-74.27,Level 1 (ground, F1)
+250.4,5.78,4.49,-74.27,Level 1 (ground, F1)
+251.4,5.78,4.49,-74.27,Level 1 (ground, F1)
+252.4,5.78,4.49,-74.27,Level 1 (ground, F1)
+253.5,5.78,4.49,-74.27,Level 1 (ground, F1)
+254.5,5.78,4.49,-74.27,Level 1 (ground, F1)
+255.5,5.78,4.49,-74.27,Level 1 (ground, F1)
+256.5,5.78,4.49,-74.27,Level 1 (ground, F1)
+257.6,5.78,4.49,-74.27,Level 1 (ground, F1)
+258.7,5.78,4.49,-74.27,Level 1 (ground, F1)
+259.7,5.78,4.49,-74.27,Level 1 (ground, F1)
+260.7,5.78,4.49,-74.27,Level 1 (ground, F1)
+261.7,7.22,4.49,-72.38,Level 1 (ground, F1)
+262.7,7.84,4.49,-69.99,Level 1 (ground, F1)
+263.8,7.70,4.49,-67.42,Level 1 (ground, F1)
+264.8,7.89,4.49,-66.51,Level 1 (ground, F1)

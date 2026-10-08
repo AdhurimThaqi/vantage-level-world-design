@@ -10,7 +10,7 @@ namespace Vantage
     /// Writes one report per play session for the documented playtests (concept doc: testing and feedback loops).
     /// Logs the enemy placement seed, time per space, deaths, kills, pickups, waves, back-tracking
     /// ("nothing is sealed behind the player" is a testable claim) and a position trail for heatmaps.
-    /// F8 = mark a moment (e.g. when the tester says something worth noting).
+    /// F1 = show the playtest overlay. F8 = mark a moment (e.g. when the tester says something worth noting).
     /// Files: [project]/Playtests/ in the editor, persistentDataPath/Playtests in a build.
     /// </summary>
     public class VantagePlaytestLogger : MonoBehaviour
@@ -18,13 +18,13 @@ namespace Vantage
         [Tooltip("Command tower root (the levels come from VantageTowerLevels).")]
         public Transform Tower;
         public float TrailInterval = 1f;
-        public bool ShowOverlay = true;
+        [Tooltip("The one-line playtest overlay (seed, space, keys). Hidden by default; F1 toggles it.")]
+        public bool ShowOverlay;
 
         private static readonly string[] Spaces = { "Military Base", "Level 1 (ground, F1)", "Level 2 (F2, F3)", "Level 3 (F4, F5)", "Level 4 (roof)" };
         private static readonly float[] Progress = { 0f, 1f, 2f, 3f, 4f };
 
         /// <summary>Name of the space the player is in, or null before the first update (shown by the minimap).</summary>
-        public string CurrentSpace => _space >= 0 ? Spaces[_space] : null;
 
         private readonly StringBuilder _events = new StringBuilder();
         private readonly StringBuilder _trail = new StringBuilder("time,x,y,z,space\n");
@@ -103,6 +103,8 @@ namespace Vantage
             }
 
             var keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.f1Key.wasPressedThisFrame)
+                ShowOverlay = !ShowOverlay;
             if (keyboard != null && keyboard.f8Key.wasPressedThisFrame)
                 log($"MARK at {(player != null ? player.transform.position.ToString("F1") : "?")} in {(_space >= 0 ? Spaces[_space] : "?")}");
         }

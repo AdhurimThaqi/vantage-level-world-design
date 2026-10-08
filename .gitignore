@@ -73,6 +73,6 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Local only: moved-out unused pack files (812 MB) and scene backups. Never commit these.
+# Local only: moved-out unused pack files (812 MB) and scene backups.
 _UnusedAssets/
 _Backups/

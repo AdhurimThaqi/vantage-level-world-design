@@ -1,0 +1,24 @@
+VANTAGE playtest  2026-10-07_15-02-06
+Enemy placement seed: 125
+Session length: 196s   Completed: no   Furthest: Level 1 (ground, F1)   Backtracks: 0
+
+Time per space
+  Military Base      96s   deaths 0
+  Level 1 (ground, F1)     11s   deaths 1
+  Level 2 (F2, F3)      0s   deaths 0
+  Level 3 (F4, F5)      0s   deaths 0
+  Level 4 (roof)      0s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[   85.9s] Session started
+[   85.9s] Enemy placement seed 125
+[  175.3s] Picked up Pistol
+[  181.8s] Military Base -> Level 1 (ground, F1)
+[  193.1s] DEATH in Level 1 (ground, F1) at (2.5, 4.5, -74.0) (health reached zero)

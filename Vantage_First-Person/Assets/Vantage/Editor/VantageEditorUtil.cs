@@ -11,6 +11,15 @@ namespace Vantage.EditorTools
         public const string ScenePath = "Assets/Scenes/SampleScene.unity";
         public const string DronePrefabPath = "Assets/Vantage/Prefabs/Drone.prefab";
         public const string TurretPrefabPath = "Assets/Vantage/Prefabs/Turret.prefab";
+        public const string PlayerRigPath = "Assets/Vantage/Prefabs/Third Person Rig.prefab";
+
+        /// <summary>Value after a batch-mode argument (e.g. -vantageShots folder), or null.</summary>
+        public static string Arg(string name)
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            var i = System.Array.IndexOf(args, name);
+            return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+        }
 
         [MenuItem("Vantage/Performance/Bake Occlusion Culling", priority = 40)]
         public static void BakeOcclusion()

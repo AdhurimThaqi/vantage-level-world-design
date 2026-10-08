@@ -25,6 +25,7 @@ namespace Vantage.Testing
         private float _damageTaken;
         private float _lastHealth;
         private int _failures;
+        private bool _snapshotting;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void boot()
@@ -60,15 +61,26 @@ namespace Vantage.Testing
             _lastHealth = _health.Health;
             log($"level {levels.Current + 1} '{levels.CurrentName}', {levels.Remaining} enemies, seed {levels.Seed}");
 
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageBench") >= 0)
+            {
+                yield return bench(levels);
+                yield return finish();
+                yield break;
+            }
+
             yield return soldiersFightBack(levels);
+            yield return hudSnapshot("hud_combat");
             yield return clearLevelOpensGates(levels);
+            yield return hudSnapshot("hud_level_cleared");
+            yield return lastEnemiesCome(levels);
             yield return walkStairs(levels);
+            yield return walkEntrances(levels);
             yield return finish();
         }
 
         private void Update()
         {
-            if (_health == null) return;
+            if (_health == null || _snapshotting) return;
             if (_health.Health < _lastHealth) _damageTaken += _lastHealth - _health.Health;
             if (_health.Health < 5e5f) _health.Health = 1e6f;
             _lastHealth = _health.Health;
@@ -78,26 +90,24 @@ namespace Vantage.Testing
 
         private IEnumerator soldiersFightBack(VantageTowerLevels levels)
         {
-            var soldier = levels.Enemies.Select(e => e != null ? e.GetComponent<FighterBrain>() : null).FirstOrDefault(b => b != null);
-            if (soldier == null) { fail("level 1 has no soldiers"); yield break; }
+            var soldiers = levels.Enemies.Select(e => e != null ? e.GetComponent<FighterBrain>() : null).Where(b => b != null).ToList();
+            if (soldiers.Count == 0) { fail("level 1 has no soldiers"); yield break; }
 
-            // Stand 9 m away from the soldier with a clear line of sight, armed with the pistol.
-            var spot = visibleSpotNear(soldier.transform.position, 2.5f, 12f, soldier.transform.forward);
-            if (spot == null) { fail("no visible standing spot near " + soldier.name); yield break; }
+            // Stand up to 12 m from a soldier with a clear line of sight, armed with the pistol: in front of it if
+            // possible, else anywhere around it (a soldier can spawn facing a wall); the next soldier if neither works.
+            FighterBrain soldier = null;
+            Vector3? spot = null;
+            foreach (var candidate in soldiers)
+            {
+                spot = visibleSpotNear(candidate.transform.position, 2.5f, 12f, candidate.transform.forward, 60f)
+                       ?? visibleSpotNear(candidate.transform.position, 2.5f, 12f, candidate.transform.forward, 180f);
+                if (spot != null) { soldier = candidate; break; }
+            }
+            if (spot == null) { fail($"no visible standing spot near any of {soldiers.Count} soldiers"); yield break; }
             teleport(spot.Value, soldier.transform.position);
             _motor.GetComponent<VantageArsenal>()?.Unlock("Pistol");
             log($"player placed {Vector3.Distance(spot.Value, soldier.transform.position):F1} m from {soldier.name} (room floor y {soldier.transform.position.y:F1})");
 
-            var inventory = soldier.GetComponent<CharacterInventory>();
-            if (inventory == null) log("  soldier has NO CharacterInventory");
-            else
-                for (int i = 0; i < inventory.Weapons.Length; i++)
-                {
-                    var w = inventory.Weapons[i];
-                    log($"  inventory[{i}] right={(w.RightItem != null ? w.RightItem.name + (w.RightItem.activeInHierarchy ? "" : " (inactive)") : "null")} gun={(w.Gun != null ? w.Gun.GetType().Name : "null")}");
-                }
-            var fire = soldier.GetComponent<AIFire>();
-            log($"  AIFire {(fire != null ? $"enabled={fire.enabled} usage={fire.InventoryUsage} index={fire.InventoryIndex}" : "MISSING")}; guns in children: {string.Join(", ", soldier.GetComponentsInChildren<BaseGun>(true).Select(g => g.name))}");
             var gun = soldier.GetComponentInChildren<BaseGun>(true);
             var firstBullets = gun != null ? gun.LoadedBulletsLeft : -1;
             int fired = 0, lastBullets = firstBullets;
@@ -111,29 +121,6 @@ namespace Vantage.Testing
                     yield return null;
                 }
                 var motor = soldier.GetComponent<CharacterMotor>();
-                if (fire != null)
-                {
-                    object field(object o, string n) => o.GetType().GetField(n, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(o);
-                    var aim = field(fire, "_aim") is Vector3 a ? a : Vector3.zero;
-                    var start = soldier.transform.position + Vector3.up * 2;
-                    log($"      fire: firing={field(fire, "_isFiring")} aiming={field(fire, "_isAiming")} atPos={field(fire, "_isAimingAtAPosition")} reloading={field(fire, "_isReloading")} " +
-                        $"obstructed={AIUtil.IsObstructed(start, aim)} aim={aim:F1} gunReady={motor.IsGunReady} weaponReady={motor.IsWeaponReady} hasCond={field(motor, "_hasFireCondition")} wants={field(motor, "_wantsToFire")}");
-                    var equipped = motor.EquippedWeapon.Gun;
-                    if (equipped != null)
-                    {
-                        object baseField(object o, string n) => typeof(BaseGun).GetField(n, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(o);
-                        log($"      gun {equipped.name}: active={equipped.isActiveAndEnabled} allowed={baseField(equipped, "_isAllowed")} goingToFire={baseField(equipped, "_isGoingToFire")} fireWait={baseField(equipped, "_fireWait")} " +
-                            $"bullets={equipped.LoadedBulletsLeft} blocked={field(motor, "_isWeaponBlocked")} pumping={field(motor, "_isPumping")} sameAsLogged={equipped == gun}");
-                        var ik = field(motor, "_ik");
-                        var aimingArms = ik?.GetType().GetProperty("IsAimingArms")?.GetValue(ik);
-                        var toTarget = (aim - soldier.transform.position); toTarget.y = 0;
-                        object prop(object o, string n) => o.GetType().GetProperty(n, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(o);
-                        log($"      arm aim: aimingGun={prop(motor, "IsAimingGun")} wasAiming={prop(motor, "WasAimingGun")} changing={prop(motor, "IsChangingWeaponOrHasJustChanged")} " +
-                            $"coverOffsetCantAim={prop(motor, "IsMovingToCoverOffsetAndCantAim")} sprinting={motor.IsSprinting} hit={prop(motor, "IsGettingHit")} dontChange={prop(motor, "dontChangeArmAimingJustYet") ?? field(motor, "dontChangeArmAimingJustYet")} " +
-                            $"loadBullet={prop(motor, "IsLoadingBullet")} loadMag={prop(motor, "IsLoadingMagazine")} reloading={motor.IsReloading}");
-                        log($"      allow parts: falling={field(motor, "_isFalling")} aimingArms={aimingArms} facing={(toTarget.sqrMagnitude > 0 ? Vector3.Dot(toTarget.normalized, soldier.transform.forward) : -9):F2} inCover={motor.IsInCover} ik={(ik != null ? ik.GetType().Name : "null")}");
-                    }
-                }
                 log($"  t={s,2}s soldier state={soldier.State} threat={(soldier.Threat != null ? soldier.Threat.name : "none")} sees={soldier.CanSeeTheThreat} " +
                     $"equipped={motor.IsEquipped} weapon={(motor.ActiveWeapon.Gun != null ? motor.ActiveWeapon.Gun.name : "none")} bullets={(gun != null ? gun.LoadedBulletsLeft : -1)} " +
                     $"dist={Vector3.Distance(soldier.transform.position, _motor.transform.position):F1} damageToPlayer={_damageTaken - damageBefore:F0}");
@@ -143,8 +130,8 @@ namespace Vantage.Testing
             else log($"PASS soldier fired {fired} rounds, player took {damage:F0} damage");
         }
 
-        /// <summary>A walkable spot on the target's floor, in front of it (within 60° of 'facing'), with line of sight.</summary>
-        private Vector3? visibleSpotNear(Vector3 target, float min, float max, Vector3 facing)
+        /// <summary>A walkable spot on the target's floor, within 'spread' degrees of 'facing', with line of sight.</summary>
+        private Vector3? visibleSpotNear(Vector3 target, float min, float max, Vector3 facing, float spread)
         {
             facing.y = 0; facing.Normalize();
             int noMesh = 0, otherFloor = 0, blocked = 0;
@@ -152,13 +139,13 @@ namespace Vantage.Testing
             for (int i = 0; i < 300; i++)
             {
                 var d = Random.Range(min, max);
-                var p = target + Quaternion.Euler(0, Random.Range(-60f, 60f), 0) * facing * d;
+                var p = target + Quaternion.Euler(0, Random.Range(-spread, spread), 0) * facing * d;
                 if (!NavMesh.SamplePosition(p, out var hit, 1.5f, NavMesh.AllAreas)) { noMesh++; continue; }
                 if (Mathf.Abs(hit.position.y - target.y) > 0.8f) { otherFloor++; continue; }
                 // Line of sight chest to chest; a hit right at the soldier (it stands against a wall) doesn't count.
                 var from = hit.position + Vector3.up * 1.4f;
                 var to = target + Vector3.up * 1.2f;
-                if (Physics.Linecast(from, to, out var h, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore)
+                if (Physics.Linecast(from, to, out var h, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
                     && Vector3.Distance(h.point, to) > 0.6f)
                 { blocked++; blocker = h.collider.name; continue; }
                 return hit.position;
@@ -213,7 +200,7 @@ namespace Vantage.Testing
                 var foot = box.position - dir * (gate.Blocker.size.z / 2f - 0.5f) - Vector3.up * (gate.Blocker.size.y / 2f - 0.15f);
                 // Start just onto the flight (its foot end can be a narrow landing), on the walkable surface.
                 var start = foot + dir * 0.6f;
-                if (Physics.Raycast(start + Vector3.up * 1.5f, Vector3.down, out var surfaceHit, 3f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
+                if (Physics.Raycast(start + Vector3.up * 1.5f, Vector3.down, out var surfaceHit, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                     start = surfaceHit.point;
                 else
                     log($"  {gate.name}: NO SURFACE under the flight start {start:F2}");
@@ -247,13 +234,13 @@ namespace Vantage.Testing
                         var tower = levels.Tower;
                         var what = new StringBuilder();
                         foreach (var h in new[] { 0.1f, 0.35f, 1.0f, 1.7f })
-                            if (Physics.Raycast(p + Vector3.up * h, dir, out var fh, 1.2f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
+                            if (Physics.Raycast(p + Vector3.up * h, dir, out var fh, 1.2f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                                 what.Append($" front@{h:F2}:{fh.collider.name}({fh.distance:F2}m,n.y={fh.normal.y:F2})");
-                        if (Physics.Raycast(p + Vector3.up * 0.5f, Vector3.up, out var up, 3f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
+                        if (Physics.Raycast(p + Vector3.up * 0.5f, Vector3.up, out var up, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                             what.Append($" ceiling:{up.collider.name}({up.distance + 0.5f:F2}m)");
                         var side = Vector3.Cross(Vector3.up, dir);
                         foreach (var s2 in new[] { -1f, 1f })
-                            if (Physics.Raycast(p + Vector3.up * 1f, side * s2, out var sh, 0.6f, ~((1 << 2) | (1 << 8) | (1 << 10) | (1 << 11)), QueryTriggerInteraction.Ignore))
+                            if (Physics.Raycast(p + Vector3.up * 1f, side * s2, out var sh, 0.6f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                                 what.Append($" side{(s2 < 0 ? "L" : "R")}:{sh.collider.name}({sh.distance:F2}m)");
                         log($"  stalled at local {tower.InverseTransformPoint(p):F2}, grounded={_motor.IsGrounded}:{what}");
                     }
@@ -268,6 +255,172 @@ namespace Vantage.Testing
             }
         }
 
+        // ---------------- 3b. last enemies ----------------
+
+        /// <summary>
+        /// Leaves two enemies alive on the level and stands the player far from them, out of sight: within 30 s they
+        /// must have come to the player (hunt rule) instead of waiting somewhere to be found.
+        /// </summary>
+        private IEnumerator lastEnemiesCome(VantageTowerLevels levels)
+        {
+            var enemies = levels.Enemies.Where(e => e != null).ToList();
+            if (enemies.Count < 3) { log("  last enemies: skipped (too few enemies)"); yield break; }
+            // Keep one soldier and one drone if there are both.
+            var keep = new List<GameObject>();
+            var soldier = enemies.FirstOrDefault(e => e.GetComponent<VantageDrone>() == null);
+            var drone = enemies.FirstOrDefault(e => e.GetComponent<VantageDrone>() != null);
+            if (soldier != null) keep.Add(soldier);
+            if (drone != null) keep.Add(drone);
+            foreach (var e in enemies.Where(e => !keep.Contains(e)).Take(enemies.Count - 2)) kill(e);
+            keep = enemies.Where(e => e != null && e.activeInHierarchy && (e.GetComponent<CharacterHealth>()?.Health ?? 0) > 0).ToList();
+
+            // Stand on the level, at the spawn point furthest from the survivors.
+            var storeys = levels.Levels[levels.Current].Storeys;
+            var spot = levels.Tower.GetComponentsInChildren<CommandTowerKit.GameplayMarker>(true)
+                             .Where(m => m.markerType == "EnemySpawn" && storeys.Contains(m.floor))
+                             .OrderByDescending(m => keep.Min(e => Vector3.Distance(e.transform.position, m.transform.position)))
+                             .First().transform.position;
+            if (NavMesh.SamplePosition(spot, out var hit, 2f, NavMesh.AllAreas)) spot = hit.position;
+            teleport(spot, spot + Vector3.forward);
+            var damageBefore = _damageTaken;
+            var startDistance = keep.Min(e => Vector3.Distance(e.transform.position, spot));
+            log($"  last enemies: {keep.Count} left ({string.Join(", ", keep.Select(e => e.name))}), nearest {startDistance:F1} m, hunting={levels.Hunting}");
+
+            float t = 0, nearest = startDistance;
+            while (t < 30f && nearest > 8f && _damageTaken <= damageBefore)
+            {
+                yield return new WaitForSeconds(0.5f);
+                t += 0.5f;
+                nearest = keep.Where(e => e != null).Select(e => Vector3.Distance(e.transform.position, _motor.transform.position)).DefaultIfEmpty(0f).Min();
+                if (Mathf.Repeat(t, 5f) < 0.25f)
+                    log($"    t={t:F0}s hunting={levels.Hunting} remaining={levels.Remaining}: " + string.Join("; ", keep.Where(e => e != null).Select(e =>
+                        $"{e.name} {Vector3.Distance(e.transform.position, _motor.transform.position):F1} m at {levels.Tower.InverseTransformPoint(e.transform.position):F1}" +
+                        (e.GetComponent<FighterBrain>() is FighterBrain b ? $" state={b.State}" : ""))));
+            }
+            var line = $"nearest enemy {startDistance:F1} m -> {nearest:F1} m in {t:F1} s, damage taken {_damageTaken - damageBefore:F0}";
+            if (nearest <= 8f || _damageTaken > damageBefore) log("PASS last enemies come to the player: " + line);
+            else fail("last enemies did not come: " + line);
+        }
+
+        // ---------------- 4. entrances ----------------
+
+        /// <summary>Walks into the tower through every ground-floor entrance, from 4 m outside to 4 m inside.</summary>
+        private IEnumerator walkEntrances(VantageTowerLevels levels)
+        {
+            var tower = levels.Tower;
+            foreach (var entry in tower.GetComponentsInChildren<CommandTowerKit.GameplayMarker>(true).Where(m => m.markerType == "PlayerEntry" && m.floor < 0))
+            {
+                var local = tower.InverseTransformPoint(entry.transform.position);
+                var inward = tower.TransformDirection(Mathf.Abs(local.x) > Mathf.Abs(local.z) ? new Vector3(-Mathf.Sign(local.x), 0, 0) : new Vector3(0, 0, -Mathf.Sign(local.z)));
+                var start = entry.transform.position - inward * 4f;
+                if (Physics.Raycast(start + Vector3.up * 3f, Vector3.down, out var ground, 6f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                    start = ground.point;
+                teleport(start, start + inward * 5f);
+                yield return new WaitForSeconds(0.6f);
+
+                float t = 0, stalled = 0, window = 0;
+                var windowStart = _motor.transform.position;
+                while (t < 8f && Vector3.Dot(_motor.transform.position - start, inward) < 8f)
+                {
+                    _controller.MovementInput = new CharacterMovement(inward, 1f);
+                    yield return null;
+                    t += Time.deltaTime;
+                    window += Time.deltaTime;
+                    if (window >= 0.25f)
+                    {
+                        var p = _motor.transform.position;
+                        if (new Vector2(p.x - windowStart.x, p.z - windowStart.z).magnitude < 0.075f && t > 0.6f) stalled += window;
+                        window = 0;
+                        windowStart = p;
+                    }
+                }
+                _controller.MovementInput = new CharacterMovement();
+                var progress = Vector3.Dot(_motor.transform.position - start, inward);
+                var line = $"{entry.name}: walked {progress:F1}/8.0 m in {t:F1} s, stalled {stalled:F1} s";
+                if (progress >= 7.5f && stalled < 1f) log("PASS entrance " + line);
+                else fail($"entrance {line}, stopped at local {tower.InverseTransformPoint(_motor.transform.position):F2}, in front:{obstacles(inward)}");
+            }
+        }
+
+        /// <summary>What the character's capsule would run into in 'direction': colliders at four heights.</summary>
+        private string obstacles(Vector3 direction)
+        {
+            var what = new StringBuilder();
+            var p = _motor.transform.position;
+            foreach (var h in new[] { 0.1f, 0.35f, 1.0f, 1.7f })
+                if (Physics.Raycast(p + Vector3.up * h, direction, out var hit, 1.2f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                    what.Append($" @{h:F2}:{hit.collider.name}({hit.distance:F2}m, n.y={hit.normal.y:F2})");
+            // The character's capsule (rays can pass beside thin posts the capsule still catches on).
+            var capsule = _motor.GetComponent<CapsuleCollider>();
+            var radius = capsule != null ? capsule.radius : 0.3f;
+            foreach (var hit in Physics.CapsuleCastAll(p + Vector3.up * (radius + 0.05f), p + Vector3.up * 1.7f, radius, direction, 0.6f, ~0, QueryTriggerInteraction.Ignore))
+                if (!hit.collider.transform.IsChildOf(_motor.transform))
+                    what.Append($" capsule:{hit.collider.name}[layer {hit.collider.gameObject.layer}]({hit.distance:F2}m at {hit.point:F2})");
+            // Already overlapping: which way and how far the geometry pushes the capsule out.
+            if (capsule != null)
+                foreach (var other in Physics.OverlapCapsule(p + Vector3.up * (radius + 0.05f), p + Vector3.up * 1.7f, radius, ~0, QueryTriggerInteraction.Ignore))
+                    if (!other.transform.IsChildOf(_motor.transform)
+                        && Physics.ComputePenetration(capsule, capsule.transform.position, capsule.transform.rotation, other, other.transform.position, other.transform.rotation, out var push, out var depth))
+                        what.Append($" overlap:{other.name} push {push:F2} by {depth:F2}m");
+            return what.Length > 0 ? what.ToString() : " nothing";
+        }
+
+        // ---------------- performance ----------------
+
+        /// <summary>
+        /// -vantageBench: renders the game camera at 1920x1080 from five typical views at each PC quality level and
+        /// times it (a 1-pixel read-back waits for the GPU, so this is CPU + GPU per frame on this machine).
+        /// </summary>
+        private IEnumerator bench(VantageTowerLevels levels)
+        {
+            var main = Camera.main;
+            var t = levels.Tower;
+            foreach (var b in main.GetComponents<MonoBehaviour>()) b.enabled = false; // camera scripts would move it
+            var startPos = main.transform.position;
+            var startRot = main.transform.rotation;
+            var views = new (string name, Vector3 pos, Quaternion rot)[]
+            {
+                ("start", startPos, startRot),
+                ("forest", startPos, Quaternion.LookRotation(-(startRot * Vector3.forward))),
+                ("lobby", t.TransformPoint(new Vector3(0, 2.2f, 9f)), Quaternion.LookRotation(t.TransformDirection(Vector3.back))),
+                ("floor3", t.TransformPoint(new Vector3(-6f, 14.6f, 6f)), Quaternion.LookRotation(t.TransformDirection(new Vector3(1, -0.1f, -1)))),
+                ("roof", t.TransformPoint(new Vector3(0, 27f, 9f)), Quaternion.LookRotation(t.TransformDirection(new Vector3(0, -0.3f, -1)))),
+            };
+            var rt = new RenderTexture(1920, 1080, 24);
+            var pixel = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            main.targetTexture = rt;
+            var timer = new System.Diagnostics.Stopwatch();
+            var original = QualitySettings.GetQualityLevel();
+            for (int q = 2; q < QualitySettings.names.Length; q++)
+            {
+                QualitySettings.SetQualityLevel(q, true);
+                yield return null;
+                var line = new StringBuilder($"BENCH {QualitySettings.names[q],-9}");
+                foreach (var v in views)
+                {
+                    main.transform.SetPositionAndRotation(v.pos, v.rot);
+                    var times = new List<double>();
+                    for (int i = 0; i < 35; i++)
+                    {
+                        timer.Restart();
+                        main.Render();
+                        RenderTexture.active = rt;
+                        pixel.ReadPixels(new Rect(0, 0, 1, 1), 0, 0, false);
+                        RenderTexture.active = null;
+                        timer.Stop();
+                        if (i >= 5) times.Add(timer.Elapsed.TotalMilliseconds);
+                    }
+                    times.Sort();
+                    line.Append($" | {v.name} {times[times.Count / 2]:F1} ms");
+                    yield return null;
+                }
+                log(line.ToString());
+            }
+            QualitySettings.SetQualityLevel(original, true);
+            main.targetTexture = null;
+            rt.Release();
+        }
+
         // ---------------- helpers ----------------
 
         private void teleport(Vector3 position, Vector3 lookAt)
@@ -277,6 +430,54 @@ namespace Vantage.Testing
             var look = lookAt - position; look.y = 0;
             _motor.transform.SetPositionAndRotation(position + Vector3.up * 0.05f, look.sqrMagnitude > 0.01f ? Quaternion.LookRotation(look) : _motor.transform.rotation);
             Physics.SyncTransforms();
+        }
+
+        /// <summary>
+        /// With -vantageShots folder: renders the game view including the screen-space UI into folder/name.png
+        /// (batch mode has no game view, so the overlay canvases are drawn through a temporary camera).
+        /// </summary>
+        private IEnumerator hudSnapshot(string name)
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            var i = System.Array.IndexOf(args, "-vantageShots");
+            var main = Camera.main;
+            if (i < 0 || i + 1 >= args.Length || main == null) yield break;
+            // Show a normal health value (the bot is invulnerable at 1e6) for a frame so the HUD updates.
+            _snapshotting = true;
+            _health.MaxHealth = 100f;
+            _health.Health = 72f;
+            yield return null;
+            yield return null;
+            const int width = 1920, height = 1080;
+            var rt = new RenderTexture(width, height, 24);
+            var canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None).Where(cv => cv.isRootCanvas && cv.renderMode == RenderMode.ScreenSpaceOverlay).ToList();
+            var previous = main.targetTexture;
+            try
+            {
+                main.targetTexture = rt;
+                foreach (var cv in canvases) { cv.renderMode = RenderMode.ScreenSpaceCamera; cv.worldCamera = main; cv.planeDistance = main.nearClipPlane + 0.05f; }
+                Canvas.ForceUpdateCanvases();
+                main.Render();
+                RenderTexture.active = rt;
+                var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+                texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                texture.Apply();
+                System.IO.Directory.CreateDirectory(args[i + 1]);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(args[i + 1], name + ".png"), texture.EncodeToPNG());
+                Destroy(texture);
+                log("HUD snapshot " + name);
+            }
+            finally
+            {
+                RenderTexture.active = null;
+                main.targetTexture = previous;
+                foreach (var cv in canvases) cv.renderMode = RenderMode.ScreenSpaceOverlay;
+                rt.Release();
+                _health.MaxHealth = 1e6f;
+                _health.Health = 1e6f;
+                _lastHealth = _health.Health;
+                _snapshotting = false;
+            }
         }
 
         private IEnumerator finish()

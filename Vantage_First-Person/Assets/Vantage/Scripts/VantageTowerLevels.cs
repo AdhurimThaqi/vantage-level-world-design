@@ -45,6 +45,16 @@ namespace Vantage
 
         public static VantageTowerLevels Instance { get; private set; }
 
+        /// <summary>AI side of every enemy (the player is on another side; see VantageThirdPersonPlayer.Side).</summary>
+        public const int EnemySide = 0;
+
+        // Marker types authored in the tower (CommandTowerKit.GameplayMarker.markerType).
+        private const string EnemySpawnMarker = "EnemySpawn", DroneSpawnMarker = "DroneSpawn", OverwatchMarker = "Overwatch";
+        // A point this far below a floor (top of a flight of stairs) already counts as that storey.
+        private const float StairLead = 1f;
+        private const float LostCheckInterval = 2f;
+        private const float SoldierSpawnLift = 0.05f;
+
         public Transform Tower;
         public GameObject SoldierPrefab;
         public GameObject DronePrefab;
@@ -54,7 +64,24 @@ namespace Vantage
         [Tooltip("Local height of the ground floor surface; each storey is StoreyHeight higher.")]
         public float GroundFloor = 0.45f;
         public float StoreyHeight = 4f;
+        [Tooltip("Drones spawn this high above their marker.")]
+        public float DroneSpawnHeight = 1.6f;
+        [Tooltip("The tower's footprint (measured from its meshes at start) is widened by this much.")]
+        public float FootprintMargin = 0.5f;
         public List<Level> Levels = new List<Level>();
+
+        [Header("Last enemies")]
+        [Tooltip("With this many enemies or fewer left, they stop guarding and come for the player.")]
+        public int HuntWhenRemaining = 2;
+        [Tooltip("They also come when nobody has died for this many seconds.")]
+        public float HuntAfterQuietSeconds = 45f;
+
+        /// <summary>
+        /// True when the level's remaining enemies should come to the player (see VantageEnemyAggression, VantageDrone).
+        /// Only while the player is on that level: hunters must not leave it (they would be sent back, see returnLostEnemies).
+        /// </summary>
+        public bool Hunting => Current >= 0 && !Completed && _playerLevel == Current
+                               && (Remaining <= HuntWhenRemaining || Time.time - _lastKillTime > HuntAfterQuietSeconds);
 
         /// <summary>Index of the level being fought (Levels.Count once the tower is clear).</summary>
         public int Current { get; private set; } = -1;
@@ -84,15 +111,22 @@ namespace Vantage
         private readonly List<VantageDrone> _aliveDrones = new List<VantageDrone>();
         private readonly List<CharacterMotor> _aliveMotors = new List<CharacterMotor>();
         private int _countedFrame = -1, _remaining;
+        private int _lastRemaining;
+        private float _lastKillTime, _nextLostCheck;
         private VantageFloorGate[] _gates;
         private Light[] _lights;
         private GameplayMarker[] _markers;
         private System.Random _random;
         private int _playerLevel = -2;
+        private Bounds _footprint;
+        private int _topStorey;
 
         private void Awake()
         {
             Instance = this;
+            // Measured before anything asks LevelAt / StoreyAt.
+            _topStorey = Levels.Count > 0 ? Levels.Max(l => l.Storeys.Length > 0 ? l.Storeys.Max() : 0) : 0;
+            measureFootprint();
         }
 
         private void Start()
@@ -105,6 +139,10 @@ namespace Vantage
             _gates = FindObjectsByType<VantageFloorGate>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             _lights = Tower != null ? Tower.GetComponentsInChildren<Light>(true) : new Light[0];
             _markers = Tower != null ? Tower.GetComponentsInChildren<GameplayMarker>(true) : new GameplayMarker[0];
+            var misfiled = _markers.Count(m => (m.markerType == EnemySpawnMarker || m.markerType == DroneSpawnMarker)
+                                               && StoreyAt(Tower.InverseTransformPoint(m.transform.position).y) != m.floor);
+            if (misfiled > 0)
+                Debug.Log($"[Vantage] {misfiled} spawn markers have a floor field that doesn't match their height; spawning goes by height.");
             foreach (var l in Levels)
                 if (l.Reward != null)
                     l.Reward.SetActive(false);
@@ -122,7 +160,18 @@ namespace Vantage
             if (Completed || Current < 0)
                 return;
 
-            if (Remaining == 0)
+            var remaining = Remaining;
+            if (remaining < _lastRemaining)
+                _lastKillTime = Time.time;
+            _lastRemaining = remaining;
+
+            if (Time.time >= _nextLostCheck)
+            {
+                _nextLostCheck = Time.time + LostCheckInterval;
+                returnLostEnemies();
+            }
+
+            if (remaining == 0)
             {
                 var cleared = Current;
                 var level = Levels[cleared];
@@ -140,28 +189,76 @@ namespace Vantage
             var lv = p != null ? LevelAt(p.transform.position) : -1;
             if (lv != _playerLevel)
             {
+                // Arriving on the level being fought starts its quiet timer, so time spent elsewhere doesn't count.
+                if (lv == Current)
+                    _lastKillTime = Time.time;
                 _playerLevel = lv;
                 updateLights();
             }
         }
 
         /// <summary>Level index a world position is in, or -1 outside the tower.</summary>
-        public int LevelAt(Vector3 world)
+        public int LevelAt(Vector3 world) => levelAt(world, true);
+
+        /// <summary>
+        /// stairLead: the top of a flight already counts as the storey above (for the player arriving).
+        /// Without it, a point belongs to the storey whose floor is under it (a drone under the ceiling stays on its storey).
+        /// </summary>
+        private int levelAt(Vector3 world, bool stairLead)
         {
             if (Tower == null) return -1;
             var local = Tower.InverseTransformPoint(world);
-            if (Mathf.Abs(local.x) > 14f || local.z < -17f || local.z > 12f)
+            if (!insideFootprint(local))
                 return -1;
-            var storey = StoreyAt(local.y);
+            var storey = stairLead ? StoreyAt(local.y) : storeyBelow(local.y);
             for (int i = 0; i < Levels.Count; i++)
-                if (Levels[i].Storeys.Contains(storey))
+                if (Array.IndexOf(Levels[i].Storeys, storey) >= 0)
                     return i;
             return -1;
         }
 
-        public int StoreyAt(float localY) => Mathf.Clamp(Mathf.FloorToInt((localY - GroundFloor + 1f) / StoreyHeight), 0, 6);
+        public int StoreyAt(float localY) => Mathf.Clamp(Mathf.FloorToInt((localY - GroundFloor + StairLead) / StoreyHeight), 0, _topStorey);
 
-        private float storeyY(int storey) => GroundFloor + storey * StoreyHeight;
+        private bool insideFootprint(Vector3 local) =>
+            local.x >= _footprint.min.x && local.x <= _footprint.max.x && local.z >= _footprint.min.z && local.z <= _footprint.max.z;
+
+        /// <summary>Is a marker inside the tower on one of these storeys, judged by its height (not its floor field)?</summary>
+        private bool isOn(GameplayMarker marker, int[] storeys)
+        {
+            var local = Tower.InverseTransformPoint(marker.transform.position);
+            return insideFootprint(local) && Array.IndexOf(storeys, StoreyAt(local.y)) >= 0;
+        }
+
+        /// <summary>The storey whose floor is under a point (ceiling lights belong to the storey below them).</summary>
+        private int storeyBelow(float localY) => Mathf.Clamp(Mathf.FloorToInt((localY - GroundFloor) / StoreyHeight), 0, _topStorey);
+
+        /// <summary>"ground floor", "floor 3" or "roof" (the highest storey of the last level).</summary>
+        public string StoreyName(int storey) => storey <= 0 ? "ground floor" : storey >= _topStorey ? "roof" : $"floor {storey}";
+
+        /// <summary>
+        /// The tower's footprint in its local x/z, from the bounds of its meshes: porch, loading bay and fire-escape
+        /// platform included, so it follows the model instead of hand-measured numbers.
+        /// </summary>
+        private void measureFootprint()
+        {
+            _footprint = new Bounds();
+            if (Tower == null) return;
+            var first = true;
+            foreach (var filter in Tower.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (filter.sharedMesh == null) continue;
+                var b = filter.sharedMesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    var corner = b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    var local = Tower.InverseTransformPoint(filter.transform.TransformPoint(corner));
+                    if (first) { _footprint = new Bounds(local, Vector3.zero); first = false; }
+                    else _footprint.Encapsulate(local);
+                }
+            }
+            _footprint.Expand(new Vector3(FootprintMargin * 2f, 0f, FootprintMargin * 2f));
+            Debug.Log($"[Vantage] Tower footprint (local): x {_footprint.min.x:F1}..{_footprint.max.x:F1}, z {_footprint.min.z:F1}..{_footprint.max.z:F1}; top storey {_topStorey}.");
+        }
 
         #region Spawning
 
@@ -172,6 +269,8 @@ namespace Vantage
             _aliveDrones.Clear();
             _aliveMotors.Clear();
             _countedFrame = -1;
+            _lastRemaining = int.MaxValue;
+            _lastKillTime = Time.time;
             if (Completed)
             {
                 VantageEvents.RaiseLevelCompleted();
@@ -179,21 +278,21 @@ namespace Vantage
             }
 
             var level = Levels[index];
-            var spawns = pick("EnemySpawn", level.Storeys, level.Soldiers);
+            var spawns = pick(EnemySpawnMarker, level.Storeys, level.Soldiers);
             foreach (var m in spawns)
                 spawnSoldier(level, m.transform);
 
             // Drones: drone pads/hangars on the level first, then hovering over free enemy spawns.
-            var droneSpots = pick("DroneSpawn", level.Storeys, level.Drones);
+            var droneSpots = pick(DroneSpawnMarker, level.Storeys, level.Drones);
             if (droneSpots.Count < level.Drones)
-                droneSpots.AddRange(pick("EnemySpawn", level.Storeys, level.Drones - droneSpots.Count, spawns));
+                droneSpots.AddRange(pick(EnemySpawnMarker, level.Storeys, level.Drones - droneSpots.Count, spawns));
             foreach (var m in droneSpots)
-                spawnDrone(level, m.transform.position + Vector3.up * 1.6f, DronePrefab);
+                spawnDrone(level, m.transform.position + Vector3.up * DroneSpawnHeight, DronePrefab);
 
             if (level.Turret && TurretPrefab != null)
             {
-                var spot = _markers.FirstOrDefault(m => m.markerType == "Overwatch" && level.Storeys.Contains(m.floor))
-                           ?? _markers.FirstOrDefault(m => level.Storeys.Contains(m.floor));
+                var spot = _markers.FirstOrDefault(m => m.markerType == OverwatchMarker && isOn(m, level.Storeys))
+                           ?? _markers.FirstOrDefault(m => isOn(m, level.Storeys));
                 if (spot != null)
                     spawnDrone(level, spot.transform.position + Vector3.up * 0.2f, TurretPrefab);
             }
@@ -205,7 +304,9 @@ namespace Vantage
         /// <summary>Seeded pick of markers, spread over different rooms before doubling up.</summary>
         private List<GameplayMarker> pick(string type, int[] storeys, int count, ICollection<GameplayMarker> exclude = null)
         {
-            var pool = _markers.Where(m => m.markerType == type && storeys.Contains(m.floor) && (exclude == null || !exclude.Contains(m)))
+            // Judged by where the marker is, not its floor field (some exported markers carry the wrong floor), and
+            // only inside the tower: an enemy spawned outside (a drone pad on a ledge) can't be reached.
+            var pool = _markers.Where(m => m.markerType == type && isOn(m, storeys) && (exclude == null || !exclude.Contains(m)))
                                .OrderBy(_ => _random.Next()).ToList();
             var result = new List<GameplayMarker>();
             var rooms = new HashSet<string>();
@@ -221,10 +322,10 @@ namespace Vantage
         private void spawnSoldier(Level level, Transform at)
         {
             if (SoldierPrefab == null) return;
-            var go = Instantiate(SoldierPrefab, at.position + Vector3.up * 0.05f, Quaternion.Euler(0, at.eulerAngles.y, 0));
+            var go = Instantiate(SoldierPrefab, at.position + Vector3.up * SoldierSpawnLift, Quaternion.Euler(0, at.eulerAngles.y, 0));
             go.name = $"Soldier - {level.Name}";
             var actor = go.GetComponent<BaseActor>();
-            if (actor != null) actor.Side = 0;
+            if (actor != null) actor.Side = EnemySide;
             foreach (var gun in go.GetComponentsInChildren<BaseGun>(true))
                 gun.Damage = level.SoldierDamage;
             arm(go, level.SoldierWeapon);
@@ -270,7 +371,6 @@ namespace Vantage
             {
                 drone.Accuracy = level.DroneAccuracy;
                 drone.FireInterval = level.DroneFireInterval;
-                drone.PatrolRadius = 3f;
             }
             track(go);
         }
@@ -281,6 +381,33 @@ namespace Vantage
             _aliveDrones.Add(go.GetComponent<VantageDrone>());
             _aliveMotors.Add(go.GetComponent<CharacterMotor>());
             _countedFrame = -1;
+        }
+
+        /// <summary>
+        /// Safety net: an enemy that has left its level (fallen through a floor, pushed out of the tower) is put back
+        /// on one of the level's spawn points, so a level can always be cleared.
+        /// </summary>
+        private void returnLostEnemies()
+        {
+            for (int i = 0; i < _alive.Count; i++)
+            {
+                if (!isAlive(i)) continue;
+                var enemy = _alive[i].transform;
+                if (levelAt(enemy.position, false) == Current || LevelAt(enemy.position) == Current) continue;
+                var marker = pick(EnemySpawnMarker, Levels[Current].Storeys, 1).FirstOrDefault();
+                if (marker == null) continue;
+                var lostAt = Tower.InverseTransformPoint(enemy.position);
+                if (_aliveDrones[i] != null)
+                    _aliveDrones[i].Relocate(marker.transform.position + Vector3.up * DroneSpawnHeight);
+                else
+                {
+                    var position = marker.transform.position + Vector3.up * SoldierSpawnLift;
+                    var body = enemy.GetComponent<Rigidbody>();
+                    if (body != null) { body.position = position; body.linearVelocity = Vector3.zero; }
+                    enemy.position = position;
+                }
+                Debug.Log($"[Vantage] {enemy.name} had left its level (at local {lostAt:F1}); returned to {marker.room}.");
+            }
         }
 
         private bool isAlive(int i)
@@ -305,7 +432,7 @@ namespace Vantage
                 foreach (var s in Levels[level].Storeys) { storeys.Add(s - 1); storeys.Add(s); storeys.Add(s + 1); }
             foreach (var l in _lights)
                 if (l != null)
-                    l.enabled = storeys.Contains(StoreyAt(Tower.InverseTransformPoint(l.transform.position).y - 2.5f));
+                    l.enabled = storeys.Contains(storeyBelow(Tower.InverseTransformPoint(l.transform.position).y));
         }
     }
 }

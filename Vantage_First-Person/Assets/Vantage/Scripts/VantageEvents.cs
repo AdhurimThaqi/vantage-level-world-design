@@ -20,16 +20,26 @@ namespace Vantage
         public static void RaiseLayoutGenerated(int seed) => LayoutGenerated?.Invoke(seed);
         public static void RaiseLevelCompleted() => LevelCompleted?.Invoke();
 
+        private static CoverShooter.BaseActor _player;
+        private static int _playerFrame = -1;
+
         /// <summary>
-        /// The player character, or null while it is dead or not spawned.
+        /// The player character, or null while it is dead or not spawned. Looked up once per frame
+        /// (drones, soldiers, camera and minimap all ask every frame).
         /// </summary>
         public static CoverShooter.BaseActor ActivePlayer()
         {
-            CoverShooter.BaseActor best = null;
-            foreach (var actor in CoverShooter.Actors.All)
+            if (_playerFrame == Time.frameCount)
+                return _player;
+            _playerFrame = Time.frameCount;
+            _player = null;
+            for (int i = 0; i < CoverShooter.Actors.Count; i++)
+            {
+                var actor = CoverShooter.Actors.Get(i);
                 if (actor != null && actor.Side != 0 && actor.IsAlive && actor.isActiveAndEnabled)
-                    best = actor;
-            return best;
+                    _player = actor;
+            }
+            return _player;
         }
     }
 }

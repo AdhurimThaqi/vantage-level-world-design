@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CoverShooter;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,20 +26,18 @@ namespace Vantage
         [Tooltip("Enemies closer than this are shown.")]
         public float EnemyRange = 55f;
         public float SizePixels = 230f;
-        public Color Accent = new Color(0.96f, 0.66f, 0.25f);
-        public Color Enemy = new Color(0.95f, 0.22f, 0.15f);
+        private static Color Accent => VantageUI.Accent;
+        private static Color Enemy => VantageUI.Danger;
 
         private const int MaxDots = 24;
+        private float _otherFloor = 3f;
 
-        private Transform _player;
         private RectTransform _frame;
         private RawImage _map;
         private RectTransform _arrow, _tower;
-        private Text _distance, _place;
+        private TMP_Text _distance, _place;
         private readonly List<Image> _dots = new List<Image>();
-        private readonly List<BaseActor> _soldiers = new List<BaseActor>();
-        private float _nextScan;
-        private VantagePlaytestLogger _logger;
+        private int _shownMetres = -1, _shownPlace = -2;
 
         private void Start()
         {
@@ -48,38 +47,47 @@ namespace Vantage
                 return;
             }
             build();
-            _logger = FindFirstObjectByType<VantagePlaytestLogger>();
         }
 
         private void LateUpdate()
         {
-            if (_player == null)
-            {
-                var p = FindFirstObjectByType<VantageThirdPersonPlayer>();
-                if (p == null)
-                    return;
-                _player = p.transform;
-            }
+            var player = VantageEvents.ActivePlayer();
+            if (player == null)
+                return; // dead: the map holds its last view under the death screen
 
-            var pos = _player.position;
+            var pos = player.transform.position;
             var view = ViewMetres / WorldArea.width;
             var u = (pos.x - WorldArea.x) / WorldArea.width;
             var v = (pos.z - WorldArea.y) / WorldArea.height;
             _map.uvRect = new Rect(u - view / 2, v - view / 2, view, view * WorldArea.width / WorldArea.height);
 
-            _arrow.localEulerAngles = new Vector3(0, 0, -_player.eulerAngles.y);
+            _arrow.localEulerAngles = new Vector3(0, 0, -player.transform.eulerAngles.y);
 
             if (Tower != null)
             {
                 var offset = toMap(Tower.position - pos, out var inside);
                 _tower.anchoredPosition = offset;
                 _tower.localScale = Vector3.one * (inside ? 1f : 0.8f);
-                var metres = Vector2.Distance(new Vector2(pos.x, pos.z), new Vector2(Tower.position.x, Tower.position.z));
-                _distance.text = metres < 15f ? "AT THE TOWER" : $"TOWER  {metres:F0} m";
+                var metres = Mathf.RoundToInt(Vector2.Distance(new Vector2(pos.x, pos.z), new Vector2(Tower.position.x, Tower.position.z)));
+                if (metres != _shownMetres)
+                {
+                    _shownMetres = metres;
+                    _distance.text = metres < 15 ? VantageUI.Caps("At the tower") : VantageUI.Caps($"Tower {metres} m");
+                }
             }
 
             enemies(pos);
-            _place.text = _logger != null && !string.IsNullOrEmpty(_logger.CurrentSpace) ? _logger.CurrentSpace.ToUpperInvariant() : "MILITARY BASE";
+            place(pos);
+        }
+
+        /// <summary>Where the player is: the base outside, or the tower's floor (only rebuilt when it changes).</summary>
+        private void place(Vector3 pos)
+        {
+            var levels = VantageTowerLevels.Instance;
+            var storey = levels == null || levels.LevelAt(pos) < 0 ? -1 : levels.StoreyAt(levels.Tower.InverseTransformPoint(pos).y);
+            if (storey == _shownPlace) return;
+            _shownPlace = storey;
+            _place.text = VantageUI.Caps(storey < 0 ? "Military base" : "Tower · " + levels.StoreyName(storey));
         }
 
         /// <summary>World offset → minimap pixels, clamped to the frame edge. 'inside' is false when clamped.</summary>
@@ -96,40 +104,42 @@ namespace Vantage
 
         private void enemies(Vector3 pos)
         {
-            if (Time.time >= _nextScan)
-            {
-                _nextScan = Time.time + 1f;
-                _soldiers.Clear();
-                foreach (var actor in FindObjectsByType<BaseActor>(FindObjectsSortMode.None))
-                    if (actor.Side == 0)
-                        _soldiers.Add(actor);
-            }
-
+            // While the level's last enemies hunt the player, they are shown at any distance (pinned to the edge).
+            var levels = VantageTowerLevels.Instance;
+            var showAll = levels != null && levels.Hunting;
+            _otherFloor = levels != null ? levels.StoreyHeight * 0.75f : 3f;
             var shown = 0;
-            foreach (var drone in VantageDrone.All)
+            for (int i = 0; i < VantageDrone.All.Count; i++)
+            {
+                var drone = VantageDrone.All[i];
                 if (drone != null && !drone.IsDead)
-                    shown = dot(shown, drone.transform.position - pos);
-            foreach (var soldier in _soldiers)
-                if (soldier != null && soldier.IsAlive && soldier.isActiveAndEnabled)
-                    shown = dot(shown, soldier.transform.position - pos);
+                    shown = dot(shown, drone.transform.position - pos, showAll);
+            }
+            // Soldiers are the template's actors on the enemy side (the template keeps the list; no scene search).
+            for (int i = 0; i < Actors.Count; i++)
+            {
+                var actor = Actors.Get(i);
+                if (actor != null && actor.Side == VantageTowerLevels.EnemySide && actor.IsAlive && actor.isActiveAndEnabled)
+                    shown = dot(shown, actor.transform.position - pos, showAll);
+            }
             for (int i = shown; i < _dots.Count; i++)
                 _dots[i].enabled = false;
         }
 
-        private int dot(int index, Vector3 offset)
+        private int dot(int index, Vector3 offset, bool showAll)
         {
-            if (index >= MaxDots || new Vector2(offset.x, offset.z).magnitude > EnemyRange)
+            if (index >= MaxDots || (!showAll && new Vector2(offset.x, offset.z).sqrMagnitude > EnemyRange * EnemyRange))
                 return index;
             var p = toMap(offset, out var inside);
-            if (!inside)
+            if (!inside && !showAll)
                 return index;
             if (index >= _dots.Count)
-                _dots.Add(image(rect("Enemy", _frame, Vector2.zero, new Vector2(8, 8)), Enemy, circle()));
+                _dots.Add(VantageUI.Image(VantageUI.Rect("Enemy", _frame, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(8, 8)), Enemy, VantageUI.Circle));
             var d = _dots[index];
             d.enabled = true;
             d.rectTransform.anchoredPosition = p;
             // Enemies far above or below the player (other floors) are faded.
-            d.color = new Color(Enemy.r, Enemy.g, Enemy.b, Mathf.Abs(offset.y) > 3f ? 0.35f : 1f);
+            d.color = new Color(Enemy.r, Enemy.g, Enemy.b, Mathf.Abs(offset.y) > _otherFloor ? 0.35f : 1f);
             return index + 1;
         }
 
@@ -137,99 +147,30 @@ namespace Vantage
 
         private void build()
         {
-            var canvasGo = new GameObject("VANTAGE Minimap Canvas");
-            canvasGo.transform.SetParent(transform, false);
-            var canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 40;
-            var scaler = canvasGo.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
+            var canvas = VantageUI.Canvas("VANTAGE Minimap Canvas", 40, transform);
 
-            // Panel: below the playtest line in the top-left corner.
-            var panel = (RectTransform)new GameObject("Minimap", typeof(RectTransform)).transform;
-            panel.SetParent(canvasGo.transform, false);
-            panel.anchorMin = panel.anchorMax = panel.pivot = new Vector2(0, 1);
-            panel.anchoredPosition = new Vector2(24, -36);
-            panel.sizeDelta = new Vector2(SizePixels + 12, SizePixels + 52);
-            panel.gameObject.AddComponent<Image>().color = new Color(0.04f, 0.05f, 0.06f, 0.72f);
-
-            _frame = rect("Map Frame", panel, Vector2.zero, new Vector2(SizePixels, SizePixels));
-            _frame.anchorMin = _frame.anchorMax = new Vector2(0.5f, 1);
-            _frame.anchoredPosition = new Vector2(0, -6 - SizePixels / 2);
+            // Top-left corner: the map in a thin frame, distance and place below it.
+            var panel = VantageUI.Rect("Minimap", canvas, new Vector2(0, 1), new Vector2(40, -40), new Vector2(SizePixels + 4, SizePixels + 4));
+            VantageUI.Image(panel, new Color(1f, 1f, 1f, 0.25f));
+            _frame = VantageUI.Rect("Map Frame", panel, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(SizePixels, SizePixels));
             _frame.gameObject.AddComponent<RectMask2D>();
             _map = _frame.gameObject.AddComponent<RawImage>();
             _map.texture = Map;
             _map.raycastTarget = false;
-            _map.color = new Color(0.85f, 0.85f, 0.85f);
+            _map.color = new Color(0.8f, 0.8f, 0.8f);
 
-            // Accent edge, like the HUD panels.
-            var accent = rect("Accent", panel, Vector2.zero, new Vector2(4, SizePixels + 52));
-            accent.anchorMin = accent.anchorMax = new Vector2(0, 0.5f);
-            accent.anchoredPosition = new Vector2(2, 0);
-            image(accent, Accent, null);
+            _tower = VantageUI.Rect("Tower", _frame, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(14, 14));
+            VantageUI.Image(_tower, Accent, VantageUI.Pixel).rectTransform.localEulerAngles = new Vector3(0, 0, 45);
+            _arrow = VantageUI.Rect("Player", _frame, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(18, 18));
+            VantageUI.Image(_arrow, Color.white, arrow());
+            VantageUI.Text(_frame, "N", 20, TextAlignmentOptions.Top, new Vector2(0.5f, 1), new Vector2(0, -2), new Vector2(30, 24)).color = Accent;
 
-            _tower = rect("Tower", _frame, Vector2.zero, new Vector2(14, 14));
-            image(_tower, Accent, null).rectTransform.localEulerAngles = new Vector3(0, 0, 45);
-            _arrow = rect("Player", _frame, Vector2.zero, new Vector2(18, 18));
-            image(_arrow, Color.white, arrow());
-
-            var north = text(_frame, "N", 15, new Vector2(0, SizePixels / 2 - 12));
-            north.color = Accent;
-
-            _distance = text(panel, "Distance", 15, Vector2.zero);
-            _distance.alignment = TextAnchor.MiddleLeft;
-            var dr = _distance.rectTransform;
-            dr.anchorMin = dr.anchorMax = dr.pivot = new Vector2(0, 0);
-            dr.anchoredPosition = new Vector2(12, 24);
-            dr.sizeDelta = new Vector2(SizePixels - 6, 20);
-            _place = text(panel, "Place", 12, Vector2.zero);
-            _place.alignment = TextAnchor.MiddleLeft;
-            _place.color = new Color(1, 1, 1, 0.6f);
-            var pr = _place.rectTransform;
-            pr.anchorMin = pr.anchorMax = pr.pivot = new Vector2(0, 0);
-            pr.anchoredPosition = new Vector2(12, 6);
-            pr.sizeDelta = new Vector2(SizePixels - 6, 18);
+            _distance = VantageUI.Text(canvas, "Distance", 24, TextAlignmentOptions.TopLeft, new Vector2(0, 1), new Vector2(42, -SizePixels - 52), new Vector2(SizePixels, 28));
+            _place = VantageUI.Text(canvas, "Place", 18, TextAlignmentOptions.TopLeft, new Vector2(0, 1), new Vector2(42, -SizePixels - 78), new Vector2(SizePixels, 24));
+            _place.color = VantageUI.Muted;
         }
 
-        private static RectTransform rect(string name, Transform parent, Vector2 position, Vector2 size)
-        {
-            var r = (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
-            r.SetParent(parent, false);
-            r.anchoredPosition = position;
-            r.sizeDelta = size;
-            return r;
-        }
-
-        private static Image image(RectTransform r, Color color, Sprite sprite)
-        {
-            var i = r.gameObject.AddComponent<Image>();
-            i.sprite = sprite;
-            i.color = color;
-            i.raycastTarget = false;
-            return i;
-        }
-
-        private static Text text(RectTransform parent, string value, int size, Vector2 position)
-        {
-            var r = rect(value, parent, position, new Vector2(60, 20));
-            var t = r.gameObject.AddComponent<Text>();
-            t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            t.fontSize = size;
-            t.fontStyle = FontStyle.Bold;
-            t.alignment = TextAnchor.MiddleCenter;
-            t.text = value;
-            t.color = Color.white;
-            t.horizontalOverflow = HorizontalWrapMode.Overflow;
-            t.raycastTarget = false;
-            var shadow = r.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0, 0, 0, 0.7f);
-            shadow.effectDistance = new Vector2(1.5f, -1.5f);
-            return t;
-        }
-
-        private static Sprite _arrowSprite, _circleSprite;
+        private static Sprite _arrowSprite;
 
         /// <summary>A white arrowhead pointing up (+y), drawn once.</summary>
         private static Sprite arrow()
@@ -249,23 +190,6 @@ namespace Vantage
             tex.SetPixels(px);
             tex.Apply();
             return _arrowSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f));
-        }
-
-        private static Sprite circle()
-        {
-            if (_circleSprite != null) return _circleSprite;
-            const int n = 32;
-            var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
-            var px = new Color[n * n];
-            for (int y = 0; y < n; y++)
-                for (int x = 0; x < n; x++)
-                {
-                    var d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(n / 2f, n / 2f)) / (n / 2f);
-                    px[y * n + x] = new Color(1, 1, 1, Mathf.Clamp01((1f - d) * 6f));
-                }
-            tex.SetPixels(px);
-            tex.Apply();
-            return _circleSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f));
         }
 
         #endregion

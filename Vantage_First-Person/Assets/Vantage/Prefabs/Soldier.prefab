@@ -167,6 +167,7 @@ MonoBehaviour:
   EngageRange: 32
   CoverRange: 9
   FloorTolerance: 2.6
+  ThinkInterval: 0.5
 --- !u!114 &4053614211682433704
 MonoBehaviour:
   m_ObjectHideFlags: 0

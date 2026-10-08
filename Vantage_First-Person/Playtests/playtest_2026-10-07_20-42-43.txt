@@ -1,0 +1,61 @@
+VANTAGE playtest  2026-10-07_20-42-43
+Enemy placement seed: 35453
+Session length: 0s   Completed: no   Furthest: Level 3 (F4, F5)   Backtracks: 10
+
+Time per space
+  Military Base      19s   deaths 0
+  Level 1 (ground, F1)     21s   deaths 0
+  Level 2 (F2, F3)     40s   deaths 0
+  Level 3 (F4, F5)      2s   deaths 0
+  Level 4 (roof)      0s   deaths 0
+
+Kills
+  Drone          3
+  Soldier        10
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 35453
+[    0.0s] Session started
+[   14.1s] Killed Drone in Level 1 (ground, F1)
+[   14.2s] Killed Soldier in Level 1 (ground, F1)
+[   14.2s] Killed Soldier in Level 1 (ground, F1)
+[   14.2s] Killed Soldier in Level 1 (ground, F1)
+[   14.2s] Killed Soldier in Level 1 (ground, F1)
+[   14.3s] Killed Drone in Level 2 (F2, F3)
+[   14.4s] Military Base -> Level 2 (F2, F3)
+[   14.4s] Killed Soldier in Level 2 (F2, F3)
+[   14.4s] Killed Soldier in Level 2 (F2, F3)
+[   14.4s] Killed Soldier in Level 2 (F2, F3)
+[   14.4s] Killed Soldier in Level 2 (F2, F3)
+[   14.4s] Killed Soldier in Level 2 (F2, F3)
+[   41.7s] Killed Drone in Level 2 (F2, F3)
+[   41.8s] Killed Soldier in Level 2 (F2, F3)
+[   42.3s] Level 2 (F2, F3) -> Level 1 (ground, F1)
+[   42.3s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 2 (F2, F3))
+[   49.7s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   51.9s] Level 2 (F2, F3) -> Level 1 (ground, F1)
+[   51.9s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 2 (F2, F3))
+[   55.1s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   62.0s] Level 2 (F2, F3) -> Level 3 (F4, F5)
+[   62.1s] Level 3 (F4, F5) -> Level 2 (F2, F3)
+[   62.1s] BACKTRACK to Level 2 (F2, F3) (furthest so far: Level 3 (F4, F5))
+[   62.1s] Level 2 (F2, F3) -> Level 3 (F4, F5)
+[   64.1s] Level 3 (F4, F5) -> Level 2 (F2, F3)
+[   64.1s] BACKTRACK to Level 2 (F2, F3) (furthest so far: Level 3 (F4, F5))
+[   67.2s] Level 2 (F2, F3) -> Military Base
+[   67.2s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[   69.1s] Military Base -> Level 1 (ground, F1)
+[   69.1s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 3 (F4, F5))
+[   71.6s] Level 1 (ground, F1) -> Military Base
+[   71.6s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[   73.2s] Military Base -> Level 1 (ground, F1)
+[   73.2s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 3 (F4, F5))
+[   74.4s] Level 1 (ground, F1) -> Military Base
+[   74.4s] BACKTRACK to Military Base (furthest so far: Level 3 (F4, F5))
+[   76.1s] Military Base -> Level 1 (ground, F1)
+[   76.1s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 3 (F4, F5))

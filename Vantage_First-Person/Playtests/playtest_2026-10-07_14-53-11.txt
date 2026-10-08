@@ -1,0 +1,50 @@
+VANTAGE playtest  2026-10-07_14-53-11
+Enemy placement seed: 64281
+Session length: 0s   Completed: no   Furthest: Level 3 (F4, F5)   Backtracks: 4
+
+Time per space
+  Military Base       2s   deaths 0
+  Level 1 (ground, F1)     24s   deaths 0
+  Level 2 (F2, F3)     12s   deaths 0
+  Level 3 (F4, F5)      2s   deaths 0
+  Level 4 (roof)      0s   deaths 0
+
+Kills
+  Drone          3
+  Soldier        10
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Session started
+[    0.0s] Enemy placement seed 64281
+[    2.3s] Military Base -> Level 1 (ground, F1)
+[   14.1s] Killed Drone in Level 1 (ground, F1)
+[   14.4s] Killed Soldier in Level 1 (ground, F1)
+[   14.4s] Killed Soldier in Level 1 (ground, F1)
+[   14.4s] Killed Soldier in Level 1 (ground, F1)
+[   14.4s] Killed Soldier in Level 1 (ground, F1)
+[   14.6s] Killed Drone in Level 2 (F2, F3)
+[   14.6s] Killed Drone in Level 2 (F2, F3)
+[   14.9s] Killed Soldier in Level 2 (F2, F3)
+[   14.9s] Killed Soldier in Level 2 (F2, F3)
+[   14.9s] Killed Soldier in Level 2 (F2, F3)
+[   14.9s] Killed Soldier in Level 2 (F2, F3)
+[   14.9s] Killed Soldier in Level 2 (F2, F3)
+[   14.9s] Killed Soldier in Level 2 (F2, F3)
+[   22.6s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   22.6s] Level 2 (F2, F3) -> Level 1 (ground, F1)
+[   22.6s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 2 (F2, F3))
+[   22.6s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   22.7s] Level 2 (F2, F3) -> Level 1 (ground, F1)
+[   22.7s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 2 (F2, F3))
+[   22.7s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   24.8s] Level 2 (F2, F3) -> Level 1 (ground, F1)
+[   24.8s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 2 (F2, F3))
+[   28.0s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   34.9s] Level 2 (F2, F3) -> Level 3 (F4, F5)
+[   36.9s] Level 3 (F4, F5) -> Level 2 (F2, F3)
+[   36.9s] BACKTRACK to Level 2 (F2, F3) (furthest so far: Level 3 (F4, F5))

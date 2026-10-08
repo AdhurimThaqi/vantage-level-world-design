@@ -42,7 +42,7 @@ namespace Vantage
         private readonly List<Renderer> _remove = new List<Renderer>();
         private readonly Dictionary<Collider, Renderer[]> _renderersOf = new Dictionary<Collider, Renderer[]>();
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-        private const int Mask = ~((1 << 2) | (1 << VantageCoverUtil.CoverLayer) | (1 << 10) | (1 << 11));
+        private static int Mask => VantagePhysics.Solid;
 
         private void LateUpdate()
         {
@@ -52,7 +52,7 @@ namespace Vantage
             var player = VantageEvents.ActivePlayer();
             if (player != null)
             {
-                var head = player.transform.position + Vector3.up * 1.6f;
+                var head = VantagePhysics.Eye(player);
                 keepClear(head);
                 fadeBetween(player, head);
             }
