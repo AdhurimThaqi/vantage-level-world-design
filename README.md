@@ -171,6 +171,7 @@ The command tower prefab is mine and stays untouched. **Vantage → Tower → Se
 
 ## For developers
 
+- **Work log:** [`WORKLOG.md`](WORKLOG.md) lists every change request and what was done, verified and left open, newest first.
 - **Technical guide:** [`CLAUDE.md`](CLAUDE.md) explains how everything fits together: the code map, every menu tool and batch command, the change workflow, and the rules that break silently (for example the template character can't step up ledges, and soldiers must use our soldier prefab). Read it before changing anything; AI agents in `.claude/agents/` read it first too.
 - **Everything generated comes from tools, not hand edits.** Change the tool code and re-run:
   - **Vantage → Tower → Set Up Command Tower**: gates, stairs, soldiers, levels, pickups, NavMesh.

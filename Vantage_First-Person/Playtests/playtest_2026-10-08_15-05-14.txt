@@ -1,0 +1,21 @@
+VANTAGE playtest  2026-10-08_15-05-14
+Enemy placement seed: 28375
+Session length: 0s   Completed: no   Furthest: Military Base   Backtracks: 0
+
+Time per space
+  Military Base      12s   deaths 0
+  Level 1 (ground, F1)      0s   deaths 0
+  Level 2 (F2, F3)      0s   deaths 0
+  Level 3 (F4, F5)      0s   deaths 0
+  Level 4 (roof)      0s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[   29.7s] Enemy placement seed 28375
+[   29.7s] Session started

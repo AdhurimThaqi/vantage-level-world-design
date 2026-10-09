@@ -10,6 +10,13 @@ This file describes the project **as it is now** and how to change it safely. It
 - **Design source of truth:** `VANTAGE — Level & World Design Concept.md`. Read it before changing gameplay or layout. When the design changes, add a row to its *Revisions* table (it is a graded deliverable).
 - Player-facing documentation is `README.md`; keep it in step.
 
+## Work log
+
+`WORKLOG.md` (workspace root) records every request and what was done about it, newest first. It applies to every Claude session and the `vantage-watchdog` agent:
+- **At the start:** read its latest entries (what changed recently, what is still open).
+- **After every task**, including small ones, questions answered with a check, and reviews that found nothing: add an entry at the top with **Asked** (the user's words), **Done** (files, tools, decisions), **Verified** (what ran and the result, or "not verified") and **Open** (what's left, what to check in Play mode). The format is at the top of the file.
+- The log is history; this file is the current state. Update both when a change alters tools, rules or gameplay.
+
 ## Repository
 
 - This folder is a **git repository** (`origin` = `github.com/AdhurimThaqi/vantage-level-world-design`, branch `main`). Commit only when the user asks.
@@ -119,6 +126,7 @@ All of these are in `_UnusedAssets/`.
    | Occluders, static flags | Performance → Bake Occlusion Culling |
    | Any gameplay | Test → Run Autoplay Test |
 7. **Update docs** in the same change: this file, `README.md`, and the concept doc's *Revisions* table if the design changed. Report what's verified and what isn't.
+8. **Log it in `WORKLOG.md`** (see *Work log* above), every task, before reporting back.
 
 ## Rules that break silently
 
