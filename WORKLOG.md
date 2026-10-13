@@ -14,6 +14,22 @@ Entry format:
 
 ---
 
+## 2026-10-13: New tower coming from Blender (Claude session)
+**Asked:** "i will update the tower as this is not the final one - will add another one and will asign the textures in blender"
+**Done:** Noted the plan: the current `CommandTower` is not final; the user will export a new tower with textures assigned in Blender. Listed what the setup code expects from a tower (prefab instance named `CommandTower`, `CommandTowerKit.GameplayMarker`s with `markerType`, `MK_PlayerEntry_*` markers, `TWR_StairColliders`/"Stairs" and "Fire Escape" names, separate structure vs furniture, real step geometry). No project files changed. The sandbag-collider-in-source-prefab issue and the three missing-material overrides become moot if the tower and those props are replaced/rebuilt.
+**Verified:** Not applicable (plan noted); names checked with grep in `Assets/Vantage/Editor` and `CommandTower_Unity/Scripts`.
+**Open:** After the new tower is in: back up the scene, run Tower → Set Up Command Tower, check the `[Vantage]` log (furniture, stairs, gates, skipped spawns), run the autoplay test, update CLAUDE.md asset/scene tables and add a concept-doc Revisions row.
+
+## 2026-10-13: Project status check (vantage-watchdog)
+**Asked:** "how is the project going - i will do some updates later just letting u know"
+**Done:** Read-only review of git state, uncommitted work, new playtests and docs. No project files changed.
+- Commit cbe8212 (Oct 9, "feedback from the professor") added a BoxCollider to the `SandbagPosition` nested instance **inside the source `CommandTower.prefab`** (breaks the "source art read-only, overrides only" rule; unlogged). The professor's feedback itself is not recorded anywhere (WORKLOG, CLAUDE.md, concept doc).
+- Uncommitted `SampleScene.unity` (saved Oct 12): 3 material overrides on generated world props (CamoShelter, Pad_ContainerYard, Crate_Wood) under `VANTAGE World - Military Base`. Lost on the next Build Military World. The two material GUIDs (2f7808e6…, f4e1030c…) exist nowhere in `Assets/`, `Packages/` or `Library/PackageCache` (missing materials: the props likely render pink or blank). No `_Backups/` copy since Oct 8.
+- Untracked `Assets/Textures/` (85 MB: 4K forest floor ×2, 8K skybox, macro variation; files dated 2025, copied from another project). Covered by LFS (`*.jpg`, `*.png`). Nothing references them yet. Not in the README asset table.
+- Playtests Oct 11: seed 13375, 68 s, died on level 1 at (6.7, 4.5, -73.4) ~4 s after entering, 0 kills, 3 entrance backtracks; seed 88109 is the restart (logger shows "Session length 0s" with events from 68 s: session time is not reset on level restart).
+**Verified:** git diff/show, GUID searches, file timestamps. Unity is open (Unity.exe running, lockfile Oct 13), so no batch checks were run. Claude session re-checked the two material GUIDs against every `.meta` in `Assets/`, `Packages/`, `Library/PackageCache`: still not found (CamoShelter and Crate_Wood → 2f7808e6…, Pad_ContainerYard → f4e1030c…).
+**Open:** Record the professor's feedback; move the sandbag collider out of the source prefab (instance override or Setup); confirm the override materials exist; story props, per-space mood volumes and procedural depth remain the main grade gaps; F9 perf capture still missing.
+
 ## 2026-10-08: What the watchdog is responsible for (vantage-watchdog)
 **Asked:** "Hello agent, what are your responsibilities for this development project?"
 **Done:** Answered from `.claude/agents/vantage-watchdog.md` and `CLAUDE.md`. Covered review scope, the rules that break silently, verification, level-design and performance checks, documentation duties and what the agent doesn't do. No project files changed.
