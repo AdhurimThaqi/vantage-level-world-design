@@ -59,11 +59,14 @@ namespace Vantage.Testing
             yield return walkEntrance(levels);
             yield return alarmOnce(levels);
             yield return alertedStayOnLevel(levels);
+            yield return westDoorLockedDuringLockdown();
+            yield return doorsOpenOnRoute();
             yield return soldiersFightBack(levels);
             yield return hudSnapshot("hud_combat");
             yield return killDoorWaitsForItsLevel(levels);
             yield return clearLevel(levels, 0);
             yield return alarmStopsOnClear();
+            yield return westDoorOpensAfterClear();
             yield return hudSnapshot("hud_level_cleared");
             yield return keyOpensGate(levels);
             yield return lastEnemiesCome(levels);
@@ -207,17 +210,56 @@ namespace Vantage.Testing
             else fail("robot model / friendly fire: " + line);
         }
 
+        /// <summary>
+        /// During the lockdown the door on the left of the entrance corridor (into the turret hallway) stays shut,
+        /// even with the player (or the soldiers the alarm sends) right at it: Room A on the right is the only way on.
+        /// </summary>
+        private IEnumerator westDoorLockedDuringLockdown()
+        {
+            var door = VantageDoor.Find("DOOR_Corridor_West_OneWay");
+            if (door == null) { fail("no DOOR_Corridor_West_OneWay"); yield break; }
+            teleport(near(door.transform.position), door.transform.position);
+            float most = 0;
+            for (float t = 0; t < 3f; t += 0.25f) { yield return new WaitForSeconds(0.25f); most = Mathf.Max(most, door.OpenAmount); }
+            var line = $"alarm {VantageAlarm.Instance.Active}, locked {door.IsLocked}, opened at most {most:P0}";
+            if (VantageAlarm.Instance.Active && door.IsLocked && most < 0.05f) log("PASS the left corridor door stays shut during the lockdown: " + line);
+            else fail("left corridor door during lockdown: " + line);
+        }
+
+        /// <summary>Once level 1 is clear the left corridor door is unlocked.</summary>
+        private IEnumerator westDoorOpensAfterClear()
+        {
+            var door = VantageDoor.Find("DOOR_Corridor_West_OneWay");
+            yield return null;
+            if (door != null && !door.IsLocked && door.OpenAmount == 1f) log("PASS the left corridor door opens when level 1 is clear");
+            else fail($"left corridor door after level 1: {(door == null ? "missing" : "still locked")}");
+        }
+
+        /// <summary>
+        /// Doors on the route stand open from the start (Room A's door, no leaf in the way); a locked door (the West
+        /// Wing, opened by the console) is shut.
+        /// </summary>
+        private IEnumerator doorsOpenOnRoute()
+        {
+            var open = VantageDoor.Find("DOOR_Corridor_East_RoomA");
+            var shut = VantageDoor.Find("DOOR_SecurityOffice_WestWing_LOCKED");
+            if (open == null || shut == null) { fail($"doors: Room A {open != null}, West Wing {shut != null}"); yield break; }
+            yield return null;
+            var blocking = open.GetComponentsInChildren<Collider>().Any(c => c.enabled);
+            var line = $"Room A door open {open.OpenAmount:P0} (collider {(blocking ? "on" : "off")}), West Wing door open {shut.OpenAmount:P0} (locked {shut.IsLocked})";
+            if (open.OpenAmount == 1f && !blocking && shut.OpenAmount == 0f && shut.IsLocked) log("PASS route doors are open, locked doors shut: " + line);
+            else fail("doors on the route: " + line);
+        }
+
         /// <summary>Once level 3 is reached, a ground floor door still opens for the player going back (missed coins).</summary>
         private IEnumerator doorsWorkOnEarlierLevels(VantageTowerLevels levels)
         {
             var door = VantageDoor.Find("DOOR_RoomA_RoomB");
             if (door == null) { fail("no DOOR_RoomA_RoomB"); yield break; }
-            var closedY = door.transform.position.y;
             teleport(near(door.transform.position), door.transform.position);
             yield return new WaitForSeconds(1.5f);
-            var rose = door.transform.position.y - closedY;
-            var line = $"level {levels.Current + 1}, door enabled {door.enabled}, rose {rose:F2} m";
-            if (rose > 0.5f) log("PASS ground floor door opens after level 3 started: " + line);
+            var line = $"level {levels.Current + 1}, door enabled {door.enabled}, open {door.OpenAmount:P0}";
+            if (door.OpenAmount > 0.5f) log("PASS ground floor door opens after level 3 started: " + line);
             else fail("ground floor door stuck: " + line);
         }
 
@@ -426,8 +468,9 @@ namespace Vantage.Testing
             Vector3? spot = null;
             foreach (var candidate in soldiers)
             {
-                spot = visibleSpotNear(candidate.transform.position, 2.5f, 12f, candidate.transform.forward, 60f)
-                       ?? visibleSpotNear(candidate.transform.position, 2.5f, 12f, candidate.transform.forward, 180f);
+                var shooter = candidate.GetComponent<BaseActor>();
+                spot = visibleSpotNear(candidate.transform.position, 2.5f, 12f, candidate.transform.forward, 60f, shooter)
+                       ?? visibleSpotNear(candidate.transform.position, 2.5f, 12f, candidate.transform.forward, 180f, shooter);
                 if (spot != null) { soldier = candidate; break; }
             }
             if (spot == null) { fail($"no visible standing spot near any of {soldiers.Count} soldiers"); yield break; }
@@ -461,7 +504,7 @@ namespace Vantage.Testing
         }
 
         /// <summary>A walkable spot on the target's floor, within 'spread' degrees of 'facing', with line of sight.</summary>
-        private Vector3? visibleSpotNear(Vector3 target, float min, float max, Vector3 facing, float spread)
+        private Vector3? visibleSpotNear(Vector3 target, float min, float max, Vector3 facing, float spread, BaseActor shooter)
         {
             facing.y = 0; facing.Normalize();
             int noMesh = 0, otherFloor = 0, blocked = 0;
@@ -472,11 +515,12 @@ namespace Vantage.Testing
                 var p = target + Quaternion.Euler(0, Random.Range(-spread, spread), 0) * facing * d;
                 if (!NavMesh.SamplePosition(p, out var hit, 1.5f, NavMesh.AllAreas)) { noMesh++; continue; }
                 if (Mathf.Abs(hit.position.y - target.y) > 0.8f) { otherFloor++; continue; }
-                // Line of sight chest to chest; a hit right at the soldier (it stands against a wall) doesn't count.
-                var from = hit.position + Vector3.up * 1.4f;
-                var to = target + Vector3.up * 1.2f;
+                // The soldier's own sight line: its eye to where the player's aim point would be (what
+                // VantageEnemyAggression checks); a hit on the soldier itself doesn't count.
+                var from = VantagePhysics.Eye(shooter);
+                var to = hit.position + (VantagePhysics.AimPoint(_motor.GetComponent<BaseActor>()) - _motor.transform.position);
                 if (Physics.Linecast(from, to, out var h, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
-                    && Vector3.Distance(h.point, to) > 0.6f)
+                    && !h.collider.transform.IsChildOf(shooter.transform))
                 { blocked++; blocker = h.collider.name; continue; }
                 return hit.position;
             }

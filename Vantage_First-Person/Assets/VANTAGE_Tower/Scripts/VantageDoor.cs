@@ -12,7 +12,8 @@ namespace Vantage
     // VANTAGE change: doors open for any living character (soldiers path through them too), checked a few times a
     // second instead of looking the player up every frame; KILL lists are re-checked on kills (RecheckKills) instead
     // of polling; Unlock() can wait for a level to be cleared (ClearLevel); ForceOpen() for checkpoint restores;
-    // the carving NavMeshObstacle (added by Vantage Setup) follows the locked/closed state.
+    // the carving NavMeshObstacle (added by Vantage Setup) follows the locked/closed state; ordinary doors are open
+    // doorways (Doorway, set by Vantage Setup): open from the start, or once unlocked, with the leaf hidden.
     public class VantageDoor : MonoBehaviour
     {
         static readonly Dictionary<string, VantageDoor> registry = new Dictionary<string, VantageDoor>();
@@ -37,6 +38,8 @@ namespace Vantage
         public float openSpeed = 4f;
         [Tooltip("VANTAGE: Unlock() waits until this level (VantageTowerLevels index) is cleared; -1 = no wait.")]
         public int ClearLevel = -1;
+        [Tooltip("VANTAGE: an open doorway (leaf hidden) from the start, or once unlocked; no motion. Off for the shutter and gates.")]
+        public bool Doorway;
 
         [Header("Shutter")]
         public float shutterDrop = 2.75f;          // open_z - closed_z from Blender
@@ -53,6 +56,8 @@ namespace Vantage
         float nextSense;
         NavMeshObstacle obstacle;
 
+        bool doorwayOpen;
+
         // shutter state: 1 = open (rolled up), 0 = closed
         float shutterT = 1f, shutterTarget = 1f;
         Vector3 shutterOpenPos, shutterOpenScale, shutterClosedScale;
@@ -60,6 +65,10 @@ namespace Vantage
 
         public bool HasKillList => killList != null;
         public bool IsLocked => locked || pendingUnlock;
+        /// <summary>0 = shut, 1 = fully open (for the autoplay bot and the HUD).</summary>
+        public float OpenAmount => !started ? 0f : type == DoorType.Shutter ? shutterT
+            : Doorway ? (doorwayOpen ? 1f : 0f)
+            : Mathf.Clamp01((transform.position.y - closedPos.y) / Mathf.Max(0.01f, openPos.y - closedPos.y));
 
         void Awake()
         {
@@ -106,6 +115,7 @@ namespace Vantage
                 if (g) oneWayRef = g.transform;
             }
             started = true;
+            if (Doorway && type != DoorType.Shutter && !locked) setDoorway(true);
             updateObstacle();
         }
 
@@ -121,6 +131,7 @@ namespace Vantage
             pendingUnlock = false;
             locked = false;
             if (type == DoorType.Shutter) OpenShutter();
+            else if (Doorway && started) setDoorway(true);
             updateObstacle();
         }
 
@@ -150,6 +161,7 @@ namespace Vantage
                 shutterT = shutterTarget = 1f;
                 if (started) UpdateShutter();
             }
+            else if (Doorway && started) setDoorway(true);
             updateObstacle();
         }
 
@@ -186,6 +198,7 @@ namespace Vantage
                 if (shutterT != shutterTarget) UpdateShutter();
                 return;
             }
+            if (Doorway) return;   // open doorways don't move
 
             if (Time.time >= nextSense)
             {
@@ -195,6 +208,14 @@ namespace Vantage
             var target = want ? openPos : closedPos;
             if (transform.position != target)
                 transform.position = Vector3.MoveTowards(transform.position, target, openSpeed * Time.deltaTime);
+        }
+
+        /// <summary>An open doorway: the leaf and its colliders are switched off (or back on when shut).</summary>
+        void setDoorway(bool open)
+        {
+            doorwayOpen = open;
+            foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = !open;
+            foreach (var c in GetComponentsInChildren<Collider>(true)) c.enabled = !open;
         }
 
         /// <summary>A living character close to the doorway; for one-way doors the player only from the allowed side.</summary>

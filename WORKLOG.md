@@ -14,6 +14,22 @@ Entry format:
 
 ---
 
+## 2026-10-14: Doors as open doorways (Claude session)
+**Asked:** "the way doors open is not good please fix that and for better result i think leave the door open where the player must go its easier"
+**Done:** Removed the hinge swing. `VantageDoor.Doorway` (set by Setup on every door but the shutter and the gates, 14 doors): doors on the route are open doorways from the start (leaf and colliders off, no motion, no sensing); locked doors (West Wing, robot room, SE room, exit to the helipad, the left corridor door during the lockdown) stay shut and become open doorways once unlocked. Bot: "doors swing" replaced by "route doors open, locked doors shut"; the left corridor door must be open after level 1. Docs: CLAUDE.md, README, concept doc Revisions row (amended).
+**Verified:** SetupBatch exit 0 ("14 open doorways", door check 11 ok); bot ALL PASSED (Room A door 100 % open with its collider off, West Wing door shut and locked, left corridor door shut during the lockdown and open after level 1, L3 SE door, ground floor door open on level 3, entrance walk).
+**Open:** Look in Play mode whether open doorways (no leaf) look right in every frame; a locked door opening is instant (no animation).
+
+## 2026-10-14: Lockdown door and swinging doors (Claude session)
+**Asked:** "When i enter the room alarms starts ... the big door closes awesome but the door on my left shouldnt open when i go near cause now the player has 2 choices it needs to stay locked until i fought and killed all the enemies. The only working door that can opens should be the right door and the doors are opening up and down which is wrong right?"
+**Done:**
+- Cause of the left door: `DOOR_Corridor_West_OneWay` was one-way for the player only; doors open for soldiers too, so soldiers sent by the alarm opened it from the hallway side. Setup now locks it with the shutter's condition (`KILL:MK_Enemy_*,MK_Turret_Hallway`); it unlocks when level 1 is clear.
+- Doors: `VantageDoor.Swing` (hinge on the vertical edge along the door's width; `_L`/`_R` pairs at their outer edges; opens 95° away from whoever opens it; collider off while open). Setup sets it on every door except `SHUTTER_Maintenance` and the gates (14 doors). `OpenAmount` added.
+- Bot: new checks (left door shut during the lockdown, unlocks after level 1, doors swing); the soldier-firing check now places the player using the soldier's real sight line (it flaked twice after the alarm moved soldiers).
+- Docs: CLAUDE.md, README, concept doc Revisions row.
+**Verified:** bot before the fix: left door not locked, Room A door rose 2.35 m (FAIL, as expected). After: SetupBatch exit 0 ("14 swing on hinges", lockdown rule logged, door check 11 ok); bot ALL PASSED (left door locked and 0 % open during the lockdown; Room A door turned 95°, rose 0.00 m; all earlier checks). Scene backup `_Backups/SampleScene_before_door_fixes_2026-10-14.unity`.
+**Open:** In Play mode, check each door swings the way that looks right (single doors hinge on their lower-coordinate edge, chosen automatically); open leaves have no collider (bullets pass).
+
 ## 2026-10-14: New tower built: 3 levels + helipad finale (Claude session)
 **Asked:** "looks good start building please" / "Lets start building please" (spec docs/superpowers/specs/2026-10-14-vantage-tower-3-levels-design.md, plan docs/superpowers/plans/2026-10-14-vantage-tower-3-levels.md, native execution).
 **Done:**

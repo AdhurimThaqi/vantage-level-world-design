@@ -774,6 +774,33 @@ namespace Vantage.EditorTools
             }
             rule("L2_GATE_Stairwell_LOCKED", 1, false);
             rule("L3_DOOR_Exit_To_Final", 2, true);
+
+            // The lockdown: the door on the left of the entrance corridor (one-way into the turret hallway) is locked
+            // with the same condition as the shutter, so during the alarm Room A on the right is the only way on.
+            var shutterT = Find(tower, "SHUTTER_Maintenance");
+            var westT = Find(tower, "DOOR_Corridor_West_OneWay");
+            var shutter = shutterT != null ? shutterT.GetComponent<VantageDoor>() : null;
+            var west = westT != null ? westT.GetComponent<VantageDoor>() : null;
+            if (shutter != null && west != null && !string.IsNullOrEmpty(shutter.unlockBy))
+            {
+                west.type = DoorType.Locked;
+                west.locked = true;
+                west.unlockBy = shutter.unlockBy;
+                EditorUtility.SetDirty(west);
+                Debug.Log($"[Vantage] {west.name} locked during the lockdown ({west.unlockBy}).");
+            }
+            else Debug.LogWarning("[Vantage] Lockdown door rule: SHUTTER_Maintenance or DOOR_Corridor_West_OneWay missing.");
+
+            // Doors are open doorways: open from the start on the route, or once unlocked. The shutter and the gates
+            // (bars) roll up.
+            var doorways = 0;
+            foreach (var door in tower.GetComponentsInChildren<VantageDoor>(true))
+            {
+                door.Doorway = door.type != DoorType.Shutter && !door.name.Contains("GATE");
+                if (door.Doorway) doorways++;
+                EditorUtility.SetDirty(door);
+            }
+            Debug.Log($"[Vantage] Doors: {doorways} open doorways (locked ones open when unlocked), the rest roll up.");
         }
 
         /// <summary>The key glows and floats (VantageKeyItem); the slot shows the key turning and a lamp (VantageKeySlot).</summary>
