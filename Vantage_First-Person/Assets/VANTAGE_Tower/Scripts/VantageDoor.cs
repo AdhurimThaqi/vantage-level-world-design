@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Vantage
 {
@@ -8,11 +9,19 @@ namespace Vantage
     /// Slide-up military door. Auto doors open when the player is close,
     /// locked doors open after Unlock(), one-way doors only open from one side,
     /// the shutter starts open, closes fast on the alarm and reopens when its kill list is cleared.
+    // VANTAGE change: doors open for any living character (soldiers path through them too), checked a few times a
+    // second instead of looking the player up every frame; KILL lists are re-checked on kills (RecheckKills) instead
+    // of polling; Unlock() can wait for a level to be cleared (ClearLevel); ForceOpen() for checkpoint restores;
+    // the carving NavMeshObstacle (added by Vantage Setup) follows the locked/closed state.
     public class VantageDoor : MonoBehaviour
     {
         static readonly Dictionary<string, VantageDoor> registry = new Dictionary<string, VantageDoor>();
+        static readonly List<VantageDoor> all = new List<VantageDoor>();
+        public static IReadOnlyList<VantageDoor> All => all;
+
         public static VantageDoor Find(string name)
         {
+            
             if (string.IsNullOrEmpty(name)) return null;
             registry.TryGetValue(name.Trim(), out var d);
             return d;
@@ -26,6 +35,8 @@ namespace Vantage
         public string oneWaySideRefName;
         public float openRadius = 2.6f;
         public float openSpeed = 4f;
+        [Tooltip("VANTAGE: Unlock() waits until this level (VantageTowerLevels index) is cleared; -1 = no wait.")]
+        public int ClearLevel = -1;
 
         [Header("Shutter")]
         public float shutterDrop = 2.75f;          // open_z - closed_z from Blender
@@ -33,18 +44,35 @@ namespace Vantage
         public float shutterCloseTime = 0.6f;
         public float shutterOpenTime = 1.5f;
 
+        const float SenseInterval = 0.15f;
+
         Vector3 closedPos, openPos;
-        Transform player, oneWayRef;
+        Transform oneWayRef;
         Vector3 doorNormal = Vector3.forward;
-        bool openedFromAllowedSide;
+        bool openedFromAllowedSide, want, pendingUnlock, started;
+        float nextSense;
+        NavMeshObstacle obstacle;
 
         // shutter state: 1 = open (rolled up), 0 = closed
         float shutterT = 1f, shutterTarget = 1f;
         Vector3 shutterOpenPos, shutterOpenScale, shutterClosedScale;
         List<string> killList;
 
-        void Awake() { registry[name] = this; }
-        void OnDestroy() { if (registry.TryGetValue(name, out var d) && d == this) registry.Remove(name); }
+        public bool HasKillList => killList != null;
+        public bool IsLocked => locked || pendingUnlock;
+
+        void Awake()
+        {
+            registry[name] = this;
+            all.Add(this);
+            obstacle = GetComponent<NavMeshObstacle>();
+        }
+
+        void OnDestroy()
+        {
+            if (registry.TryGetValue(name, out var d) && d == this) registry.Remove(name);
+            all.Remove(this);
+        }
 
         void Start()
         {
@@ -53,6 +81,7 @@ namespace Vantage
             Bounds b = r ? r.bounds : new Bounds(transform.position, new Vector3(1.2f, 2.3f, 0.12f));
             openPos = closedPos + Vector3.up * (b.size.y + 0.05f);
             doorNormal = b.size.x < b.size.z ? Vector3.right : Vector3.forward;
+            nextSense = Time.time + Random.value * SenseInterval;
 
             if (type == DoorType.Shutter)
             {
@@ -70,66 +99,125 @@ namespace Vantage
             }
 
             if (!string.IsNullOrEmpty(unlockBy) && unlockBy.StartsWith("KILL:"))
-            {
                 killList = new List<string>(unlockBy.Substring(5).Split(','));
-                InvokeRepeating(nameof(CheckKills), 1f, 0.5f);
-            }
             if (!string.IsNullOrEmpty(oneWaySideRefName))
             {
                 var g = GameObject.Find(oneWaySideRefName);
                 if (g) oneWayRef = g.transform;
             }
+            started = true;
+            updateObstacle();
         }
 
         public void Unlock()
         {
+            var levels = VantageTowerLevels.Instance;
+            if (ClearLevel >= 0 && levels != null && !levels.IsCleared(ClearLevel))
+            {
+                // Remembered; ApplyPending opens it when the level is cleared.
+                pendingUnlock = true;
+                return;
+            }
+            pendingUnlock = false;
             locked = false;
             if (type == DoorType.Shutter) OpenShutter();
+            updateObstacle();
         }
 
-        public void CloseShutter() { shutterTarget = 0f; }
-        public void OpenShutter() { shutterTarget = 1f; }
+        /// <summary>
+        /// A level was cleared: doors whose Unlock() was waiting for it open, and so do locked doors with no other
+        /// way to open them that belong to it (the exit to the helipad).
+        /// </summary>
+        public static void ApplyPending(int clearedLevel)
+        {
+            for (int i = 0; i < all.Count; i++)
+            {
+                var d = all[i];
+                if (d.ClearLevel < 0 || d.ClearLevel > clearedLevel) continue;
+                if (d.pendingUnlock || (d.locked && string.IsNullOrEmpty(d.unlockBy)))
+                    d.Unlock();
+            }
+        }
+
+        /// <summary>Checkpoint restore: unlocked (and the shutter rolled up) at once, whatever its conditions.</summary>
+        public void ForceOpen()
+        {
+            pendingUnlock = false;
+            locked = false;
+            killList = null;
+            if (type == DoorType.Shutter)
+            {
+                shutterT = shutterTarget = 1f;
+                if (started) UpdateShutter();
+            }
+            updateObstacle();
+        }
+
+        public void CloseShutter() { shutterTarget = 0f; updateObstacle(); }
+        public void OpenShutter() { shutterTarget = 1f; updateObstacle(); }
         public bool ShutterClosed => shutterT <= 0.001f;
 
-        void CheckKills()
+        /// <summary>Re-checks every door's KILL list (called by the level brain when an enemy dies or a level starts).</summary>
+        public static void RecheckKills()
         {
-            if (killList == null) return;
-            if (type == DoorType.Shutter && !ShutterClosed) return;   // only reopen after it has closed
-            if (!locked && type != DoorType.Shutter) { CancelInvoke(nameof(CheckKills)); return; }
-            var mgr = VantageLevelManager.Instance;
-            foreach (var k in killList)
-                if (mgr != null && mgr.IsAlive(k.Trim())) return;
-            Unlock();
-            CancelInvoke(nameof(CheckKills));
+            var mgr = VantageTowerLevels.Instance;
+            if (mgr == null) return;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var d = all[i];
+                if (d.killList == null || !d.started) continue;
+                if (d.type == DoorType.Shutter ? !d.ShutterClosed : !d.locked) continue;   // shutter only reopens after closing
+                if (!mgr.KillListDone(d.killList)) continue;
+                d.killList = null;
+                d.Unlock();
+            }
+        }
+
+        void updateObstacle()
+        {
+            if (obstacle == null) return;
+            obstacle.enabled = type == DoorType.Shutter ? shutterTarget < 0.5f : locked || pendingUnlock;
         }
 
         void Update()
         {
-            if (type == DoorType.Shutter) { UpdateShutter(); return; }
-
-            if (player == null)
+            if (type == DoorType.Shutter)
             {
-                var p = GameObject.FindGameObjectWithTag("Player");
-                if (!p) return;
-                player = p.transform;
+                if (shutterT != shutterTarget) UpdateShutter();
+                return;
             }
 
-            bool want = false;
-            if (!locked)
+            if (Time.time >= nextSense)
             {
-                Vector3 d = player.position - closedPos;
-                float flat = new Vector2(d.x, d.z).magnitude;
-                want = flat < openRadius && Mathf.Abs(d.y) < 2.5f;
-                if (want && type == DoorType.OneWay && oneWayRef && !openedFromAllowedSide)
+                nextSense = Time.time + SenseInterval;
+                want = !locked && !pendingUnlock && someoneNear();
+            }
+            var target = want ? openPos : closedPos;
+            if (transform.position != target)
+                transform.position = Vector3.MoveTowards(transform.position, target, openSpeed * Time.deltaTime);
+        }
+
+        /// <summary>A living character close to the doorway; for one-way doors the player only from the allowed side.</summary>
+        bool someoneNear()
+        {
+            var player = VantageEvents.ActivePlayer();
+            var any = false;
+            for (int i = 0; i < CoverShooter.Actors.Count; i++)
+            {
+                var actor = CoverShooter.Actors.Get(i);
+                if (actor == null || !actor.IsAlive || !actor.isActiveAndEnabled) continue;
+                Vector3 d = actor.transform.position - closedPos;
+                if (new Vector2(d.x, d.z).sqrMagnitude > openRadius * openRadius || Mathf.Abs(d.y) > 2.5f) continue;
+                if (actor == player && type == DoorType.OneWay && oneWayRef && !openedFromAllowedSide)
                 {
                     Vector3 toRef = oneWayRef.position - closedPos;
-                    bool sameSide = Mathf.Sign(Vector3.Dot(d, doorNormal)) == Mathf.Sign(Vector3.Dot(toRef, doorNormal));
-                    want = sameSide;
-                    if (sameSide) openedFromAllowedSide = true;
+                    if (Mathf.Sign(Vector3.Dot(d, doorNormal)) != Mathf.Sign(Vector3.Dot(toRef, doorNormal))) continue;
+                    openedFromAllowedSide = true;
                 }
-                if (!want) openedFromAllowedSide = false;
+                any = true;
             }
-            transform.position = Vector3.MoveTowards(transform.position, want ? openPos : closedPos, openSpeed * Time.deltaTime);
+            if (!any) openedFromAllowedSide = false;
+            return any;
         }
 
         void UpdateShutter()

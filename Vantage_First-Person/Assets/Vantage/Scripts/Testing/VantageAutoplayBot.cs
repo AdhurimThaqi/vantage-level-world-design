@@ -36,17 +36,61 @@ namespace Vantage.Testing
 
         private IEnumerator Start()
         {
+            // Survives the scene reload the checkpoint test triggers (a death reloads the scene).
+            DontDestroyOnLoad(gameObject);
             log("started");
             yield return new WaitForSeconds(2f);
-
-            var player = VantageEvents.ActivePlayer();
-            _motor = player != null ? player.GetComponent<CharacterMotor>() : null;
+            if (!acquire()) { yield return finish(); yield break; }
             var levels = VantageTowerLevels.Instance;
-            if (_motor == null || levels == null)
+            VantageRun.Reset();
+            log($"level {levels.Current + 1} '{levels.CurrentName}', {levels.Remaining} enemies, seed {levels.Seed}");
+
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageBench") >= 0)
             {
-                fail("no player or no VantageTowerLevels in the scene");
+                yield return bench(levels);
                 yield return finish();
                 yield break;
+            }
+
+            yield return cameraSpotsPlayer();
+            yield return hudSnapshot("hud_alarm");
+            teleport(_start, _start + Vector3.forward);
+            yield return new WaitForSeconds(0.5f);
+            yield return walkEntrance(levels);
+            yield return alarmOnce(levels);
+            yield return alertedStayOnLevel(levels);
+            yield return soldiersFightBack(levels);
+            yield return hudSnapshot("hud_combat");
+            yield return killDoorWaitsForItsLevel(levels);
+            yield return clearLevel(levels, 0);
+            yield return alarmStopsOnClear();
+            yield return hudSnapshot("hud_level_cleared");
+            yield return keyOpensGate(levels);
+            yield return lastEnemiesCome(levels);
+            yield return clearLevel(levels, 1);
+            yield return gateOpensAfterClear();
+            yield return killDoorsOpen(levels);
+            yield return robotModelAndFriendlyFire(levels);
+            yield return robotRifleOnly(levels);
+            yield return clearLevel(levels, 2);
+            yield return doorsWorkOnEarlierLevels(levels);
+            yield return walkStairs(levels);
+            yield return finale(levels);
+            yield return playAgain();
+            yield return checkpointRestore();
+            yield return shotCameraStaysQuiet();
+            yield return finish();
+        }
+
+        /// <summary>Finds the player and makes it a test dummy: invulnerable, no auto-cover, driven by the bot.</summary>
+        private bool acquire()
+        {
+            var player = VantageEvents.ActivePlayer();
+            _motor = player != null ? player.GetComponent<CharacterMotor>() : null;
+            if (_motor == null || VantageTowerLevels.Instance == null)
+            {
+                fail("no player or no VantageTowerLevels in the scene");
+                return false;
             }
             _health = _motor.GetComponent<CharacterHealth>();
             _controller = _motor.GetComponent<ThirdPersonController>();
@@ -57,28 +101,308 @@ namespace Vantage.Testing
             if (input != null) input.enabled = false; // the bot drives MovementInput itself
             _controller.WaitForUpdateCall = false;   // the input component normally ticks the controller
             // Invulnerable for the test: damage is measured, but the bot can't die and trigger a level restart.
-            var player2 = _motor.GetComponent<VantageThirdPersonPlayer>();
-            if (player2 != null) player2.enabled = false;
+            var rules = _motor.GetComponent<VantageThirdPersonPlayer>();
+            if (rules != null) rules.enabled = false;
             _health.MaxHealth = 1e6f;
             _health.Health = 1e6f;
             _lastHealth = _health.Health;
-            log($"level {levels.Current + 1} '{levels.CurrentName}', {levels.Remaining} enemies, seed {levels.Seed}");
+            _start = _motor.transform.position;
+            return true;
+        }
 
-            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageBench") >= 0)
+        private Vector3 _start;
+
+        // ---------------- finale ----------------
+
+        private bool _won;
+        private void onWon() => _won = true;
+
+        /// <summary>
+        /// The helipad with its soldiers dead: stepping onto the pad brings the boss (before that, nothing happens);
+        /// the boss's death starts the extraction, which ends with the win.
+        /// </summary>
+        private IEnumerator finale(VantageTowerLevels levels)
+        {
+            var pad = GameObject.Find("FINAL_TRIGGER_EndScene_EndingC");
+            var box = pad != null ? pad.GetComponent<Collider>() : null;
+            if (box == null) { fail("no helipad trigger"); yield break; }
+            var waiting = levels.AwaitingHelipad && levels.Current == levels.Levels.Count - 1;
+            var onPad = box.bounds.center - Vector3.up * (box.bounds.extents.y - 0.1f);
+            teleport(onPad, onPad + Vector3.forward);
+            for (float t = 0; t < 2f && !levels.BossSpawned; t += Time.deltaTime) yield return null;
+            var boss = levels.Enemies.Where(e => e != null).Select(e => e.GetComponent<VantageHeavyRobot>()).FirstOrDefault(r => r != null && r.IsBoss);
+            yield return new WaitForSeconds(1f);
+            yield return hudSnapshot("hud_boss");
+            _won = false;
+            VantageEvents.GameWon += onWon;
+            if (boss != null) boss.OnHit(new Hit(boss.transform.position + Vector3.up, Vector3.up, 1e5f, _motor.gameObject, boss.gameObject, HitType.Rifle, 0));
+            float wait = 0;
+            for (; wait < 15f && !_won; wait += Time.deltaTime) yield return null;
+            VantageEvents.GameWon -= onWon;
+            var heli = FindFirstObjectByType<VantageExtraction>();
+            var line = $"waiting for the pad {waiting}, boss spawned {levels.BossSpawned} ({(boss != null ? "found" : "missing")}), boss dead {levels.BossDead}, helicopter landed {(heli != null && heli.Landed)}, won {_won} after {wait:F1} s";
+            if (waiting && boss != null && levels.BossDead && heli != null && heli.Landed && _won) log("PASS finale: " + line);
+            else fail("finale: " + line);
+            yield return hudSnapshot("hud_end_screen");
+        }
+
+        // ---------------- review fixes ----------------
+
+        private int _leftLevel;
+        private void onLog(string text, string stack, LogType type) { if (text.Contains("had left its level")) _leftLevel++; }
+
+        /// <summary>
+        /// Alerted soldiers (the alarm) don't follow the player out of their level: with the player 20 m outside
+        /// the entrance for 6 s, no soldier leaves level 1 (and none is teleported back by the safety net).
+        /// </summary>
+        private IEnumerator alertedStayOnLevel(VantageTowerLevels levels)
+        {
+            var l = VantageDoor.Find("DOOR_Entrance_L");
+            var r = VantageDoor.Find("DOOR_Entrance_R");
+            var door = (l.transform.position + r.transform.position) / 2;
+            var outward = door - levels.TowerArea.center; outward.y = 0; outward.Normalize();
+            var outside = door + outward * 20f;
+            if (NavMesh.SamplePosition(outside, out var hit, 3f, NavMesh.AllAreas)) outside = hit.position;
+            _leftLevel = 0;
+            Application.logMessageReceived += onLog;
+            teleport(outside, door);
+            var outsideLevel = 0;
+            for (float t = 0; t < 6f; t += 0.25f)
             {
-                yield return bench(levels);
-                yield return finish();
-                yield break;
+                yield return new WaitForSeconds(0.25f);
+                outsideLevel = Mathf.Max(outsideLevel, levels.Enemies.Count(e => e != null && e.GetComponent<FighterBrain>() != null
+                    && e.GetComponent<CharacterMotor>().IsAlive && levels.LevelAt(e.transform.position) != 0));
             }
+            Application.logMessageReceived -= onLog;
+            teleport(door - outward * 2f, door - outward * 6f);
+            var line = $"most soldiers off level 1 at once {outsideLevel}, safety-net returns {_leftLevel}";
+            if (outsideLevel == 0 && _leftLevel == 0) log("PASS alerted soldiers stay on their level while the player is outside: " + line);
+            else fail("alerted soldiers left their level: " + line);
+        }
 
-            yield return soldiersFightBack(levels);
-            yield return hudSnapshot("hud_combat");
-            yield return clearLevelOpensGates(levels);
-            yield return hudSnapshot("hud_level_cleared");
-            yield return lastEnemiesCome(levels);
-            yield return walkStairs(levels);
-            yield return walkEntrances(levels);
-            yield return finish();
+        /// <summary>
+        /// A model with its own colliders (the user's Blender robot) must still take hits: a rifle hit on a child
+        /// collider hurts the robot. Rifle rounds from soldiers (enemy side) don't.
+        /// </summary>
+        private IEnumerator robotModelAndFriendlyFire(VantageTowerLevels levels)
+        {
+            var robot = levels.Enemies.Where(e => e != null).Select(e => e.GetComponent<VantageHeavyRobot>()).FirstOrDefault(x => x != null && !x.IsBoss);
+            var soldier = levels.Enemies.FirstOrDefault(e => e != null && e.GetComponent<FighterBrain>() != null);
+            if (robot == null || soldier == null) { fail($"robot model test: robot {robot != null}, soldier {soldier != null}"); yield break; }
+            var part = new GameObject("Model Part (bot)");
+            part.transform.SetParent(robot.Model != null ? robot.Model : robot.transform, false);
+            part.transform.localPosition = Vector3.up * 1.5f;
+            part.AddComponent<BoxCollider>();
+            robot.ForwardChildHits();   // what the robot does at start for its model's colliders
+            yield return null;
+            var before = robot.Health;
+            part.SendMessage("OnHit", new Hit(part.transform.position, Vector3.up, 40f, _motor.gameObject, part, HitType.Rifle, 0), SendMessageOptions.DontRequireReceiver);
+            var afterPart = robot.Health;
+            robot.OnHit(new Hit(robot.transform.position, Vector3.up, 40f, soldier, robot.gameObject, HitType.Rifle, 0));
+            var afterSoldier = robot.Health;
+            Destroy(part);
+            var line = $"health {before:F0} -> {afterPart:F0} after a rifle hit on a model collider -> {afterSoldier:F0} after a soldier's rifle hit; eye {(robot.Eye != null)}, muzzle {(robot.Muzzle != null)} outside the model {(robot.Muzzle != null && robot.Model != null && !robot.Muzzle.IsChildOf(robot.Model))}";
+            if (afterPart < before && afterSoldier == afterPart && robot.Muzzle != null && robot.Model != null && !robot.Muzzle.IsChildOf(robot.Model) && !robot.Eye.transform.IsChildOf(robot.Model))
+                log("PASS robot model: hits on model colliders count, soldiers can't hurt it, eye and muzzle survive a model swap: " + line);
+            else fail("robot model / friendly fire: " + line);
+        }
+
+        /// <summary>Once level 3 is reached, a ground floor door still opens for the player going back (missed coins).</summary>
+        private IEnumerator doorsWorkOnEarlierLevels(VantageTowerLevels levels)
+        {
+            var door = VantageDoor.Find("DOOR_RoomA_RoomB");
+            if (door == null) { fail("no DOOR_RoomA_RoomB"); yield break; }
+            var closedY = door.transform.position.y;
+            teleport(near(door.transform.position), door.transform.position);
+            yield return new WaitForSeconds(1.5f);
+            var rose = door.transform.position.y - closedY;
+            var line = $"level {levels.Current + 1}, door enabled {door.enabled}, rose {rose:F2} m";
+            if (rose > 0.5f) log("PASS ground floor door opens after level 3 started: " + line);
+            else fail("ground floor door stuck: " + line);
+        }
+
+        /// <summary>Enter on the end screen (the same call): a new run starts on level 1 with nothing collected.</summary>
+        private IEnumerator playAgain()
+        {
+            var extraction = FindFirstObjectByType<VantageExtraction>();
+            if (extraction == null) { fail("no extraction"); yield break; }
+            extraction.PlayAgain();
+            yield return new WaitForSeconds(2.5f);
+            if (!acquire()) yield break;
+            var levels = VantageTowerLevels.Instance;
+            var line = $"level {levels.Current + 1}, weapons {VantageRun.Weapons.Count}, coins {VantageRun.Coins.Count}, deaths {VantageRun.Deaths}";
+            if (levels.Current == 0 && VantageRun.Weapons.Count == 0 && VantageRun.Coins.Count == 0 && VantageRun.Deaths == 0) log("PASS play again starts a new run: " + line);
+            else fail("play again: " + line);
+        }
+
+        // ---------------- robot ----------------
+
+        /// <summary>
+        /// Level 3's heavy robot: ten pistol hits leave its health alone and say "You need a better gun" once (not per
+        /// bullet); rifle hits hurt it; killed, it counts as dead for the level.
+        /// </summary>
+        private IEnumerator robotRifleOnly(VantageTowerLevels levels)
+        {
+            var robot = levels.Enemies.Where(e => e != null).Select(e => e.GetComponent<VantageHeavyRobot>()).FirstOrDefault(r => r != null && !r.IsBoss);
+            if (robot == null) { fail("level 3 has no heavy robot"); yield break; }
+            var before = robot.Health;
+            _messages.Clear();
+            for (int i = 0; i < 10; i++)
+            {
+                robot.OnHit(new Hit(robot.transform.position + Vector3.up, Vector3.up, 30f, _motor.gameObject, robot.gameObject, HitType.Pistol, 0));
+                yield return new WaitForSeconds(0.1f);
+            }
+            var afterPistol = robot.Health;
+            var warnings = _messages.Count(m => m == "You need a better gun");
+            robot.OnHit(new Hit(robot.transform.position + Vector3.up, Vector3.up, 50f, _motor.gameObject, robot.gameObject, HitType.Rifle, 0));
+            var afterRifle = robot.Health;
+            var remaining = levels.Remaining;
+            robot.OnHit(new Hit(robot.transform.position + Vector3.up, Vector3.up, 1e5f, _motor.gameObject, robot.gameObject, HitType.Rifle, 0));
+            yield return null;
+            var line = $"health {before:F0} -> {afterPistol:F0} after 10 pistol hits ({warnings} warning), -> {afterRifle:F0} after a rifle hit, dead {robot.IsDead}, remaining {remaining} -> {levels.Remaining}";
+            if (afterPistol == before && warnings == 1 && afterRifle < before && robot.IsDead && levels.Remaining == remaining - 1) log("PASS robot is rifle-only: " + line);
+            else fail("robot: " + line);
+        }
+
+        // ---------------- key ----------------
+
+        private string _lastMessage;
+        private readonly List<string> _messages = new List<string>();
+        private void onMessage(string text) { _lastMessage = text; _messages.Add(text); }
+        private void OnEnable() => VantageEvents.Message += onMessage;
+        private void OnDisable() => VantageEvents.Message -= onMessage;
+
+        /// <summary>
+        /// Level 2: the key slot refuses without the key; walking into the key picks it up (it flies to the player and
+        /// is gone); with the key the slot is used, but the gate waits until level 2 is cleared.
+        /// </summary>
+        private IEnumerator keyOpensGate(VantageTowerLevels levels)
+        {
+            var slot = GameObject.Find("L2_KEYSLOT_InsertKey")?.GetComponent<VantageInteract>();
+            var key = GameObject.Find("L2_PICKUP_Key");
+            var gate = VantageDoor.Find("L2_GATE_Stairwell_LOCKED");
+            if (slot == null || key == null || gate == null) { fail($"key test: slot {slot != null}, key {key != null}, gate {gate != null}"); yield break; }
+
+            teleport(near(slot.transform.position), slot.transform.position);
+            yield return new WaitForSeconds(0.3f);
+            var prompt = VantageEvents.Prompt;
+            yield return hudSnapshot("hud_key_prompt");
+            _lastMessage = null;
+            var refused = !slot.TryUse() && _lastMessage == "You need the Key" && gate.IsLocked;
+
+            teleport(near(key.transform.position), key.transform.position);
+            for (float t = 0; t < 2f && key.activeSelf; t += Time.deltaTime) yield return null;
+            var taken = !key.activeSelf && VantageInventory.Has("Key");
+
+            teleport(near(slot.transform.position), slot.transform.position);
+            yield return new WaitForSeconds(0.3f);
+            var used = slot.TryUse();
+            yield return new WaitForSeconds(0.6f);
+            var waits = gate.IsLocked;
+            var line = $"prompt '{prompt}', refused without key {refused}, key taken {taken}, slot used {used}, gate waits for the level {waits}";
+            if (prompt == "Insert the Key" && refused && taken && used && waits) log("PASS key: " + line);
+            else fail("key: " + line);
+        }
+
+        /// <summary>After level 2 is cleared the stairwell gate (key already in) unlocks.</summary>
+        private IEnumerator gateOpensAfterClear()
+        {
+            yield return new WaitForSeconds(0.3f);
+            var gate = VantageDoor.Find("L2_GATE_Stairwell_LOCKED");
+            if (gate != null && !gate.IsLocked) log("PASS stairwell gate opens once level 2 is clear (key in)");
+            else fail($"stairwell gate still locked after level 2: {(gate != null ? "locked" : "missing")}");
+        }
+
+        /// <summary>A walkable spot within 1.2 m of a point, on its floor.</summary>
+        private static Vector3 near(Vector3 point)
+        {
+            for (float r = 0.6f; r <= 1.6f; r += 0.2f)
+                for (int a = 0; a < 8; a++)
+                {
+                    var p = point + Quaternion.Euler(0, a * 45f, 0) * Vector3.forward * r;
+                    if (NavMesh.SamplePosition(p, out var hit, 0.5f, NavMesh.AllAreas) && Mathf.Abs(hit.position.y - point.y) < 1.8f)
+                        return hit.position;
+                }
+            return point;
+        }
+
+        // ---------------- alarm and camera ----------------
+
+        /// <summary>Stands the player in Room A in front of the security camera: within a sweep it raises the alarm.</summary>
+        private IEnumerator cameraSpotsPlayer()
+        {
+            var cam = FindFirstObjectByType<VantageSecurityCamera>();
+            var alarm = VantageAlarm.Instance;
+            if (cam == null || alarm == null) { fail($"camera {cam != null}, alarm {alarm != null}"); yield break; }
+            var spot = inViewOf(cam);
+            if (spot == null) { fail("no walkable spot in front of the camera"); yield break; }
+            teleport(spot.Value, cam.transform.position);
+            float t = 0;
+            while (t < 12f && alarm.Raised == 0) { yield return null; t += Time.deltaTime; }
+            var shutter = VantageDoor.Find(alarm.Shutter);
+            yield return new WaitForSeconds(1f);
+            var line = $"alarm raised {alarm.Raised}x after {t:F1} s, active {alarm.Active}, shutter closed {(shutter != null && shutter.ShutterClosed)}";
+            if (alarm.Raised == 1 && alarm.Active && shutter != null && shutter.ShutterClosed) log("PASS camera spots the player: " + line);
+            else fail("camera did not raise the alarm: " + line);
+        }
+
+        /// <summary>A walkable spot 5 m in front of the camera, on its floor.</summary>
+        private static Vector3? inViewOf(VantageSecurityCamera cam)
+        {
+            var forward = cam.transform.forward; forward.y = 0; forward.Normalize();
+            for (float d = 5f; d >= 2.5f; d -= 0.5f)
+                if (NavMesh.SamplePosition(cam.transform.position + forward * d - Vector3.up * 2.5f, out var hit, 1.5f, NavMesh.AllAreas))
+                    return hit.position;
+            return null;
+        }
+
+        /// <summary>Walking through the alarm trigger after the camera already raised it: still one alarm, hunting on.</summary>
+        private IEnumerator alarmOnce(VantageTowerLevels levels)
+        {
+            yield return new WaitForSeconds(0.5f);
+            var alarm = VantageAlarm.Instance;
+            var line = $"raised {alarm.Raised}x, active {alarm.Active}, hunting {levels.Hunting}";
+            if (alarm.Raised == 1 && alarm.Active && levels.Hunting) log("PASS alarm fires once (camera, then trigger): " + line);
+            else fail("alarm once: " + line);
+        }
+
+        /// <summary>Clearing level 1 stops the alarm and the shutter rolls up again.</summary>
+        private IEnumerator alarmStopsOnClear()
+        {
+            yield return new WaitForSeconds(2f);
+            var alarm = VantageAlarm.Instance;
+            var shutter = VantageDoor.Find(alarm.Shutter);
+            var line = $"alarm active {alarm.Active}, shutter closed {(shutter != null && shutter.ShutterClosed)}";
+            if (!alarm.Active && shutter != null && !shutter.ShutterClosed) log("PASS level 1 clear stops the alarm and reopens the shutter: " + line);
+            else fail("after level 1: " + line);
+        }
+
+        /// <summary>
+        /// New run (reload at level 1): the camera is shot first, so standing in its view raises nothing; walking into
+        /// the alarm trigger still sets off the trap (shutter closed).
+        /// </summary>
+        private IEnumerator shotCameraStaysQuiet()
+        {
+            VantageRun.Reset();
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scene.path, new UnityEngine.SceneManagement.LoadSceneParameters(UnityEngine.SceneManagement.LoadSceneMode.Single));
+            yield return new WaitForSeconds(2f);
+            if (!acquire()) yield break;
+            var cam = FindFirstObjectByType<VantageSecurityCamera>();
+            var alarm = VantageAlarm.Instance;
+            cam.SendMessage("OnHit", new Hit(cam.transform.position, Vector3.up, 30f, _motor.gameObject, cam.gameObject, HitType.Pistol, 0));
+            var spot = inViewOf(cam);
+            if (spot != null) teleport(spot.Value, cam.transform.position);
+            yield return new WaitForSeconds(3f);
+            var quiet = alarm.Raised == 0 && cam.Disabled;
+            var trigger = GameObject.Find("TRIGGER_Alarm_ShutterClose");
+            var box = trigger != null ? trigger.GetComponent<Collider>() : null;
+            if (box != null) teleport(box.bounds.center - Vector3.up * (box.bounds.extents.y - 0.05f), box.bounds.center + Vector3.forward);
+            yield return new WaitForSeconds(1.5f);
+            var shutter = VantageDoor.Find(alarm.Shutter);
+            var line = $"camera disabled {cam.Disabled}, quiet in view {quiet}, trigger raised {alarm.Raised}x, shutter closed {(shutter != null && shutter.ShutterClosed)}";
+            if (quiet && alarm.Raised == 1 && shutter != null && shutter.ShutterClosed) log("PASS shot camera stays quiet, the trigger still springs the trap: " + line);
+            else fail("shot camera / trigger: " + line);
         }
 
         private void Update()
@@ -108,7 +432,8 @@ namespace Vantage.Testing
             }
             if (spot == null) { fail($"no visible standing spot near any of {soldiers.Count} soldiers"); yield break; }
             teleport(spot.Value, soldier.transform.position);
-            _motor.GetComponent<VantageArsenal>()?.Unlock("Pistol");
+            if (_motor.GetComponent<VantageArsenal>() is VantageArsenal arsenal && arsenal.Unlock("Pistol"))
+                VantageEvents.RaiseWeaponPickedUp("Pistol");
             log($"player placed {Vector3.Distance(spot.Value, soldier.transform.position):F1} m from {soldier.name} (room floor y {soldier.transform.position.y:F1})");
 
             var gun = soldier.GetComponentInChildren<BaseGun>(true);
@@ -124,7 +449,9 @@ namespace Vantage.Testing
                     yield return null;
                 }
                 var motor = soldier.GetComponent<CharacterMotor>();
-                log($"  t={s,2}s soldier state={soldier.State} threat={(soldier.Threat != null ? soldier.Threat.name : "none")} sees={soldier.CanSeeTheThreat} " +
+                var eye = VantagePhysics.Eye(soldier.GetComponent<BaseActor>());
+                var view = Physics.Linecast(eye, VantagePhysics.AimPoint(VantageEvents.ActivePlayer()), out var block, VantagePhysics.Sight, QueryTriggerInteraction.Ignore) ? block.collider.name : "clear";
+                log($"  t={s,2}s sight={view} soldier state={soldier.State} threat={(soldier.Threat != null ? soldier.Threat.name : "none")} sees={soldier.CanSeeTheThreat} " +
                     $"equipped={motor.IsEquipped} weapon={(motor.ActiveWeapon.Gun != null ? motor.ActiveWeapon.Gun.name : "none")} bullets={(gun != null ? gun.LoadedBulletsLeft : -1)} " +
                     $"dist={Vector3.Distance(soldier.transform.position, _motor.transform.position):F1} damageToPlayer={_damageTaken - damageBefore:F0}");
             }
@@ -157,13 +484,13 @@ namespace Vantage.Testing
             return null;
         }
 
-        // ---------------- 2. gates ----------------
+        // ---------------- levels and doors ----------------
 
-        private IEnumerator clearLevelOpensGates(VantageTowerLevels levels)
+        /// <summary>Kills the level's enemies: its gates open (L1), the next level spawns, the alarm stops.</summary>
+        private IEnumerator clearLevel(VantageTowerLevels levels, int level)
         {
-            var level = levels.Current;
-            foreach (var e in levels.Enemies.ToList())
-                kill(e);
+            if (levels.Current != level) { fail($"clear level {level + 1}: the current level is {levels.Current + 1}"); yield break; }
+            foreach (var e in levels.Enemies.ToList()) kill(e);
             for (float t = 0; t < 3f && levels.Current == level; t += Time.deltaTime)
                 yield return null;
             var gates = FindObjectsByType<VantageFloorGate>(FindObjectsSortMode.None).Where(g => g.Level == level).ToList();
@@ -171,7 +498,38 @@ namespace Vantage.Testing
             if (levels.Current != level + 1 || open != gates.Count)
                 fail($"after clearing level {level + 1}: current level {levels.Current + 1}, gates open {open}/{gates.Count}");
             else
-                log($"PASS level {level + 1} cleared -> gates open {open}/{gates.Count}, level {levels.Current + 1} spawned {levels.Remaining} enemies");
+                log($"PASS level {level + 1} cleared -> gates open {open}/{gates.Count}, level {levels.Current + 1} '{levels.CurrentName}' spawned {levels.Remaining} enemies");
+        }
+
+        /// <summary>
+        /// A KILL door of a later level (L3 SE room: both outside patrols) must stay locked while its enemies have not
+        /// even spawned, however many enemies die on the levels before.
+        /// </summary>
+        private IEnumerator killDoorWaitsForItsLevel(VantageTowerLevels levels)
+        {
+            var door = VantageDoor.Find("L3_DOOR_SERoom_LOCKED");
+            if (door == null) { fail("no L3_DOOR_SERoom_LOCKED"); yield break; }
+            var victim = levels.Enemies.FirstOrDefault(e => e != null && e.GetComponent<FighterBrain>() != null);
+            kill(victim);
+            yield return new WaitForSeconds(0.5f);
+            if (door.IsLocked) log("PASS L3 SE door stays locked while its patrols are not spawned (after an L1 kill)");
+            else fail("L3 SE door unlocked by a kill on L1");
+        }
+
+        /// <summary>On L3: killing both outside patrols unlocks the SE room door.</summary>
+        private IEnumerator killDoorsOpen(VantageTowerLevels levels)
+        {
+            var door = VantageDoor.Find("L3_DOOR_SERoom_LOCKED");
+            var patrols = levels.Enemies.Where(e => e != null && e.name.StartsWith("L3_MK_Enemy_Patrol")).ToList();
+            if (door == null || patrols.Count != 2) { fail($"L3 patrols: door found {door != null}, {patrols.Count}/2 patrols spawned"); yield break; }
+            var lockedBefore = door.IsLocked;
+            kill(patrols[0]);
+            yield return new WaitForSeconds(0.3f);
+            var lockedAfterOne = door.IsLocked;
+            kill(patrols[1]);
+            yield return new WaitForSeconds(0.3f);
+            if (lockedBefore && lockedAfterOne && !door.IsLocked) log("PASS L3 SE door: locked, still locked after one patrol, open after both");
+            else fail($"L3 SE door: locked before {lockedBefore}, after one {lockedAfterOne}, after both {door.IsLocked}");
         }
 
         private static void kill(GameObject enemy)
@@ -185,38 +543,48 @@ namespace Vantage.Testing
             if (health != null) health.Health = 0;
         }
 
-        // ---------------- 3. stairs ----------------
+        // ---------------- stairs and entrance ----------------
 
-        /// <summary>Walks every opened flight from its foot, measuring climb progress and where the character stalls.</summary>
+        /// <summary>
+        /// Walks up every stair surface (all gates and doors are open by now): from its low end to its high end,
+        /// measuring the climb and where the character stalls.
+        /// </summary>
         private IEnumerator walkStairs(VantageTowerLevels levels)
         {
-            // Kill whatever spawned on the next level so the walk isn't interrupted.
             foreach (var e in levels.Enemies.ToList()) kill(e);
             yield return new WaitForSeconds(0.5f);
-
-            foreach (var gate in FindObjectsByType<VantageFloorGate>(FindObjectsSortMode.None).Where(g => g.IsOpen).OrderBy(g => g.name))
+            foreach (var surface in FindObjectsByType<MeshCollider>(FindObjectsSortMode.None).Where(c => c.name.StartsWith("Stair Surface")).OrderBy(c => c.bounds.min.y))
             {
-                // Geometry from the blocker box (the shutter panel has rolled up once the gate is open).
-                var box = gate.Blocker.transform;
-                var dir = box.forward; dir.y = 0; dir.Normalize();
-                var rise = gate.Blocker.size.y - 3f;
-                var foot = box.position - dir * (gate.Blocker.size.z / 2f - 0.5f) - Vector3.up * (gate.Blocker.size.y / 2f - 0.15f);
-                // Start just onto the flight (its foot end can be a narrow landing), on the walkable surface.
-                var start = foot + dir * 0.6f;
-                if (Physics.Raycast(start + Vector3.up * 1.5f, Vector3.down, out var surfaceHit, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
-                    start = surfaceHit.point;
-                else
-                    log($"  {gate.name}: NO SURFACE under the flight start {start:F2}");
+                var v = surface.sharedMesh.vertices.Select(x => surface.transform.TransformPoint(x)).ToList();
+                float lo = v.Min(p => p.y), hi = v.Max(p => p.y);
+                var lows = v.Where(p => p.y < lo + 0.05f).ToList();
+                var highs = v.Where(p => p.y > hi - 0.05f).ToList();
+                var low = lows.Aggregate(Vector3.zero, (a, p) => a + p) / lows.Count;
+                var high = highs.Aggregate(Vector3.zero, (a, p) => a + p) / highs.Count;
+                var dir = high - low; dir.y = 0; dir.Normalize();
+                // Start on the surface's flat foot (it reaches 1.4 m past the first step), at the first spot along the
+                // flight where the character fits: some flights are entered from the side, with a wall at their foot.
+                var capsule = _motor.GetComponent<CapsuleCollider>();
+                var radius = capsule != null ? capsule.radius : 0.3f;
+                var start = low + dir * 0.3f;
+                for (float k = 0.3f; k < 3f; k += 0.1f)
+                {
+                    var c = low + dir * k;
+                    if (!Physics.Raycast(c + Vector3.up * 1.5f, Vector3.down, out var surfaceHit, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) continue;
+                    c = surfaceHit.point;
+                    if (Physics.CheckCapsule(c + Vector3.up * (radius + 0.08f), c + Vector3.up * 1.7f, radius, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) continue;
+                    start = c;
+                    break;
+                }
                 teleport(start, start + dir * 5f);
                 yield return new WaitForSeconds(0.6f);
-                log($"  {gate.name}: start {start:F2} (foot {foot:F2}), grounded={_motor.IsGrounded} alive={_motor.IsAlive} cover={_motor.IsInCover} controller={_controller.enabled} y after settle {_motor.transform.position.y:F2}");
-
-                var startY = foot.y; // measure from the foot of the flight, not from where the bot was put down
-                float stalled = 0, t = 0;
-                var reported = false;
-                float window = 0; var windowStart = _motor.transform.position;
+                var rise = hi - lo;
+                var startY = lo;
+                float stalled = 0, t = 0, window = 0;
+                var windowStart = _motor.transform.position;
                 var path = new StringBuilder();
-                while (t < 14f && _motor.transform.position.y < startY + rise - 0.2f)
+                var reported = false;
+                while (t < 14f && _motor.transform.position.y < startY + rise - 0.25f)
                 {
                     _controller.MovementInput = new CharacterMovement(dir, 1f);
                     yield return null;
@@ -227,38 +595,58 @@ namespace Vantage.Testing
                     window += Time.deltaTime;
                     if (window >= 0.25f)
                     {
-                        var moved = new Vector2(p.x - windowStart.x, p.z - windowStart.z).magnitude;
-                        if (moved < 0.075f && t > 0.6f) stalled += window;
+                        if (new Vector2(p.x - windowStart.x, p.z - windowStart.z).magnitude < 0.075f && t > 0.6f) stalled += window;
                         window = 0; windowStart = p;
                     }
                     if (stalled > 0.5f && !reported)
                     {
                         reported = true;
-                        var tower = levels.Tower;
-                        var what = new StringBuilder();
-                        foreach (var h in new[] { 0.1f, 0.35f, 1.0f, 1.7f })
-                            if (Physics.Raycast(p + Vector3.up * h, dir, out var fh, 1.2f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
-                                what.Append($" front@{h:F2}:{fh.collider.name}({fh.distance:F2}m,n.y={fh.normal.y:F2})");
-                        if (Physics.Raycast(p + Vector3.up * 0.5f, Vector3.up, out var up, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
-                            what.Append($" ceiling:{up.collider.name}({up.distance + 0.5f:F2}m)");
-                        var side = Vector3.Cross(Vector3.up, dir);
-                        foreach (var s2 in new[] { -1f, 1f })
-                            if (Physics.Raycast(p + Vector3.up * 1f, side * s2, out var sh, 0.6f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
-                                what.Append($" side{(s2 < 0 ? "L" : "R")}:{sh.collider.name}({sh.distance:F2}m)");
-                        log($"  stalled at local {tower.InverseTransformPoint(p):F2}, grounded={_motor.IsGrounded}:{what}");
+                        log($"  {surface.name}: stalled at {p:F2}, grounded={_motor.IsGrounded}, in front:{obstacles(dir)}");
                     }
                     if (Mathf.Repeat(t, 1f) < Time.deltaTime) path.Append($" {p.y - startY:F2}");
                 }
                 _controller.MovementInput = new CharacterMovement();
                 var climbed = _motor.transform.position.y - startY;
-                var ok = climbed >= rise - 0.3f;
-                var line = $"{gate.name}: climbed {climbed:F2}/{rise:F2} m in {t:F1} s, stalled {stalled:F1} s, height per second:{path}";
-                if (ok && stalled < 1f) log("PASS stairs " + line);
+                var line = $"{surface.name}: climbed {climbed:F2}/{rise:F2} m in {t:F1} s, stalled {stalled:F1} s, height per second:{path}";
+                if (climbed >= rise - 0.35f && stalled < 1f) log("PASS stairs " + line);
                 else fail("stairs " + line);
             }
         }
 
-        // ---------------- 3b. last enemies ----------------
+        /// <summary>Walks from the player start through the main entrance to 4 m inside the doors.</summary>
+        private IEnumerator walkEntrance(VantageTowerLevels levels)
+        {
+            var l = VantageDoor.Find("DOOR_Entrance_L");
+            var r = VantageDoor.Find("DOOR_Entrance_R");
+            if (l == null || r == null) { fail("no entrance doors"); yield break; }
+            var door = (l.transform.position + r.transform.position) / 2;
+            var start = _motor.transform.position;
+            var inward = door - start; inward.y = 0; inward.Normalize();
+            var distance = Vector3.Dot(door - start, inward) + 4f;
+            float t = 0, stalled = 0, window = 0;
+            var windowStart = start;
+            while (t < 12f && Vector3.Dot(_motor.transform.position - start, inward) < distance)
+            {
+                _controller.MovementInput = new CharacterMovement(inward, 1f);
+                yield return null;
+                t += Time.deltaTime;
+                window += Time.deltaTime;
+                if (window >= 0.25f)
+                {
+                    var p = _motor.transform.position;
+                    if (new Vector2(p.x - windowStart.x, p.z - windowStart.z).magnitude < 0.075f && t > 0.6f) stalled += window;
+                    window = 0;
+                    windowStart = p;
+                }
+            }
+            _controller.MovementInput = new CharacterMovement();
+            var progress = Vector3.Dot(_motor.transform.position - start, inward);
+            var line = $"main entrance: walked {progress:F1}/{distance:F1} m in {t:F1} s, stalled {stalled:F1} s, now on level {levels.LevelAt(_motor.transform.position) + 1}";
+            if (progress >= distance - 0.5f && stalled < 1f) log("PASS " + line);
+            else fail($"{line}, in front:{obstacles(inward)}");
+        }
+
+        // ---------------- last enemies ----------------
 
         /// <summary>
         /// Leaves two enemies alive on the level and stands the player far from them, out of sight: within 30 s they
@@ -266,21 +654,18 @@ namespace Vantage.Testing
         /// </summary>
         private IEnumerator lastEnemiesCome(VantageTowerLevels levels)
         {
-            var enemies = levels.Enemies.Where(e => e != null).ToList();
+            var enemies = levels.Enemies.Where(e => e != null && e.activeInHierarchy && levels.LevelAt(e.transform.position) == levels.Current).ToList();
             if (enemies.Count < 3) { log("  last enemies: skipped (too few enemies)"); yield break; }
-            // Keep one soldier and one drone if there are both.
             var keep = new List<GameObject>();
-            var soldier = enemies.FirstOrDefault(e => e.GetComponent<VantageDrone>() == null);
-            var drone = enemies.FirstOrDefault(e => e.GetComponent<VantageDrone>() != null);
+            var soldier = enemies.FirstOrDefault(e => e.GetComponent<FighterBrain>() != null);
+            var drone = enemies.FirstOrDefault(e => e.GetComponent<VantageDrone>() != null && e.GetComponent<VantageDrone>().Mobile);
             if (soldier != null) keep.Add(soldier);
             if (drone != null) keep.Add(drone);
-            foreach (var e in enemies.Where(e => !keep.Contains(e)).Take(enemies.Count - 2)) kill(e);
-            keep = enemies.Where(e => e != null && e.activeInHierarchy && (e.GetComponent<CharacterHealth>()?.Health ?? 0) > 0).ToList();
+            foreach (var e in enemies.Where(e => !keep.Contains(e))) kill(e);
 
-            // Stand on the level, at the spawn point furthest from the survivors.
-            var storeys = levels.Levels[levels.Current].Storeys;
-            var spot = levels.Tower.GetComponentsInChildren<CommandTowerKit.GameplayMarker>(true)
-                             .Where(m => m.markerType == "EnemySpawn" && storeys.Contains(m.floor))
+            var prefix = levels.Levels[levels.Current].Prefix;
+            var spot = levels.Tower.GetComponentsInChildren<VantageTag>(true)
+                             .Where(m => m.MarkerType == "EnemySpawn" && m.name.StartsWith(prefix))
                              .OrderByDescending(m => keep.Min(e => Vector3.Distance(e.transform.position, m.transform.position)))
                              .First().transform.position;
             if (NavMesh.SamplePosition(spot, out var hit, 2f, NavMesh.AllAreas)) spot = hit.position;
@@ -288,84 +673,59 @@ namespace Vantage.Testing
             var damageBefore = _damageTaken;
             var startDistance = keep.Min(e => Vector3.Distance(e.transform.position, spot));
             log($"  last enemies: {keep.Count} left ({string.Join(", ", keep.Select(e => e.name))}), nearest {startDistance:F1} m, hunting={levels.Hunting}");
-
             float t = 0, nearest = startDistance;
             while (t < 30f && nearest > 8f && _damageTaken <= damageBefore)
             {
                 yield return new WaitForSeconds(0.5f);
                 t += 0.5f;
                 nearest = keep.Where(e => e != null).Select(e => Vector3.Distance(e.transform.position, _motor.transform.position)).DefaultIfEmpty(0f).Min();
-                if (Mathf.Repeat(t, 5f) < 0.25f)
-                    log($"    t={t:F0}s hunting={levels.Hunting} remaining={levels.Remaining}: " + string.Join("; ", keep.Where(e => e != null).Select(e =>
-                        $"{e.name} {Vector3.Distance(e.transform.position, _motor.transform.position):F1} m at {levels.Tower.InverseTransformPoint(e.transform.position):F1}" +
-                        (e.GetComponent<FighterBrain>() is FighterBrain b ? $" state={b.State}" : ""))));
             }
             var line = $"nearest enemy {startDistance:F1} m -> {nearest:F1} m in {t:F1} s, damage taken {_damageTaken - damageBefore:F0}";
             if (nearest <= 8f || _damageTaken > damageBefore) log("PASS last enemies come to the player: " + line);
             else fail("last enemies did not come: " + line);
         }
 
-        // ---------------- 4. entrances ----------------
+        // ---------------- checkpoint ----------------
 
-        /// <summary>Walks into the tower through every ground-floor entrance, from 4 m outside to 4 m inside.</summary>
-        private IEnumerator walkEntrances(VantageTowerLevels levels)
+        /// <summary>
+        /// Dying on level 2 restarts there: after the reload the player is at the level 2 arrival point, level 1's gate
+        /// and shutter are open, level 2's enemies are back, and the pistol is still in the inventory.
+        /// </summary>
+        private IEnumerator checkpointRestore()
         {
-            var tower = levels.Tower;
-            foreach (var entry in tower.GetComponentsInChildren<CommandTowerKit.GameplayMarker>(true).Where(m => m.markerType == "PlayerEntry" && m.floor < 0))
-            {
-                var local = tower.InverseTransformPoint(entry.transform.position);
-                var inward = tower.TransformDirection(Mathf.Abs(local.x) > Mathf.Abs(local.z) ? new Vector3(-Mathf.Sign(local.x), 0, 0) : new Vector3(0, 0, -Mathf.Sign(local.z)));
-                var start = entry.transform.position - inward * 4f;
-                if (Physics.Raycast(start + Vector3.up * 3f, Vector3.down, out var ground, 6f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
-                    start = ground.point;
-                teleport(start, start + inward * 5f);
-                yield return new WaitForSeconds(0.6f);
+            // A coin collected before dying stays collected after the reload.
+            var coin = FindObjectsByType<VantageCoin>(FindObjectsSortMode.None).FirstOrDefault(c => c.Id == "coin_L1_NorthWest");
+            if (coin != null) coin.Collect();
+            else fail("no coin_L1_NorthWest in the scene");
+            if (_motor.GetComponent<VantageArsenal>() is VantageArsenal owned && owned.Unlock("Pistol"))
+                VantageEvents.RaiseWeaponPickedUp("Pistol");
+            VantageRun.Checkpoint = 1;
+            VantageEvents.RaisePlayerDied("bot", _motor.transform.position);
+            var deaths = VantageRun.Deaths;
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scene.path, new UnityEngine.SceneManagement.LoadSceneParameters(UnityEngine.SceneManagement.LoadSceneMode.Single));
+            yield return new WaitForSeconds(2f);
+            if (!acquire()) yield break;
+            var levels = VantageTowerLevels.Instance;
+            var arrival = levels.Levels[1].Arrival;
+            var near = arrival != null && Vector3.Distance(_motor.transform.position, arrival.position) < 2f;
+            var gateOpen = FindObjectsByType<VantageFloorGate>(FindObjectsSortMode.None).Where(g => g.Level == 0).All(g => g.IsOpen);
+            var shutter = VantageDoor.Find("SHUTTER_Maintenance");
+            var pistol = VantageRun.Weapons.Contains("Pistol");
+            var line = $"current level {levels.Current + 1}, player at arrival {near}, L1 gate open {gateOpen}, shutter closed {(shutter != null && shutter.ShutterClosed)}, " +
+                       $"{levels.Remaining} enemies, pistol kept {pistol}, deaths {deaths}";
+            if (levels.Current == 1 && near && gateOpen && shutter != null && !shutter.ShutterClosed && levels.Remaining > 0 && pistol && deaths >= 1)
+                log("PASS checkpoint restore: " + line);
+            else
+                fail("checkpoint restore: " + line);
 
-                float t = 0, stalled = 0, window = 0;
-                var windowStart = _motor.transform.position;
-                while (t < 8f && Vector3.Dot(_motor.transform.position - start, inward) < 8f)
-                {
-                    _controller.MovementInput = new CharacterMovement(inward, 1f);
-                    yield return null;
-                    t += Time.deltaTime;
-                    window += Time.deltaTime;
-                    if (window >= 0.25f)
-                    {
-                        var p = _motor.transform.position;
-                        if (new Vector2(p.x - windowStart.x, p.z - windowStart.z).magnitude < 0.075f && t > 0.6f) stalled += window;
-                        window = 0;
-                        windowStart = p;
-                    }
-                }
-                _controller.MovementInput = new CharacterMovement();
-                var progress = Vector3.Dot(_motor.transform.position - start, inward);
-                var line = $"{entry.name}: walked {progress:F1}/8.0 m in {t:F1} s, stalled {stalled:F1} s";
-                if (progress >= 7.5f && stalled < 1f) log("PASS entrance " + line);
-                else fail($"entrance {line}, stopped at local {tower.InverseTransformPoint(_motor.transform.position):F2}, in front:{obstacles(inward)}");
-            }
-        }
-
-        /// <summary>What the character's capsule would run into in 'direction': colliders at four heights.</summary>
-        private string obstacles(Vector3 direction)
-        {
-            var what = new StringBuilder();
-            var p = _motor.transform.position;
-            foreach (var h in new[] { 0.1f, 0.35f, 1.0f, 1.7f })
-                if (Physics.Raycast(p + Vector3.up * h, direction, out var hit, 1.2f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
-                    what.Append($" @{h:F2}:{hit.collider.name}({hit.distance:F2}m, n.y={hit.normal.y:F2})");
-            // The character's capsule (rays can pass beside thin posts the capsule still catches on).
-            var capsule = _motor.GetComponent<CapsuleCollider>();
-            var radius = capsule != null ? capsule.radius : 0.3f;
-            foreach (var hit in Physics.CapsuleCastAll(p + Vector3.up * (radius + 0.05f), p + Vector3.up * 1.7f, radius, direction, 0.6f, ~0, QueryTriggerInteraction.Ignore))
-                if (!hit.collider.transform.IsChildOf(_motor.transform))
-                    what.Append($" capsule:{hit.collider.name}[layer {hit.collider.gameObject.layer}]({hit.distance:F2}m at {hit.point:F2})");
-            // Already overlapping: which way and how far the geometry pushes the capsule out.
-            if (capsule != null)
-                foreach (var other in Physics.OverlapCapsule(p + Vector3.up * (radius + 0.05f), p + Vector3.up * 1.7f, radius, ~0, QueryTriggerInteraction.Ignore))
-                    if (!other.transform.IsChildOf(_motor.transform)
-                        && Physics.ComputePenetration(capsule, capsule.transform.position, capsule.transform.rotation, other, other.transform.position, other.transform.rotation, out var push, out var depth))
-                        what.Append($" overlap:{other.name} push {push:F2} by {depth:F2}m");
-            return what.Length > 0 ? what.ToString() : " nothing";
+            var coins = FindObjectsByType<VantageCoin>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var again = coins.FirstOrDefault(c => c.Id == "coin_L1_NorthWest");
+            var coinLine = $"{coins.Length} coins in the level, coin_L1_NorthWest {(again == null ? "missing" : again.gameObject.activeSelf ? "back" : "gone")}, run coins {VantageRun.Coins.Count}";
+            if (coins.Length == 5 && again != null && !again.gameObject.activeSelf && VantageRun.Coins.Contains("coin_L1_NorthWest"))
+                log("PASS coin kept after a death: " + coinLine);
+            else
+                fail("coin after death: " + coinLine);
         }
 
         // ---------------- performance ----------------
@@ -425,6 +785,22 @@ namespace Vantage.Testing
         }
 
         // ---------------- helpers ----------------
+
+        /// <summary>What the character's capsule would run into in 'direction': colliders at four heights.</summary>
+        private string obstacles(Vector3 direction)
+        {
+            var what = new StringBuilder();
+            var p = _motor.transform.position;
+            foreach (var h in new[] { 0.1f, 0.35f, 1.0f, 1.7f })
+                if (Physics.Raycast(p + Vector3.up * h, direction, out var hit, 1.2f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                    what.Append($" @{h:F2}:{hit.collider.name}({hit.distance:F2}m, n.y={hit.normal.y:F2})");
+            var capsule = _motor.GetComponent<CapsuleCollider>();
+            var radius = capsule != null ? capsule.radius : 0.3f;
+            foreach (var hit in Physics.CapsuleCastAll(p + Vector3.up * (radius + 0.05f), p + Vector3.up * 1.7f, radius, direction, 0.6f, ~0, QueryTriggerInteraction.Ignore))
+                if (!hit.collider.transform.IsChildOf(_motor.transform))
+                    what.Append($" capsule:{hit.collider.name}[layer {hit.collider.gameObject.layer}]({hit.distance:F2}m at {hit.point:F2})");
+            return what.Length > 0 ? what.ToString() : " nothing";
+        }
 
         private void teleport(Vector3 position, Vector3 lookAt)
         {

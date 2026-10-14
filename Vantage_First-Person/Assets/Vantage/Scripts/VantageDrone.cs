@@ -11,7 +11,7 @@ namespace Vantage
     /// and damages whichever player view (first or third person) is active.
     /// </summary>
     [RequireComponent(typeof(CharacterHealth))]
-    public class VantageDrone : MonoBehaviour
+    public class VantageDrone : MonoBehaviour, IVantageEnemy
     {
         [Header("Behaviour")]
         public bool Mobile = true;

@@ -20,6 +20,35 @@ namespace Vantage
         public static void RaiseLayoutGenerated(int seed) => LayoutGenerated?.Invoke(seed);
         public static void RaiseLevelCompleted() => LevelCompleted?.Invoke();
 
+        public static event Action<string> Message;                         // short notice shown on the HUD
+        public static event Action<string> AlarmRaised;                     // source: "trigger" or "camera"
+        public static event Action AlarmStopped;
+        public static event Action<string> ItemPickedUp;                    // tower inventory item (Key, Gun)
+        public static event Action<int, int> CoinCollected;                 // collected, total
+        public static event Action BossSpawned;
+        public static event Action GameWon;
+
+        public static void RaiseMessage(string text) => Message?.Invoke(text);
+        public static void RaiseAlarm(string source) => AlarmRaised?.Invoke(source);
+        public static void RaiseAlarmStopped() => AlarmStopped?.Invoke();
+        public static void RaiseItemPickedUp(string item) => ItemPickedUp?.Invoke(item);
+        public static void RaiseCoinCollected(int collected, int total) => CoinCollected?.Invoke(collected, total);
+        public static void RaiseBossSpawned() => BossSpawned?.Invoke();
+        public static void RaiseGameWon() => GameWon?.Invoke();
+
+        /// <summary>
+        /// Interaction prompt the HUD shows as "[E] Prompt" (null = none). Set by whatever the player is in range of;
+        /// cleared by the same object when the player leaves (only if it still owns it).
+        /// </summary>
+        public static string Prompt { get; private set; }
+        private static object _promptOwner;
+
+        public static void SetPrompt(object owner, string text) { _promptOwner = owner; Prompt = text; }
+        public static void ClearPrompt(object owner) { if (_promptOwner == owner) { _promptOwner = null; Prompt = null; } }
+
+        /// <summary>Static events outlive a scene reload; anything static that subscribes clears itself here.</summary>
+        public static void ResetPrompt() { _promptOwner = null; Prompt = null; }
+
         private static CoverShooter.BaseActor _player;
         private static int _playerFrame = -1;
 

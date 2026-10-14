@@ -18,7 +18,7 @@ namespace Vantage.EditorTools
     ///
     /// - The tower plot is fitted to the user's CommandTower wherever it stands: its terrain is levelled at the
     ///   tower's base height and blended back into the hills, and base props inside its footprint are cleared.
-    /// - Then VantageCommandTower.Setup turns the tower into the level (levels, gates, enemies, player start).
+    /// - Then VantageTower.Setup turns the tower into the level (levels, gates, enemies, player start).
     /// - Roads and pads follow the reshaped terrain; flush ones lose their colliders so kerbs can't block the
     ///   character (the template cannot step up ledges). Trees and rocks get colliders.
     /// - The world is playable: it is in the NavMesh, cover props get Cover Shooter covers, invisible walls stop the
@@ -194,7 +194,7 @@ namespace Vantage.EditorTools
             try
             {
                 EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
-                var tower = VantageCommandTower.FindTower().transform;
+                var tower = VantageTower.FindTower().transform;
                 var probe = new Ground();
                 plotUnder(probe, tower.gameObject);
                 var plot = probe.Plot;
@@ -432,9 +432,9 @@ namespace Vantage.EditorTools
             var ground = new Ground { Size = info.size[0], HMin = info.hmin, HMax = info.hmax, Res = info.height_res, Offset = Vector3.zero };
 
             ground.Original = readHeights(packRoot, info);
-            var commandTower = VantageCommandTower.FindTower();
+            var commandTower = VantageTower.FindTower();
             if (commandTower == null)
-                throw new Exception("No CommandTower in the scene. Drag Assets/Blender_Asset/CommandTower_Unity/Prefabs/CommandTower.prefab in first; the world is fitted around it.");
+                throw new Exception("No VANTAGE_Tower in the scene. Run Vantage → Tower → Set Up Tower first; the world is fitted around it.");
             plotUnder(ground, commandTower);
             shapeTerrain(ground);
 
@@ -454,7 +454,7 @@ namespace Vantage.EditorTools
             Debug.Log($"[Vantage] Military world built; tower plot {ground.Plot} at height {ground.PlotHeight:F2}; {removed} props cleared from the plot.");
 
             // The command tower is the level: levels, gates, enemies, pickups, player start, NavMesh.
-            VantageCommandTower.Setup();
+            VantageTower.Setup();
 
             var opened = openWayOut(ground, root);
             Debug.Log($"[Vantage] {opened.Count} fence pieces switched off to connect the tower with the base.");
@@ -534,8 +534,8 @@ namespace Vantage.EditorTools
         }
 
         /// <summary>
-        /// The plot is wherever the user placed the command tower: its footprint plus 8 m, levelled at the tower's
-        /// base height, so the ground meets the entrances and nothing of the base stands inside it.
+        /// The plot is wherever the tower stands: its footprint (helipad included) plus 8 m, levelled at its ground
+        /// floor, so the ground meets the entrance and nothing of the base stands inside it.
         /// </summary>
         private static void plotUnder(Ground ground, GameObject tower)
         {
@@ -543,7 +543,9 @@ namespace Vantage.EditorTools
             var b = renderers[0].bounds;
             foreach (var r in renderers) b.Encapsulate(r.bounds);
             ground.Plot = Rect.MinMaxRect(b.min.x - 8f, b.min.z - 8f, b.max.x + 8f, b.max.z + 8f);
-            ground.PlotHeight = tower.transform.position.y;
+            // Level with the ground floor (measured at the main entrance), so the entrance is flush with the ground.
+            var floor = VantageTower.LevelHeights(tower.transform)[0];
+            ground.PlotHeight = float.IsNaN(floor) ? tower.transform.position.y : floor - 0.02f;
             ground.TowerSite = tower.transform.position;
             Debug.Log($"[Vantage] Tower plot fitted to the command tower at {ground.TowerSite} (footprint {b.size.x:F0} x {b.size.z:F0} m).");
         }
@@ -1192,7 +1194,7 @@ namespace Vantage.EditorTools
             var map = new GameObject(MinimapName).AddComponent<VantageMinimap>();
             map.Map = AssetDatabase.LoadAssetAtPath<Texture2D>(MinimapPath);
             map.WorldArea = area;
-            var tower = VantageCommandTower.FindTower();
+            var tower = VantageTower.FindTower();
             map.Tower = tower != null ? tower.transform : null;
             Debug.Log($"[Vantage] Minimap baked ({MinimapPixels}px over {ground.Size:F0} m) to {MinimapPath}.");
         }
@@ -1221,7 +1223,7 @@ namespace Vantage.EditorTools
         private static void screenshots(string folder, Ground ground)
         {
             Directory.CreateDirectory(folder);
-            var commandTower = VantageCommandTower.FindTower();
+            var commandTower = VantageTower.FindTower();
             if (commandTower != null)
             {
                 var t = commandTower.transform;

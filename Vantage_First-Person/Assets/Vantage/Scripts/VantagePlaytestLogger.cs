@@ -21,7 +21,7 @@ namespace Vantage
         [Tooltip("The one-line playtest overlay (seed, space, keys). Hidden by default; F1 toggles it.")]
         public bool ShowOverlay;
 
-        private static readonly string[] Spaces = { "Military Base", "Level 1 (ground, F1)", "Level 2 (F2, F3)", "Level 3 (F4, F5)", "Level 4 (roof)" };
+        private static readonly string[] Spaces = { "Military Base", "Level 1 (ground floor)", "Level 2 (armory)", "Level 3 (destroyed floor)", "Finale (helipad)" };
         private static readonly float[] Progress = { 0f, 1f, 2f, 3f, 4f };
 
         /// <summary>Name of the space the player is in, or null before the first update (shown by the minimap).</summary>
@@ -41,6 +41,8 @@ namespace Vantage
         private string _folder;
         private string _stamp;
         private bool _written;
+        // Times are measured from this session's start (Time.time keeps running across the reload after a death).
+        private float _startTime;
 
         private void OnEnable()
         {
@@ -49,7 +51,12 @@ namespace Vantage
             VantageEvents.WeaponPickedUp += onPickup;
             VantageEvents.LayoutGenerated += onSeed;
             VantageEvents.LevelCompleted += onComplete;
+            VantageEvents.CoinCollected += onCoin;
+            VantageEvents.AlarmRaised += onAlarm;
         }
+
+        private void onCoin(int collected, int total) => log($"Coin {collected}/{total}");
+        private void onAlarm(string source) => log($"Alarm raised by the {source}");
 
         private void OnDisable()
         {
@@ -58,11 +65,14 @@ namespace Vantage
             VantageEvents.WeaponPickedUp -= onPickup;
             VantageEvents.LayoutGenerated -= onSeed;
             VantageEvents.LevelCompleted -= onComplete;
+            VantageEvents.CoinCollected -= onCoin;
+            VantageEvents.AlarmRaised -= onAlarm;
             write();
         }
 
         private void Start()
         {
+            _startTime = Time.time;
             _stamp = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             _folder = Application.isEditor
                 ? Path.Combine(Path.GetDirectoryName(Application.dataPath), "Playtests")
@@ -98,7 +108,7 @@ namespace Vantage
                 if (Time.time >= _nextTrail)
                 {
                     _nextTrail = Time.time + TrailInterval;
-                    _trail.Append($"{Time.time:F1},{position.x:F2},{position.y:F2},{position.z:F2},{Spaces[space]}\n");
+                    _trail.Append($"{Time.time - _startTime:F1},{position.x:F2},{position.y:F2},{position.z:F2},{Spaces[space]}\n");
                 }
             }
 
@@ -151,7 +161,7 @@ namespace Vantage
 
         private void log(string message)
         {
-            _events.Append($"[{Time.time,7:F1}s] {message}\n");
+            _events.Append($"[{Time.time - _startTime,7:F1}s] {message}\n");
         }
 
         private void write()
@@ -165,7 +175,7 @@ namespace Vantage
                 var report = new StringBuilder();
                 report.Append("VANTAGE playtest  ").Append(_stamp).Append('\n');
                 report.Append("Enemy placement seed: ").Append(_seed >= 0 ? _seed.ToString() : "n/a").Append('\n');
-                report.Append($"Session length: {Time.time:F0}s   Completed: {(_completed ? "yes" : "no")}   Furthest: {furthest()}   Backtracks: {_backtracks}\n\n");
+                report.Append($"Session length: {Time.time - _startTime:F0}s (run {VantageRun.Elapsed:F0}s, deaths {VantageRun.Deaths})  Completed: {(_completed ? "yes" : "no")}   Furthest: {furthest()}   Backtracks: {_backtracks}\n\n");
 
                 report.Append("Time per space\n");
                 for (int i = 0; i < Spaces.Length; i++)

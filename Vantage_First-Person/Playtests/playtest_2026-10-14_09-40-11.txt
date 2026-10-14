@@ -1,0 +1,61 @@
+VANTAGE playtest  2026-10-14_09-40-11
+Enemy placement seed: 44437
+Session length: 39s   Completed: no   Furthest: Level 4 (roof)   Backtracks: 2
+
+Time per space
+  Military Base       3s   deaths 0
+  Level 1 (ground, F1)     24s   deaths 0
+  Level 2 (F2, F3)      8s   deaths 0
+  Level 3 (F4, F5)      1s   deaths 0
+  Level 4 (roof)      3s   deaths 1
+
+Kills
+  Soldier        19
+  Turret         3
+  Drone          3
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 44437
+[    0.0s] Session started
+[    2.1s] Military Base -> Level 1 (ground, F1)
+[    5.4s] Level 1 (ground, F1) -> Military Base
+[    5.4s] BACKTRACK to Military Base (furthest so far: Level 1 (ground, F1))
+[    6.5s] Military Base -> Level 1 (ground, F1)
+[    8.5s] Picked up Pistol
+[   21.0s] Killed Soldier in Level 1 (ground, F1)
+[   21.2s] Killed Turret in Level 1 (ground, F1)
+[   21.2s] Killed Soldier in Level 1 (ground, F1)
+[   21.2s] Killed Soldier in Level 1 (ground, F1)
+[   21.2s] Killed Soldier in Level 1 (ground, F1)
+[   21.2s] Killed Soldier in Level 1 (ground, F1)
+[   21.2s] Killed Soldier in Level 1 (ground, F1)
+[   23.6s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   25.0s] Killed Turret in Level 2 (F2, F3)
+[   25.0s] Killed Turret in Level 2 (F2, F3)
+[   25.0s] Killed Drone in Level 2 (F2, F3)
+[   25.0s] Killed Drone in Level 2 (F2, F3)
+[   25.1s] Killed Soldier in Level 2 (F2, F3)
+[   25.1s] Killed Soldier in Level 2 (F2, F3)
+[   25.1s] Killed Soldier in Level 2 (F2, F3)
+[   25.1s] Killed Soldier in Level 2 (F2, F3)
+[   25.1s] Killed Soldier in Level 2 (F2, F3)
+[   25.5s] Killed Drone in Level 2 (F2, F3)
+[   25.7s] Killed Soldier in Level 2 (F2, F3)
+[   26.0s] Killed Soldier in Level 3 (F4, F5)
+[   26.3s] Killed Soldier in Level 3 (F4, F5)
+[   26.8s] Killed Soldier in Level 3 (F4, F5)
+[   26.8s] Killed Soldier in Level 3 (F4, F5)
+[   26.8s] Killed Soldier in Level 3 (F4, F5)
+[   27.0s] Killed Soldier in Level 4 (roof)
+[   27.0s] Killed Soldier in Level 4 (roof)
+[   27.3s] Level 2 (F2, F3) -> Level 1 (ground, F1)
+[   27.3s] BACKTRACK to Level 1 (ground, F1) (furthest so far: Level 2 (F2, F3))
+[   31.5s] Level 1 (ground, F1) -> Level 2 (F2, F3)
+[   35.3s] Level 2 (F2, F3) -> Level 3 (F4, F5)
+[   36.1s] Level 3 (F4, F5) -> Level 4 (roof)
+[   39.0s] DEATH in Level 4 (roof) at (14.3, 14.2, -71.0) (bot)

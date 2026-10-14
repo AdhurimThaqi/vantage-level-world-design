@@ -6,33 +6,14 @@ namespace Vantage
 {
     /// One per scene. Spawns your prefabs on the Blender markers, hides the marker meshes in Play mode,
     /// tracks which enemies are alive (for "kill X to open the door") and runs the chosen ending.
+    // VANTAGE change: reduced to a bridge. VantageTowerLevels (Assets/Vantage/Scripts) spawns the enemies, tracks
+    // who is dead, alerts patrols and runs the ending (boss, then helicopter); the Vantage setup hides the markers
+    // once in the editor. This keeps the package's API and events for scripts that use them.
     public class VantageLevelManager : MonoBehaviour
     {
         public static VantageLevelManager Instance { get; private set; }
 
-        public enum Ending { A_FloorBreaks, B_BossAppears, C_SceneCloses }
-
-        [Header("Prefabs (leave empty to playtest the layout without enemies)")]
-        public GameObject enemyPrefab;
-        public GameObject turretPrefab;
-        public GameObject heavyRobotPrefab;
-        public GameObject bossPrefab;
-        [Tooltip("Blender enemy markers face along their local -Z after import. Untick if your spawned enemies face backwards.")]
-        public bool flipMarkerFacing = true;
-
-        [Header("Markers")]
-        public bool hideMarkersInPlay = true;
-
-        [Header("Ending (pick one, triggered on the helipad)")]
-        public Ending ending = Ending.C_SceneCloses;
-        public float floorBreakDelay = 1.5f;
-        public UnityEvent onAlarm, onEndingA, onEndingB, onEndingC;
-
-        readonly Dictionary<string, GameObject> spawned = new Dictionary<string, GameObject>();
-        bool endingFired, showWin;
-
-        static readonly HashSet<string> markerTypes = new HashSet<string>
-        { "EnemySpawn", "Turret", "HeavyEnemy", "Objective", "Exit", "PatrolPath", "Trigger", "SecurityCamera" };
+        public UnityEvent onAlarm;
 
         void Awake()
         {
@@ -40,82 +21,19 @@ namespace Vantage
             VantageInventory.Clear();
         }
 
-        void Start()
-        {
-            foreach (var tag in FindObjectsByType<VantageTag>(FindObjectsSortMode.None))
-            {
-                string mt = tag.MarkerType;
-                GameObject prefab = null;
-                bool flip = flipMarkerFacing;
-                if (mt == "EnemySpawn") prefab = enemyPrefab;
-                else if (mt == "Turret") prefab = turretPrefab;
-                else if (mt == "HeavyEnemy") { prefab = heavyRobotPrefab; flip = false; }
+        void OnEnable() => VantageEvents.AlarmRaised += alarm;
+        void OnDisable() => VantageEvents.AlarmRaised -= alarm;
+        void OnDestroy() { if (Instance == this) Instance = null; }
 
-                if (prefab)
-                {
-                    Vector3 fwd = flip ? -tag.transform.forward : tag.transform.forward;
-                    fwd.y = 0;
-                    var rot = fwd.sqrMagnitude > 0.001f ? Quaternion.LookRotation(fwd, Vector3.up) : Quaternion.identity;
-                    var g = Instantiate(prefab, tag.transform.position, rot);
-                    g.name = tag.name;
-                    spawned[tag.name] = g;
-                }
-
-                bool isMarker = markerTypes.Contains(mt) || (mt == "EndingOption" && tag.GetComponent<VantageBreakable>() == null);
-                if (hideMarkersInPlay && isMarker)
-                    foreach (var r in tag.GetComponentsInChildren<Renderer>()) r.enabled = false;
-            }
-        }
+        void alarm(string source) => onAlarm.Invoke();
 
         /// name, or prefix ending with * (e.g. "MK_Enemy_*")
-        public bool IsAlive(string nameOrPrefix)
-        {
-            bool prefix = nameOrPrefix.EndsWith("*");
-            string key = prefix ? nameOrPrefix.TrimEnd('*') : nameOrPrefix;
-            foreach (var kv in spawned)
-            {
-                bool match = prefix ? kv.Key.StartsWith(key) : kv.Key == key;
-                if (match && kv.Value != null && kv.Value.activeInHierarchy) return true;
-            }
-            return false;
-        }
+        public bool IsAlive(string nameOrPrefix) =>
+            VantageTowerLevels.Instance != null && !VantageTowerLevels.Instance.KillListDone(new[] { nameOrPrefix });
 
-        public void Alert(IEnumerable<string> names)
-        {
-            foreach (var n in names)
-                if (spawned.TryGetValue(n.Trim(), out var g) && g)
-                    g.SendMessage("OnAlert", SendMessageOptions.DontRequireReceiver);
-        }
+        public void Alert(IEnumerable<string> names) { if (VantageTowerLevels.Instance) VantageTowerLevels.Instance.Alert(names); }
 
-        public void ReachHelipad()
-        {
-            if (endingFired) return;
-            endingFired = true;
-            switch (ending)
-            {
-                case Ending.A_FloorBreaks:
-                    var floor = FindAnyObjectByType<VantageBreakable>();
-                    if (floor) floor.Invoke(nameof(VantageBreakable.Break), floorBreakDelay);
-                    onEndingA.Invoke();
-                    break;
-                case Ending.B_BossAppears:
-                    var boss = GameObject.Find("FINAL_MK_Boss_EndingB");
-                    if (bossPrefab && boss) Instantiate(bossPrefab, boss.transform.position, Quaternion.LookRotation(-boss.transform.forward));
-                    onEndingB.Invoke();
-                    break;
-                default:
-                    if (onEndingC.GetPersistentEventCount() == 0) showWin = true;
-                    onEndingC.Invoke();
-                    break;
-            }
-        }
-
-        void OnGUI()
-        {
-            if (!showWin) return;
-            var s = new GUIStyle(GUI.skin.label) { fontSize = 48, alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
-            GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "MISSION COMPLETE", s);
-        }
+        public void ReachHelipad() { if (VantageTowerLevels.Instance) VantageTowerLevels.Instance.ReachHelipad(); }
     }
 
     public static class VantageInventory

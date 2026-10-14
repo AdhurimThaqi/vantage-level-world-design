@@ -7,7 +7,7 @@ namespace Vantage
     /// A locked security shutter on a stair flight (inner stairs or fire escape). While locked, an invisible box over
     /// the whole flight blocks the player and a carving NavMeshObstacle keeps soldiers on their level; the shutter
     /// panel at the bottom glows red. Open() lifts the panel, turns it green and clears both.
-    /// Placed by Vantage → Tower → Set Up Command Tower; opened by VantageTowerLevels when a level is cleared.
+    /// Placed by Vantage → Tower → Set Up Tower (the ground floor stairs); opened by VantageTowerLevels when a level is cleared.
     /// </summary>
     public class VantageFloorGate : MonoBehaviour
     {

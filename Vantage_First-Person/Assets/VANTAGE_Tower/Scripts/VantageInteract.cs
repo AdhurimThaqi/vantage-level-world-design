@@ -1,10 +1,12 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Vantage
 {
     /// Console / key slot / terminal / switch: press E nearby to unlock a door.
+    // VANTAGE change: no OnGUI (it ran on every console every frame); the "[E]" prompt and messages go to the HUD
+    // through VantageEvents; the player comes from VantageEvents.ActivePlayer(); the shutter switch stays dead
+    // while the shutter is in lockdown (its kill list is still alive).
     public class VantageInteract : MonoBehaviour
     {
         public string unlocksDoor;
@@ -13,41 +15,56 @@ namespace Vantage
         public float radius = 2.0f;
         public UnityEvent onUsed;
 
-        Transform player;
         bool used, inRange;
-        string message;
-        float messageUntil;
+
+        public bool Used => used;
+
+        void OnDisable()
+        {
+            if (inRange) VantageEvents.ClearPrompt(this);
+            inRange = false;
+        }
 
         void Update()
         {
-            if (player == null)
+            var player = VantageEvents.ActivePlayer();
+            var now = false;
+            if (!used && player != null)
             {
-                var p = GameObject.FindGameObjectWithTag("Player");
-                if (!p) return;
-                player = p.transform;
+                Vector3 d = player.transform.position - transform.position;
+                now = new Vector2(d.x, d.z).sqrMagnitude < radius * radius && Mathf.Abs(d.y) < 2f;
             }
-            inRange = !used && Vector3.Distance(player.position, transform.position) < radius;
-            if (!inRange || !VantageInput.UsePressed()) return;
+            if (now != inRange)
+            {
+                inRange = now;
+                if (now) VantageEvents.SetPrompt(this, string.IsNullOrEmpty(requiresItem) ? "Use" : "Insert the " + requiresItem);
+                else VantageEvents.ClearPrompt(this);
+            }
+            if (inRange && VantageInput.UsePressed()) TryUse();
+        }
 
+        /// <summary>The player pressed E in range (also called by the autoplay bot). True if it was used.</summary>
+        public bool TryUse()
+        {
+            if (used) return false;
             if (!VantageInventory.Has(requiresItem))
             {
-                message = "You need the " + requiresItem;
-                messageUntil = Time.time + 2f;
-                return;
+                VantageEvents.RaiseMessage("You need the " + requiresItem);
+                return false;
             }
             var door = VantageDoor.Find(unlocksDoor);
+            if (opensShutter && door != null && door.HasKillList && door.ShutterClosed)
+            {
+                VantageEvents.RaiseMessage("Lockdown: clear the floor first");
+                return false;
+            }
             if (opensShutter && door) door.OpenShutter();
             else if (door) door.Unlock();
             used = true;
+            inRange = false;
+            VantageEvents.ClearPrompt(this);
             onUsed.Invoke();
-        }
-
-        void OnGUI()
-        {
-            var s = new GUIStyle(GUI.skin.label) { fontSize = 22, alignment = TextAnchor.MiddleCenter };
-            Rect r = new Rect(0, Screen.height * 0.62f, Screen.width, 40);
-            if (Time.time < messageUntil) GUI.Label(r, message, s);
-            else if (inRange) GUI.Label(r, "[E] Use", s);
+            return true;
         }
     }
 }

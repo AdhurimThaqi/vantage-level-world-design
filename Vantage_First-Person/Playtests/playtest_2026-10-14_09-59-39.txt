@@ -1,0 +1,69 @@
+VANTAGE playtest  2026-10-14_09-59-39
+Enemy placement seed: 12468
+Session length: 55s (run 56s, deaths 1)  Completed: yes   Furthest: Finale (helipad)   Backtracks: 2
+
+Time per space
+  Military Base       3s   deaths 0
+  Level 1 (ground floor)     24s   deaths 0
+  Level 2 (armory)     13s   deaths 0
+  Level 3 (destroyed floor)      1s   deaths 0
+  Finale (helipad)     13s   deaths 1
+
+Kills
+  Soldier        19
+  Turret         3
+  Drone          3
+  Heavy robot    1
+  Boss           1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 12468
+[    0.0s] Session started
+[    2.1s] Military Base -> Level 1 (ground floor)
+[    4.0s] Alarm raised by the camera
+[    5.4s] Level 1 (ground floor) -> Military Base
+[    5.4s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[    6.5s] Military Base -> Level 1 (ground floor)
+[    7.3s] Alarm raised by the trigger
+[    8.5s] Picked up Pistol
+[   19.6s] Killed Soldier in Level 1 (ground floor)
+[   21.0s] Killed Soldier in Level 1 (ground floor)
+[   21.2s] Killed Turret in Level 1 (ground floor)
+[   21.2s] Killed Soldier in Level 1 (ground floor)
+[   21.2s] Killed Soldier in Level 1 (ground floor)
+[   21.2s] Killed Soldier in Level 1 (ground floor)
+[   21.2s] Killed Soldier in Level 1 (ground floor)
+[   23.6s] Level 1 (ground floor) -> Level 2 (armory)
+[   25.0s] Killed Turret in Level 2 (armory)
+[   25.0s] Killed Turret in Level 2 (armory)
+[   25.0s] Killed Drone in Level 2 (armory)
+[   25.0s] Killed Drone in Level 2 (armory)
+[   25.1s] Killed Soldier in Level 2 (armory)
+[   25.1s] Killed Soldier in Level 2 (armory)
+[   25.1s] Killed Soldier in Level 2 (armory)
+[   25.1s] Killed Soldier in Level 2 (armory)
+[   25.1s] Killed Soldier in Level 2 (armory)
+[   30.0s] Killed Drone in Level 2 (armory)
+[   30.2s] Killed Soldier in Level 2 (armory)
+[   30.5s] Killed Soldier in Level 3 (destroyed floor)
+[   30.8s] Killed Soldier in Level 3 (destroyed floor)
+[   32.2s] Killed Heavy robot in Level 3 (destroyed floor)
+[   32.4s] Killed Soldier in Level 3 (destroyed floor)
+[   32.4s] Killed Soldier in Level 3 (destroyed floor)
+[   32.4s] Killed Soldier in Level 3 (destroyed floor)
+[   32.6s] Killed Soldier in Finale (helipad)
+[   32.6s] Killed Soldier in Finale (helipad)
+[   32.9s] Level 2 (armory) -> Level 1 (ground floor)
+[   32.9s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[   37.2s] Level 1 (ground floor) -> Level 2 (armory)
+[   40.9s] Level 2 (armory) -> Level 3 (destroyed floor)
+[   41.8s] Level 3 (destroyed floor) -> Finale (helipad)
+[   45.7s] Killed Boss in Military Base
+[   54.3s] LEVEL COMPLETE
+[   54.3s] Coin 1/5
+[   54.3s] DEATH in Finale (helipad) at (20.7, 14.5, -62.5) (bot)

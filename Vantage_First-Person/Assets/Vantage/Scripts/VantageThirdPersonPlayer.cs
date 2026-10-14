@@ -76,15 +76,7 @@ namespace Vantage
             }
         }
 
-        private void restart()
-        {
-            var scene = SceneManager.GetActiveScene();
-#if UNITY_EDITOR
-            UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scene.path, new LoadSceneParameters(LoadSceneMode.Single));
-#else
-            SceneManager.LoadScene(scene.buildIndex);
-#endif
-        }
+        private void restart() => VantageRun.ReloadLevel();
 
         /// <summary>
         /// True once the player has died and the restart is pending. The damage flash and death screen are drawn by VantagePlayerHUD.

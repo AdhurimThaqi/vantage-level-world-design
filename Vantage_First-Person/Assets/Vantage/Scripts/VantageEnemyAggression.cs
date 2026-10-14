@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CoverShooter;
 using UnityEngine;
 
@@ -6,7 +7,8 @@ namespace Vantage
     /// <summary>
     /// The soldier's decision, twice a second:
     ///   player visible  → attack (the template's FighterBrain then fights, follows and searches on its own);
-    ///   level hunting   → run to the player along the NavMesh (the last enemies come to the player);
+    ///   alerted or level hunting → run to the player along the NavMesh (alarm, patrol alert, the last enemies);
+    ///   patrol route    → walk it back and forth (the L3 outside patrols);
     ///   otherwise       → keep guarding.
     /// It also turns down the template's urge to retreat, so soldiers hold their floor instead of running off.
     /// </summary>
@@ -22,7 +24,14 @@ namespace Vantage
         [Tooltip("Seconds between decisions.")]
         public float ThinkInterval = 0.5f;
 
+        [Tooltip("Set by the level brain: this soldier comes for the player (alarm, alert trigger).")]
+        public bool Alerted;
+        [Tooltip("Walked back and forth while nothing is happening (world points).")]
+        public List<Vector3> PatrolPoints;
+
         private const float ReorderInterval = 3f;
+        private const float PatrolReach = 1.2f;
+        private int _patrolIndex, _patrolStep = 1;
 
         private FighterBrain _brain;
         private BaseActor _actor;
@@ -67,8 +76,28 @@ namespace Vantage
 
             if (canSee(player))
                 attack(player);
-            else if (VantageTowerLevels.Instance != null && VantageTowerLevels.Instance.Hunting)
+            else if (VantageTowerLevels.Instance != null && VantageTowerLevels.Instance.PlayerOnCurrentLevel
+                     && (Alerted || VantageTowerLevels.Instance.Hunting))
                 hunt(player);
+            else if (PatrolPoints != null && PatrolPoints.Count > 1)
+                patrol();
+        }
+
+        /// <summary>Walks the route back and forth; the next point is ordered on arrival or every few seconds.</summary>
+        private void patrol()
+        {
+            var to = PatrolPoints[_patrolIndex] - transform.position;
+            to.y = 0;
+            var arrived = to.sqrMagnitude < PatrolReach * PatrolReach;
+            if (arrived)
+            {
+                if (_patrolIndex + _patrolStep < 0 || _patrolIndex + _patrolStep >= PatrolPoints.Count) _patrolStep = -_patrolStep;
+                _patrolIndex += _patrolStep;
+            }
+            if (!arrived && Time.time - _lastOrder < ReorderInterval)
+                return;
+            _lastOrder = Time.time;
+            _brain.ToWalkTo(PatrolPoints[_patrolIndex]);
         }
 
         private bool canSee(BaseActor player)

@@ -2,7 +2,7 @@
 
 Oct 4, 2026 · @Adhurim Thaqi
 
-Module I.BA\_LWD · HS26 · solo project · Unity 6 (URP), third person · revised Oct 6, 2026
+Module I.BA\_LWD · HS26 · solo project · Unity 6 (URP), third person · revised Oct 14, 2026 (current level: see *The current level*)
 
 ## Premise
 
@@ -174,6 +174,43 @@ The project is solo, which the assessment criteria allow, and scoped so that a b
 
 One gap is worth naming. The module lists working together to create levels as a social skill, and this is a solo project. I intend to cover it by documenting peer playtesting properly — who tested, what they said, what changed as a result — which also serves the testing requirement.
 
+## The current level: three floors and the helipad (from Oct 14, 2026)
+
+The tower is now my second Blender tower (`Assets/VANTAGE_Tower`): three floors and a helipad on a broken balcony beside the top floor. Where the sections above describe earlier iterations (the watchtower climb, the six-storey command tower), this section is the current design.
+
+| Level | Space | Engagement | What the level asks | Gate to the next |
+| --- | --- | --- | --- | --- |
+| 1 · Ground floor | Entrance, checkpoint, rooms A–C, guard hall, turret hallway, West Wing | Close and mid, around corners | Survive a lockdown: the alarm drops the shutter in front of the stairs and every enemy hunts you; the way round is A → B → C → console → West Wing → turret hallway | All enemies dead: shutter up, alarm off, stairs open |
+| 2 · Armory | A long hall with barricades, the Armory, the Office | Mid range across the hall, drones overhead | Find the rifle and the key while under fire | Key in the slot by the stairwell gate, and the floor clear |
+| 3 · Destroyed floor | Barracks, comms, hall, a blown-out open area and a broken slab outside | Mixed: rooms, then exposed outside ground | Open the robot room (terminal), break the patrol door (kill both outside patrols), destroy the heavy robot with the rifle | Everyone dead: exit to the outside stairs |
+| Finale · Helipad | Outside stairs, platform, pad | Open, no walls | Clear the platform, then the boss | The boss dies: extraction |
+
+**Space, event, emotion.**
+
+| Space | Event | Emotion |
+| --- | --- | --- |
+| Approach | Pistol by the door, the tower quiet | Curiosity |
+| Entrance | The shutter slams, siren, red light | Shock |
+| Rooms A–C, hallway | Hunted round a loop, console, one-way door | Tension, then control |
+| Hall (L2) | A fight across barricades, drones above | Pressure |
+| Armory and Office | Rifle, key (it glows and floats on the desk) | Reward, purpose |
+| Key slot | The key turns, the lamp goes green | Relief |
+| Destroyed floor | Daylight through the breach, patrols outside, the robot behind a locked door | Awe, then dread |
+| Helipad | Wind and open sky, the boss | Climax |
+| Extraction | The helicopter comes in over the valley | Release |
+
+**Pacing.** Trap (sudden high) → regained control → building pressure → a puzzle under fire → a set piece (the robot) → the climax (boss) → release (helicopter). The finale chose *boss, then helicopter* over the other two candidates: a floor that breaks away opens a new space with nothing after it, and a helicopter alone ends without a peak. The boss is the peak the curve has been building to; the helicopter is the release after it.
+
+**Gating as level design.** Every gate is a different kind of lock, so every level teaches one new thing: a lockdown (kill everything), a key (find and bring), a terminal and a kill-door (two conditions in one space), a weapon check (the robot ignores the pistol). The rules live in the Blender file as properties on the objects, so the layout and its rules are designed in one place.
+
+**Optional paths.** Five coins sit off the critical path, one or two per level, each in a space the main route doesn't need: a dead end, the far end of an office, a corner of the hall, the patrolled broken slab, the far edge of the pad. They reward looking around, and the end screen counts them with two other achievements (no deaths, under 15 minutes).
+
+**Guidance.** A security camera sweeps Room A with a visible light cone: the player can shoot it before it sees them, a choice before the trap. The key glows; consoles show "[E]"; the HUD names the goal of the moment (find a weapon, clear the floor, reach the helipad, destroy the machine). Doors open for soldiers too, so enemies follow the player through the floor.
+
+**Procedural part.** Soldier positions are drawn per play from the level's authored markers with a seed, spread over rooms first; the counts, gates and pacing stay authored.
+
+**Still to do in this tower.** Story props and per-space mood volumes; my own models for the robot, the boss and the helicopter (placeholders now); a peer-playtest round on the new layout.
+
 ## Revisions
 
 | Date | Change | Why |
@@ -193,6 +230,7 @@ One gap is worth naming. The module lists working together to create levels as a
 | Oct 7, 2026 | The industrial yard (a bought asset pack) is gone. The level is now my own Blender military base, with the tower on a plot in its middle; the tower and compound props and textures come from the same set. A minimap shows the player's position, the tower and nearby enemies. | One coherent world made by me instead of a mix of packs. The base gives the climb a context (the watchtower over the base), and the minimap keeps orientation in the larger playground. |
 | Oct 7, 2026 | The surrounding world is playable: a breach in the compound's north wall leads out, the terrain joins the yard without ledges, the base has cover and is in the NavMesh, and invisible walls mark the world's edge. | The new environment is meant to be the playground, not only a view. The breach also tells the story: this is where the position was overrun. |
 | Oct 8, 2026 | The player is now my own character (an Avaturn avatar of myself) instead of the template cowboy, swapped by a tool that keeps the template's guns, holsters and hit boxes. The HUD text moved to TextMesh Pro. Two playtest-bot findings fixed: a knee-high rail still blocked the fire-escape entrance, and the last enemies of a level no longer leave it to chase a player who is elsewhere. | My own character makes the level mine; the rail broke the fire escape as an alternative route, and enemies leaving their level broke the kill-to-unlock rule. |
+| Oct 14, 2026 | A new tower of my own (Blender) replaces the six-storey command tower: three floors and a helipad finale instead of four storey pairs. Each level has its own kind of gate: a lockdown with an alarm trap on the ground floor (also set off by a security camera, which can be shot), a key and key slot on level 2, a terminal, a patrol kill-door and a rifle-only heavy robot on level 3, and a boss on the helipad followed by a helicopter extraction. Five coins reward exploring off the critical path, with an end screen and three achievements. Dying restarts the current level instead of the whole tower. | The lecturer's feedback asked for more focus on the level and world design (the details still have to be written down here). In the old tower the storey pairs played alike and "kill everything" was the only goal; the new tower gives every level a distinct space and a distinct task, and a pacing curve with a climax and a release. The checkpoint keeps the harder later levels fair. |
 
 ## Open questions
 

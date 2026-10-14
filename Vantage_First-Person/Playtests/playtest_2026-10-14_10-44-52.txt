@@ -1,0 +1,41 @@
+VANTAGE playtest  2026-10-14_10-44-52
+Enemy placement seed: 27000
+Session length: 66s (run 148s, deaths 4)  Completed: no   Furthest: Level 1 (ground floor)   Backtracks: 5
+
+Time per space
+  Military Base      30s   deaths 0
+  Level 1 (ground floor)     33s   deaths 1
+  Level 2 (armory)      0s   deaths 0
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Session started
+[    0.0s] Enemy placement seed 27000
+[    4.3s] Military Base -> Level 1 (ground floor)
+[    5.1s] Level 1 (ground floor) -> Military Base
+[    5.1s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   16.1s] Military Base -> Level 1 (ground floor)
+[   18.1s] Picked up Pistol
+[   19.1s] Level 1 (ground floor) -> Military Base
+[   19.1s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   21.3s] Military Base -> Level 1 (ground floor)
+[   31.6s] Level 1 (ground floor) -> Military Base
+[   31.6s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   34.0s] Military Base -> Level 1 (ground floor)
+[   37.5s] Level 1 (ground floor) -> Military Base
+[   37.5s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   37.6s] Military Base -> Level 1 (ground floor)
+[   38.6s] Level 1 (ground floor) -> Military Base
+[   38.6s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   48.7s] Military Base -> Level 1 (ground floor)
+[   49.4s] Alarm raised by the trigger
+[   61.0s] Coin 1/5
+[   63.1s] DEATH in Level 1 (ground floor) at (-8.7, 4.1, -58.2) (health reached zero)

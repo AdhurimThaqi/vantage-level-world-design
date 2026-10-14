@@ -84,10 +84,10 @@ namespace Vantage
         private void place(Vector3 pos)
         {
             var levels = VantageTowerLevels.Instance;
-            var storey = levels == null || levels.LevelAt(pos) < 0 ? -1 : levels.StoreyAt(levels.Tower.InverseTransformPoint(pos).y);
-            if (storey == _shownPlace) return;
-            _shownPlace = storey;
-            _place.text = VantageUI.Caps(storey < 0 ? "Military base" : "Tower · " + levels.StoreyName(storey));
+            var level = levels == null ? -1 : levels.LevelAt(pos);
+            if (level == _shownPlace) return;
+            _shownPlace = level;
+            _place.text = VantageUI.Caps(level < 0 ? "Military base" : "Tower · " + levels.LevelName(level));
         }
 
         /// <summary>World offset → minimap pixels, clamped to the frame edge. 'inside' is false when clamped.</summary>
@@ -107,7 +107,7 @@ namespace Vantage
             // While the level's last enemies hunt the player, they are shown at any distance (pinned to the edge).
             var levels = VantageTowerLevels.Instance;
             var showAll = levels != null && levels.Hunting;
-            _otherFloor = levels != null ? levels.StoreyHeight * 0.75f : 3f;
+            _otherFloor = levels != null ? levels.FloorSpacing * 0.75f : 3f;
             var shown = 0;
             for (int i = 0; i < VantageDrone.All.Count; i++)
             {

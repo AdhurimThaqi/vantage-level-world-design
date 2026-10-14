@@ -67,6 +67,17 @@ namespace Vantage
             return made;
         }
 
+        /// <summary>Covers around a world-aligned box (e.g. one piece of a combined prop mesh).</summary>
+        public static int AddForBounds(string name, Bounds bounds, Transform container)
+        {
+            var made = 0;
+            made += face(name, bounds, Vector3.right, bounds.size.z, container);
+            made += face(name, bounds, Vector3.left, bounds.size.z, container);
+            made += face(name, bounds, Vector3.forward, bounds.size.x, container);
+            made += face(name, bounds, Vector3.back, bounds.size.x, container);
+            return made;
+        }
+
         private static int face(string name, Bounds bounds, Vector3 normal, float width, Transform container) =>
             face(name, bounds, normal, width, container, Quaternion.identity);
 

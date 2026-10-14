@@ -12,8 +12,12 @@ namespace Vantage
     ///   health regenerates);
     /// - bottom-right: weapon, loaded rounds and reserve;
     /// - top-centre: level, its name and one pip per enemy on the level (dark when killed);
-    /// - centre: the aimed-at enemy's health, a kill marker, pickup notices and a level-cleared banner;
-    /// - full screen: damage flash, low-health vignette and the death screen.
+    /// - centre: the aimed-at enemy's health, a kill marker, pickup notices and messages, a level-cleared banner and
+    ///   the "[E]" prompt of whatever console the player stands at;
+    /// - top-centre under the level: the goal of the moment (find a weapon, lockdown, reach the helipad …) and the
+    ///   coins found, once there is one;
+    /// - full screen: damage flash, low-health vignette, the death screen and the end screen (time, deaths, coins,
+    ///   achievements).
     /// </summary>
     public class VantagePlayerHUD : MonoBehaviour
     {
@@ -29,7 +33,11 @@ namespace Vantage
         private RectTransform _canvas, _hud;
 
         private TMP_Text _hp, _ammo, _reserve, _weapon, _levelNumber, _levelName, _hint, _notice, _bannerTitle, _bannerSub, _death, _deathSub;
-        private Image _hpFill, _hpTrail, _regenCap, _targetFill, _targetTrail, _flash, _vignette, _deathBackground;
+        private TMP_Text _prompt, _coins, _endTitle, _endStats, _endAgain;
+        private Image _hpFill, _hpTrail, _regenCap, _targetFill, _targetTrail, _flash, _vignette, _deathBackground, _endBackground;
+        private string _shownPrompt, _shownHint;
+        private int _shownCoins = -1;
+        private float _wonAt = -1f;
         private RectTransform _kill, _target;
         private readonly Image[] _pips = new Image[MaxPips];
 
@@ -57,12 +65,18 @@ namespace Vantage
         {
             VantageEvents.EnemyKilled += onEnemyKilled;
             VantageEvents.WeaponPickedUp += onWeaponPickedUp;
+            VantageEvents.Message += onMessage;
+            VantageEvents.CoinCollected += onCoin;
+            VantageEvents.GameWon += onWon;
         }
 
         private void OnDisable()
         {
             VantageEvents.EnemyKilled -= onEnemyKilled;
             VantageEvents.WeaponPickedUp -= onWeaponPickedUp;
+            VantageEvents.Message -= onMessage;
+            VantageEvents.CoinCollected -= onCoin;
+            VantageEvents.GameWon -= onWon;
             if (_levels != null) _levels.LevelCleared -= onLevelCleared;
         }
 
@@ -78,10 +92,31 @@ namespace Vantage
 
         private void onEnemyKilled(string enemy, Vector3 position) => _killAt = Time.time;
 
-        private void onWeaponPickedUp(string weapon)
+        private void onWeaponPickedUp(string weapon) => notice("+ " + weapon);
+
+        private void onMessage(string text) => notice(text);
+
+        private void onCoin(int collected, int total) => notice("+ Coin");
+
+        private void notice(string text)
         {
-            _notice.text = VantageUI.Caps("+ " + weapon);
+            _notice.text = VantageUI.Caps(text);
             _noticeUntil = Time.time + 2.2f;
+        }
+
+        /// <summary>The end screen: the run's time, deaths, coins and the three achievements (built once).</summary>
+        private void onWon()
+        {
+            _wonAt = Time.time;
+            var total = VantageCoin.Total;
+            var coins = VantageRun.Coins.Count;
+            var time = VantageRun.Elapsed;
+            string mark(bool got) => got ? "EARNED" : "—";
+            _endStats.text = VantageUI.Caps(
+                $"Time {(int)(time / 60)}:{(int)(time % 60):00}     Deaths {VantageRun.Deaths}     Coins {coins} / {total}\n\n" +
+                $"All coins  {mark(total > 0 && coins >= total)}\n" +
+                $"No deaths  {mark(VantageRun.Deaths == 0)}\n" +
+                $"Under 15 minutes  {mark(time < 900f)}");
         }
 
         /// <summary>"LEVEL 1 CLEAR · RIFLE UNLOCKED · STAIRS OPEN" → title "LEVEL 1 CLEAR", subtitle the rest.</summary>
@@ -102,16 +137,45 @@ namespace Vantage
         private void LateUpdate()
         {
             var dead = (_player != null && _player.IsDead) || (_motor != null && !_motor.IsAlive);
-            _hud.gameObject.SetActive(!dead);
-            if (!dead)
+            var won = _wonAt >= 0;
+            _hud.gameObject.SetActive(!dead && !won);
+            if (!dead && !won)
             {
                 updateHealth();
                 updateWeapon();
                 updateLevel();
                 updateTarget();
                 updateCentre();
+                updatePromptAndCoins();
             }
             updateOverlays(dead);
+            updateEnd();
+        }
+
+        /// <summary>"[E] Insert the Key" while the player stands at a console; the coin count once one is found.</summary>
+        private void updatePromptAndCoins()
+        {
+            var prompt = VantageEvents.Prompt;
+            if (!ReferenceEquals(prompt, _shownPrompt))
+            {
+                _shownPrompt = prompt;
+                _prompt.text = prompt == null ? "" : VantageUI.Caps("[E]  " + prompt);
+            }
+            var coins = VantageRun.Coins.Count;
+            if (coins != _shownCoins)
+            {
+                _shownCoins = coins;
+                _coins.text = coins == 0 ? "" : VantageUI.Caps($"Coins {coins} / {VantageCoin.Total}");
+            }
+        }
+
+        private void updateEnd()
+        {
+            var a = _wonAt < 0 ? 0f : Mathf.Clamp01((Time.time - _wonAt) / 1.2f);
+            _endBackground.color = new Color(0, 0, 0, 0.8f * a);
+            _endTitle.color = new Color(1, 1, 1, a);
+            _endStats.color = new Color(Accent.r, Accent.g, Accent.b, a);
+            _endAgain.color = new Color(1, 1, 1, 0.6f * a * (0.6f + 0.4f * Mathf.Sin(Time.time * 3f)));
         }
 
         private void updateHealth()
@@ -192,10 +256,21 @@ namespace Vantage
                 if (_levels != null) _levels.LevelCleared += onLevelCleared;
             }
 
+            // The goal of the moment, most urgent first (strings are constants: nothing is built per frame).
             var unarmed = _motor != null && !_motor.IsEquipped;
-            _hint.text = unarmed ? "FIND A WEAPON"
-                       : levels != null && levels.Hunting ? "THE LAST HOSTILES ARE COMING FOR YOU"
-                       : "";
+            var alarm = VantageAlarm.Instance != null && VantageAlarm.Instance.Active;
+            var hint = unarmed ? "FIND A WEAPON"
+                     : alarm ? "LOCKDOWN  ·  CLEAR THE FLOOR"
+                     : levels != null && levels.BossSpawned && !levels.BossDead ? "DESTROY THE MACHINE"
+                     : levels != null && levels.AwaitingHelipad ? "REACH THE HELIPAD"
+                     : levels != null && levels.Hunting ? "THE LAST HOSTILES ARE COMING FOR YOU"
+                     : "";
+            if (!ReferenceEquals(hint, _shownHint))
+            {
+                _shownHint = hint;
+                _hint.text = hint;
+                _hint.color = alarm && !unarmed ? Danger : Accent;
+            }
 
             if (levels == null || levels.Current < 0)
             {
@@ -214,7 +289,9 @@ namespace Vantage
                 }
                 else
                 {
-                    _levelNumber.text = VantageUI.Caps($"Level {levels.Current + 1} / {levels.Levels.Count}");
+                    // Three levels, then the helipad finale.
+                    var last = levels.Levels.Count - 1;
+                    _levelNumber.text = VantageUI.Caps(levels.Current < last ? $"Level {levels.Current + 1} / {last}" : "Finale");
                     _levelName.text = VantageUI.Caps(levels.CurrentName);
                 }
             }
@@ -349,8 +426,10 @@ namespace Vantage
                 _pips[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
                 _pips[i].rectTransform.localEulerAngles = new Vector3(0, 0, 45);
             }
-            _hint = VantageUI.Text(_hud, "Hint", 24, TextAlignmentOptions.Top, tc, new Vector2(0, -144), new Vector2(600, 30));
+            _hint = VantageUI.Text(_hud, "Hint", 24, TextAlignmentOptions.Top, tc, new Vector2(0, -144), new Vector2(900, 30));
             _hint.color = Accent;
+            _coins = VantageUI.Text(_hud, "Coins", 22, TextAlignmentOptions.Top, tc, new Vector2(0, -176), new Vector2(600, 28));
+            _coins.color = new Color(1f, 0.82f, 0.35f);
 
             // Centre.
             var c = new Vector2(0.5f, 0.5f);
@@ -364,6 +443,7 @@ namespace Vantage
             _bannerTitle = VantageUI.Text(_hud, "Banner", 72, TextAlignmentOptions.Center, new Vector2(0.5f, 0.7f), Vector2.zero, new Vector2(1400, 90));
             _bannerSub = VantageUI.Text(_hud, "Banner Detail", 28, TextAlignmentOptions.Center, new Vector2(0.5f, 0.7f), new Vector2(0, -62), new Vector2(1400, 40));
             _bannerTitle.color = _bannerSub.color = Color.clear;
+            _prompt = VantageUI.Text(_hud, "Prompt", 30, TextAlignmentOptions.Center, new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(900, 40));
 
             // Death screen.
             _deathBackground = VantageUI.Image(VantageUI.Stretch("Death Background", _canvas), Color.clear);
@@ -372,6 +452,15 @@ namespace Vantage
             _deathSub = VantageUI.Text(_canvas, "Death Detail", 30, TextAlignmentOptions.Center, new Vector2(0.5f, 0.55f), new Vector2(0, -96), new Vector2(1400, 40));
             _deathSub.text = "RESTARTING";
             _death.color = _deathSub.color = Color.clear;
+
+            // End screen.
+            _endBackground = VantageUI.Image(VantageUI.Stretch("End Background", _canvas), Color.clear);
+            _endTitle = VantageUI.Text(_canvas, "End Title", 110, TextAlignmentOptions.Center, new Vector2(0.5f, 0.72f), Vector2.zero, new Vector2(1600, 130));
+            _endTitle.text = VantageUI.Caps("The tower is silent");
+            _endStats = VantageUI.Text(_canvas, "End Stats", 34, TextAlignmentOptions.Top, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1400, 260));
+            _endAgain = VantageUI.Text(_canvas, "End Again", 26, TextAlignmentOptions.Center, new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(1000, 40));
+            _endAgain.text = VantageUI.Caps("Press Enter to play again");
+            _endTitle.color = _endStats.color = _endAgain.color = Color.clear;
         }
 
         #endregion

@@ -1,0 +1,62 @@
+time,x,y,z,space
+0.0,0.99,4.10,-87.95,Military Base
+1.0,0.99,4.05,-87.95,Military Base
+2.0,0.99,4.05,-87.95,Military Base
+3.0,8.53,4.05,-75.83,Level 1 (ground floor)
+4.1,8.53,4.07,-75.83,Level 1 (ground floor)
+5.4,0.99,4.08,-87.95,Military Base
+6.4,0.99,4.05,-84.19,Military Base
+7.4,0.99,4.06,-78.48,Level 1 (ground floor)
+8.4,0.99,4.05,-75.23,Level 1 (ground floor)
+9.4,7.72,4.05,-98.15,Military Base
+10.4,7.67,4.05,-98.10,Military Base
+11.4,7.67,4.05,-98.10,Military Base
+12.4,7.67,4.05,-98.10,Military Base
+13.4,7.67,4.05,-98.10,Military Base
+14.4,7.71,4.05,-98.18,Military Base
+15.4,2.83,4.06,-67.12,Level 1 (ground floor)
+16.4,2.83,4.06,-67.12,Level 1 (ground floor)
+17.5,2.83,4.05,-67.12,Level 1 (ground floor)
+18.5,2.83,4.06,-67.12,Level 1 (ground floor)
+19.5,2.83,4.06,-67.12,Level 1 (ground floor)
+20.5,2.83,4.05,-67.12,Level 1 (ground floor)
+21.5,2.83,4.06,-67.12,Level 1 (ground floor)
+22.5,2.83,4.06,-67.12,Level 1 (ground floor)
+23.5,2.83,4.07,-67.12,Level 1 (ground floor)
+24.5,2.83,4.06,-67.12,Level 1 (ground floor)
+25.5,2.83,4.05,-67.12,Level 1 (ground floor)
+26.5,2.83,4.06,-67.12,Level 1 (ground floor)
+27.6,2.83,4.07,-67.12,Level 1 (ground floor)
+28.6,2.83,4.06,-67.12,Level 1 (ground floor)
+29.7,-2.56,10.66,-62.77,Level 2 (armory)
+30.7,-2.56,9.52,-63.04,Level 2 (armory)
+31.8,8.29,8.37,-75.50,Level 2 (armory)
+32.8,8.29,8.37,-75.50,Level 2 (armory)
+33.8,8.29,8.37,-75.50,Level 2 (armory)
+34.8,8.29,8.37,-75.50,Level 2 (armory)
+35.8,8.29,8.37,-75.50,Level 2 (armory)
+36.8,8.42,8.37,-75.47,Level 2 (armory)
+37.8,8.33,8.37,-75.50,Level 2 (armory)
+38.8,9.44,4.05,-70.29,Level 1 (ground floor)
+39.8,9.44,4.06,-70.29,Level 1 (ground floor)
+40.8,0.97,4.50,-69.45,Level 1 (ground floor)
+41.8,0.97,4.96,-68.49,Level 1 (ground floor)
+42.8,0.97,5.79,-66.76,Level 1 (ground floor)
+43.8,2.94,6.54,-64.71,Level 1 (ground floor)
+44.8,2.91,7.55,-66.81,Level 2 (armory)
+45.8,-3.87,9.56,-58.80,Level 2 (armory)
+46.9,-2.36,10.28,-58.80,Level 2 (armory)
+47.9,-0.40,11.23,-58.80,Level 2 (armory)
+48.9,1.55,12.16,-58.80,Level 3 (destroyed floor)
+49.9,14.29,12.68,-74.80,Finale (helipad)
+50.9,14.29,13.44,-72.95,Finale (helipad)
+51.9,14.29,14.14,-71.29,Finale (helipad)
+52.9,20.69,14.47,-62.50,Finale (helipad)
+53.9,20.69,14.47,-62.50,Finale (helipad)
+54.9,20.69,14.47,-62.50,Finale (helipad)
+55.9,20.69,14.47,-62.50,Finale (helipad)
+56.9,20.69,14.47,-62.50,Finale (helipad)
+57.9,20.69,14.47,-62.50,Finale (helipad)
+58.9,20.69,14.47,-62.50,Finale (helipad)
+59.9,20.69,14.47,-62.50,Finale (helipad)
+61.0,20.69,14.47,-62.50,Finale (helipad)

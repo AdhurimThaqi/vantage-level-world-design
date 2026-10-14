@@ -1,23 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CommandTowerKit;
 using CoverShooter;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace Vantage
 {
+    /// <summary>An enemy that isn't a template soldier (drone, turret, heavy robot, boss).</summary>
+    public interface IVantageEnemy
+    {
+        bool IsDead { get; }
+    }
+
     /// <summary>
-    /// The climb through the command tower as four levels of rising difficulty. Each level covers storeys of the
-    /// tower; its enemies spawn when the level begins, and the gates (stair shutters) to the next level open only
-    /// when every enemy on it is dead. Clearing the roof ends the game.
+    /// The tower as three levels and the helipad finale (VANTAGE_Tower from Blender). Each level's enemies spawn when
+    /// it begins, on the Blender markers whose names start with the level's prefix (MK_, L2_, L3_, FINAL_). Doors
+    /// and triggers come from the Blender properties (VantageDoor, VantageTrigger, VantageInteract); this decides who
+    /// is alive for their KILL lists, when a level is clear, who hunts the player, the checkpoint after a death, and
+    /// the ending (boss on the helipad, then the extraction).
     ///
-    /// Procedural part: enemy positions are picked per play from the tower's authored EnemySpawn / DroneSpawn
-    /// markers with a seed (spread over different rooms first), so the fights change while the pacing, counts
-    /// and difficulty stay fixed. The seed is shown by the playtest logger.
-    ///
-    /// Only the lights of the storeys around the player's level are switched on (the tower has 108).
+    /// Procedural part: which markers get a soldier is picked per play with a seed (spread over rooms first), so the
+    /// fights change while counts, pacing and difficulty stay fixed. -vantageSeed N replays a layout.
     /// </summary>
     public class VantageTowerLevels : MonoBehaviour
     {
@@ -25,14 +29,14 @@ namespace Vantage
         public class Level
         {
             public string Name;
-            [Tooltip("Tower storeys of this level: 0 = ground floor … 5 = top floor, 6 = roof.")]
-            public int[] Storeys;
+            [Tooltip("Blender marker names of this level start with this (MK_, L2_, L3_, FINAL_).")]
+            public string Prefix;
+            [Tooltip("World height of the level's walking floor (set by Vantage → Tower → Set Up).")]
+            public float FloorY;
             public int Soldiers;
             public int Drones;
-            public bool Turret;
             [Tooltip("Gun the soldiers carry: \"Pistol\" or \"Rifle\" (matched against the inventory item names).")]
             public string SoldierWeapon = "Rifle";
-            [Tooltip("Damage per soldier bullet.")]
             public float SoldierDamage = 12f;
             [Tooltip("Multiplies soldier health.")]
             public float SoldierHealth = 1f;
@@ -40,8 +44,8 @@ namespace Vantage
             public float DroneFireInterval = 1.4f;
             [Tooltip("Shown on the HUD when this level is cleared.")]
             public string ClearedMessage;
-            [Tooltip("Activated when this level is cleared (e.g. a weapon pickup).")]
-            public GameObject Reward;
+            [Tooltip("Where the player restarts after dying on this level.")]
+            public Transform Arrival;
         }
 
         public static VantageTowerLevels Instance { get; private set; }
@@ -49,26 +53,26 @@ namespace Vantage
         /// <summary>AI side of every enemy (the player is on another side; see VantageThirdPersonPlayer.Side).</summary>
         public const int EnemySide = 0;
 
-        // Marker types authored in the tower (CommandTowerKit.GameplayMarker.markerType).
-        private const string EnemySpawnMarker = "EnemySpawn", DroneSpawnMarker = "DroneSpawn", OverwatchMarker = "Overwatch";
-        // A point this far below a floor (top of a flight of stairs) already counts as that storey.
-        private const float StairLead = 1f;
+        private const string EnemySpawnMarker = "EnemySpawn", TurretMarker = "Turret", HeavyMarker = "HeavyEnemy";
+        private const string BossMarker = "FINAL_MK_Boss_EndingB";
         private const float LostCheckInterval = 2f;
         private const float SoldierSpawnLift = 0.05f;
+        private const float StairLead = 1f;
 
         public Transform Tower;
         public GameObject SoldierPrefab;
         public GameObject DronePrefab;
         public GameObject TurretPrefab;
+        public GameObject HeavyRobotPrefab;
+        public GameObject BossPrefab;
         public bool RandomSeedEachPlay = true;
         public int Seed = 1234;
-        [Tooltip("Local height of the ground floor surface; each storey is StoreyHeight higher.")]
-        public float GroundFloor = 0.45f;
-        public float StoreyHeight = 4f;
         [Tooltip("Drones spawn this high above their marker.")]
         public float DroneSpawnHeight = 1.6f;
-        [Tooltip("The tower's footprint (measured from its meshes at start) is widened by this much.")]
-        public float FootprintMargin = 0.5f;
+        [Tooltip("The tower's rooms (L1–L3), world bounds (set by Setup).")]
+        public Bounds TowerArea;
+        [Tooltip("The outside stairs, platform and helipad, world bounds (set by Setup).")]
+        public Bounds FinaleArea;
         public List<Level> Levels = new List<Level>();
 
         [Header("Last enemies")]
@@ -78,14 +82,23 @@ namespace Vantage
         public float HuntAfterQuietSeconds = 45f;
 
         /// <summary>
-        /// True when the level's remaining enemies should come to the player (see VantageEnemyAggression, VantageDrone).
-        /// Only while the player is on that level: hunters must not leave it (they would be sent back, see returnLostEnemies).
+        /// True when the level's remaining enemies should come to the player (alarm, the last enemies, a quiet spell).
+        /// Only while the player is on that level: hunters must not leave it (they would be sent back).
         /// </summary>
-        public bool Hunting => Current >= 0 && !Completed && _playerLevel == Current
-                               && (Remaining <= HuntWhenRemaining || Time.time - _lastKillTime > HuntAfterQuietSeconds);
+        public bool Hunting => PlayerOnCurrentLevel
+                               && (_huntAll || Remaining <= HuntWhenRemaining || Time.time - _lastKillTime > HuntAfterQuietSeconds);
 
-        /// <summary>Index of the level being fought (Levels.Count once the tower is clear).</summary>
+        /// <summary>Index of the level being fought (Levels.Count once the boss is dead).</summary>
         public int Current { get; private set; } = -1;
+        public bool Completed => Current >= Levels.Count;
+        public string CurrentName => Completed ? "Tower clear" : Current >= 0 ? Levels[Current].Name : "";
+        /// <summary>The finale's soldiers are dead; the helipad waits for the player.</summary>
+        public bool AwaitingHelipad { get; private set; }
+        public bool BossSpawned { get; private set; }
+        public bool BossDead { get; private set; }
+        public event Action<int> LevelCleared;
+        public event Action BossDefeated;
+
         /// <summary>Living enemies of the current level (counted once per frame).</summary>
         public int Remaining
         {
@@ -96,46 +109,57 @@ namespace Vantage
                     _countedFrame = Time.frameCount;
                     _remaining = 0;
                     for (int i = 0; i < _alive.Count; i++)
-                        if (isAlive(i)) _remaining++;
+                        if (_level[i] == Current && isAlive(i)) _remaining++;
                 }
                 return _remaining;
             }
         }
-        /// <summary>Enemies spawned for the current level (dead ones included until the next level starts).</summary>
+        /// <summary>Every enemy spawned so far (dead ones included).</summary>
         public IReadOnlyList<GameObject> Enemies => _alive;
-        public bool Completed => Current >= Levels.Count;
-        public string CurrentName => Completed ? "Tower clear" : Current >= 0 ? Levels[Current].Name : "";
-        public event Action<int> LevelCleared;
 
+        // Parallel lists, one entry per spawned enemy; components cached at spawn.
         private readonly List<GameObject> _alive = new List<GameObject>();
-        // Components cached at spawn, so counting the living needs no GetComponent calls.
-        private readonly List<VantageDrone> _aliveDrones = new List<VantageDrone>();
-        private readonly List<CharacterMotor> _aliveMotors = new List<CharacterMotor>();
-        private int _countedFrame = -1, _remaining;
-        private int _lastRemaining;
-        private float _lastKillTime, _nextLostCheck;
-        private VantageFloorGate[] _gates;
-        private Light[] _lights;
-        private GameplayMarker[] _markers;
-        private System.Random _random;
+        private readonly List<int> _level = new List<int>();
+        private readonly List<IVantageEnemy> _special = new List<IVantageEnemy>();
+        private readonly List<CharacterMotor> _motors = new List<CharacterMotor>();
+        private readonly List<VantageEnemyAggression> _aggression = new List<VantageEnemyAggression>();
+        private readonly Dictionary<string, int> _byName = new Dictionary<string, int>();
+
+        private int _countedFrame = -1, _remaining, _lastRemaining;
+        private float _lastKillTime, _nextLostCheck, _nextHelipadMessage;
+        private bool _huntAll;
+        private int _highestCleared = -1;
         private int _playerLevel = -2;
-        private Bounds _footprint;
-        private int _topStorey;
-        // Spawn markers with walkable NavMesh on their own floor, and that NavMesh point.
-        private readonly Dictionary<GameplayMarker, Vector3> _ground = new Dictionary<GameplayMarker, Vector3>();
+        private VantageFloorGate[] _gates;
+        private VantageTag[] _markers;
+        private System.Random _random;
+        private readonly Dictionary<VantageTag, Vector3> _ground = new Dictionary<VantageTag, Vector3>();
         private const float GroundSearch = 1f, GroundMaxDrop = 0.5f;
 
-        private void Awake()
+        private void Awake() => Instance = this;
+
+        private void OnEnable()
         {
-            Instance = this;
-            // Measured before anything asks LevelAt / StoreyAt.
-            _topStorey = Levels.Count > 0 ? Levels.Max(l => l.Storeys.Length > 0 ? l.Storeys.Max() : 0) : 0;
-            measureFootprint();
+            VantageEvents.EnemyKilled += onKilled;
+            VantageEvents.PlayerDied += onPlayerDied;
+            VantageEvents.WeaponPickedUp += onWeapon;
+        }
+
+        private void OnDisable()
+        {
+            VantageEvents.EnemyKilled -= onKilled;
+            VantageEvents.PlayerDied -= onPlayerDied;
+            VantageEvents.WeaponPickedUp -= onWeapon;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         private void Start()
         {
-            // -vantageSeed N on the command line replays a layout (a playtest report or bot log gives the seed).
+            VantageRun.Begin();
             var args = Environment.GetCommandLineArgs();
             var seedArg = Array.IndexOf(args, "-vantageSeed");
             if (seedArg >= 0 && seedArg + 1 < args.Length && int.TryParse(args[seedArg + 1], out var forced))
@@ -146,19 +170,15 @@ namespace Vantage
             VantageEvents.RaiseLayoutGenerated(Seed);
 
             _gates = FindObjectsByType<VantageFloorGate>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            _lights = Tower != null ? Tower.GetComponentsInChildren<Light>(true) : new Light[0];
-            _markers = Tower != null ? Tower.GetComponentsInChildren<GameplayMarker>(true) : new GameplayMarker[0];
+            _markers = Tower != null ? Tower.GetComponentsInChildren<VantageTag>(true) : new VantageTag[0];
             findGround();
-            foreach (var l in Levels)
-                if (l.Reward != null)
-                    l.Reward.SetActive(false);
+            restoreWeapons();
 
-            begin(0);
-        }
-
-        private void OnDestroy()
-        {
-            if (Instance == this) Instance = null;
+            var start = Mathf.Clamp(VantageRun.Checkpoint, 0, Levels.Count - 1);
+            _highestCleared = start - 1;
+            if (start > 0)
+                restoreCheckpoint(start);
+            begin(start);
         }
 
         private void Update()
@@ -178,18 +198,7 @@ namespace Vantage
             }
 
             if (remaining == 0)
-            {
-                var cleared = Current;
-                var level = Levels[cleared];
-                foreach (var gate in _gates)
-                    if (gate.Level == cleared)
-                        gate.Open();
-                if (level.Reward != null)
-                    level.Reward.SetActive(true);
-                LevelCleared?.Invoke(cleared);
-                Debug.Log($"[Vantage] {level.Name} cleared.");
-                begin(cleared + 1);
-            }
+                levelDone();
 
             var p = VantageEvents.ActivePlayer();
             var lv = p != null ? LevelAt(p.transform.position) : -1;
@@ -199,46 +208,72 @@ namespace Vantage
                 if (lv == Current)
                     _lastKillTime = Time.time;
                 _playerLevel = lv;
-                updateLights();
+                updateDoors();
             }
         }
 
-        /// <summary>Level index a world position is in, or -1 outside the tower.</summary>
-        public int LevelAt(Vector3 world) => levelAt(world, true);
-
-        /// <summary>
-        /// stairLead: the top of a flight already counts as the storey above (for the player arriving).
-        /// Without it, a point belongs to the storey whose floor is under it (a drone under the ceiling stays on its storey).
-        /// </summary>
-        private int levelAt(Vector3 world, bool stairLead)
+        private void levelDone()
         {
-            if (Tower == null) return -1;
-            var local = Tower.InverseTransformPoint(world);
-            if (!insideFootprint(local))
+            var cleared = Current;
+            var last = cleared == Levels.Count - 1;
+            if (last)
+            {
+                if (!BossSpawned) { AwaitingHelipad = true; return; }
+                BossDead = true;
+                Debug.Log("[Vantage] Boss defeated.");
+                Current = Levels.Count;
+                BossDefeated?.Invoke();
+                return;
+            }
+
+            _highestCleared = cleared;
+            foreach (var gate in _gates)
+                if (gate.Level == cleared)
+                    gate.Open();
+            if (cleared == 0)
+                VantageEvents.RaiseAlarmStopped();
+            VantageDoor.ApplyPending(cleared);
+            VantageDoor.RecheckKills();
+            LevelCleared?.Invoke(cleared);
+            Debug.Log($"[Vantage] {Levels[cleared].Name} cleared.");
+            begin(cleared + 1);
+        }
+
+        /// <summary>True once this level's enemies are dead (later levels: false).</summary>
+        public bool IsCleared(int level) => level <= _highestCleared || (level == Current && AwaitingHelipad) || Completed;
+
+        #region Where things are
+
+        /// <summary>Level index of a world position (stairs lead: the top of a flight counts as the floor above), or -1 outside.</summary>
+        public int LevelAt(Vector3 world) => levelAt(world, StairLead);
+
+        private int levelAt(Vector3 world, float lead)
+        {
+            if (Levels.Count == 0) return -1;
+            var finale = Levels.Count - 1;
+            if (FinaleArea.size != Vector3.zero && FinaleArea.Contains(world))
+                return finale;
+            if (TowerArea.size == Vector3.zero || world.x < TowerArea.min.x || world.x > TowerArea.max.x || world.z < TowerArea.min.z || world.z > TowerArea.max.z)
                 return -1;
-            var storey = stairLead ? StoreyAt(local.y) : storeyBelow(local.y);
-            for (int i = 0; i < Levels.Count; i++)
-                if (Array.IndexOf(Levels[i].Storeys, storey) >= 0)
-                    return i;
-            return -1;
+            if (world.y < Levels[0].FloorY - 1f || world.y > TowerArea.max.y + 1f)
+                return -1;
+            var level = 0;
+            for (int i = 1; i < finale; i++)
+                if (world.y >= Levels[i].FloorY - lead) level = i;
+            return level;
         }
 
-        public int StoreyAt(float localY) => Mathf.Clamp(Mathf.FloorToInt((localY - GroundFloor + StairLead) / StoreyHeight), 0, _topStorey);
+        /// <summary>Height between the first two floors (how far "another floor" is).</summary>
+        public float FloorSpacing => Levels.Count > 1 ? Mathf.Abs(Levels[1].FloorY - Levels[0].FloorY) : 4f;
 
-        private bool insideFootprint(Vector3 local) =>
-            local.x >= _footprint.min.x && local.x <= _footprint.max.x && local.z >= _footprint.min.z && local.z <= _footprint.max.z;
+        /// <summary>"Ground floor", "Level 2" … for the HUD and logger.</summary>
+        public string LevelName(int level) => level >= 0 && level < Levels.Count ? Levels[level].Name : "Outside";
 
-        /// <summary>Is a marker inside the tower on one of these storeys, judged by its height (not its floor field)?</summary>
-        private bool isOn(GameplayMarker marker, int[] storeys)
-        {
-            var local = Tower.InverseTransformPoint(marker.transform.position);
-            return insideFootprint(local) && Array.IndexOf(storeys, StoreyAt(local.y)) >= 0;
-        }
+        private bool isMarkerOf(VantageTag m, int level) => m.name.StartsWith(Levels[level].Prefix, StringComparison.Ordinal);
 
         /// <summary>
-        /// Enemy spawn markers need NavMesh on their own floor: where the bake left none (13 of the tower's markers,
-        /// e.g. in the F1 canteen), the AI snaps a soldier to the nearest NavMesh, which can be a floor above or below.
-        /// Such markers are skipped (and logged); soldiers spawn on the NavMesh point next to the marker.
+        /// Enemy spawn markers need NavMesh on their own floor: otherwise the AI snaps a soldier to the nearest NavMesh,
+        /// which can be a floor above or below. Such markers are skipped (and logged).
         /// </summary>
         private void findGround()
         {
@@ -246,7 +281,7 @@ namespace Vantage
             var skipped = new List<string>();
             foreach (var m in _markers)
             {
-                if (m.markerType != EnemySpawnMarker) continue;
+                if (m.MarkerType != EnemySpawnMarker && m.MarkerType != HeavyMarker) continue;
                 var p = m.transform.position;
                 if (NavMesh.SamplePosition(p, out var hit, GroundSearch, NavMesh.AllAreas) && Mathf.Abs(hit.position.y - p.y) <= GroundMaxDrop)
                     _ground[m] = hit.position;
@@ -257,93 +292,69 @@ namespace Vantage
                 Debug.Log($"[Vantage] {skipped.Count} enemy spawn markers have no NavMesh on their floor and are not used: {string.Join(", ", skipped)}.");
         }
 
-        /// <summary>Where a soldier stands for a marker: its NavMesh point, else the marker itself.</summary>
-        private Vector3 standAt(GameplayMarker m) => _ground.TryGetValue(m, out var p) ? p : m.transform.position;
+        private Vector3 standAt(VantageTag m) => _ground.TryGetValue(m, out var p) ? p : m.transform.position;
 
-        /// <summary>The storey whose floor is under a point (ceiling lights belong to the storey below them).</summary>
-        private int storeyBelow(float localY) => Mathf.Clamp(Mathf.FloorToInt((localY - GroundFloor) / StoreyHeight), 0, _topStorey);
-
-        /// <summary>"ground floor", "floor 3" or "roof" (the highest storey of the last level).</summary>
-        public string StoreyName(int storey) => storey <= 0 ? "ground floor" : storey >= _topStorey ? "roof" : $"floor {storey}";
-
-        /// <summary>
-        /// The tower's footprint in its local x/z, from the bounds of its meshes: porch, loading bay and fire-escape
-        /// platform included, so it follows the model instead of hand-measured numbers.
-        /// </summary>
-        private void measureFootprint()
-        {
-            _footprint = new Bounds();
-            if (Tower == null) return;
-            var first = true;
-            foreach (var filter in Tower.GetComponentsInChildren<MeshFilter>(true))
-            {
-                if (filter.sharedMesh == null) continue;
-                var b = filter.sharedMesh.bounds;
-                for (int i = 0; i < 8; i++)
-                {
-                    var corner = b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
-                    var local = Tower.InverseTransformPoint(filter.transform.TransformPoint(corner));
-                    if (first) { _footprint = new Bounds(local, Vector3.zero); first = false; }
-                    else _footprint.Encapsulate(local);
-                }
-            }
-            _footprint.Expand(new Vector3(FootprintMargin * 2f, 0f, FootprintMargin * 2f));
-            Debug.Log($"[Vantage] Tower footprint (local): x {_footprint.min.x:F1}..{_footprint.max.x:F1}, z {_footprint.min.z:F1}..{_footprint.max.z:F1}; top storey {_topStorey}.");
-        }
+        #endregion
 
         #region Spawning
 
         private void begin(int index)
         {
             Current = index;
-            _alive.Clear();
-            _aliveDrones.Clear();
-            _aliveMotors.Clear();
             _countedFrame = -1;
             _lastRemaining = int.MaxValue;
             _lastKillTime = Time.time;
-            if (Completed)
-            {
-                VantageEvents.RaiseLevelCompleted();
-                return;
-            }
+            _huntAll = false;
+            AwaitingHelipad = false;
+            VantageRun.Checkpoint = index;
+            if (Completed) return;
 
             var level = Levels[index];
-            var spawns = pick(EnemySpawnMarker, level.Storeys, level.Soldiers);
+            var spawns = pick(level, EnemySpawnMarker, level.Soldiers);
             foreach (var m in spawns)
-                spawnSoldier(level, m);
+                spawnSoldier(index, m);
 
-            // Drones: drone pads/hangars on the level first, then hovering over free enemy spawns.
-            var droneSpots = pick(DroneSpawnMarker, level.Storeys, level.Drones);
-            if (droneSpots.Count < level.Drones)
-                droneSpots.AddRange(pick(EnemySpawnMarker, level.Storeys, level.Drones - droneSpots.Count, spawns));
-            foreach (var m in droneSpots)
-                spawnDrone(level, m.transform.position + Vector3.up * DroneSpawnHeight, DronePrefab);
+            foreach (var m in _markers.Where(m => m.MarkerType == TurretMarker && isMarkerOf(m, index)))
+                spawnSpecial(index, TurretPrefab, m.transform.position + Vector3.up * 0.2f, m.transform.rotation, m.name);
+            foreach (var m in _markers.Where(m => m.MarkerType == HeavyMarker && isMarkerOf(m, index)))
+                spawnSpecial(index, HeavyRobotPrefab, standAt(m), Quaternion.Euler(0, m.transform.eulerAngles.y, 0), m.name);
 
-            if (level.Turret && TurretPrefab != null)
+            // Drones hover over free enemy spawns.
+            var droneSpots = pick(level, EnemySpawnMarker, level.Drones, spawns);
+            for (int i = 0; i < droneSpots.Count; i++)
             {
-                var spot = _markers.FirstOrDefault(m => m.markerType == OverwatchMarker && isOn(m, level.Storeys))
-                           ?? _markers.FirstOrDefault(m => isOn(m, level.Storeys));
-                if (spot != null)
-                    spawnDrone(level, spot.transform.position + Vector3.up * 0.2f, TurretPrefab);
+                var go = spawnSpecial(index, DronePrefab, droneSpots[i].transform.position + Vector3.up * DroneSpawnHeight, Quaternion.identity, $"Drone - {level.Name} {i + 1}");
+                var drone = go != null ? go.GetComponent<VantageDrone>() : null;
+                if (drone != null)
+                {
+                    drone.Accuracy = level.DroneAccuracy;
+                    drone.FireInterval = level.DroneFireInterval;
+                }
             }
 
+            updateDoors();
+            VantageDoor.RecheckKills();
             Debug.Log($"[Vantage] {level.Name}: {Remaining} enemies (seed {Seed}).");
-            updateLights();
         }
 
-        /// <summary>Seeded pick of markers, spread over different rooms before doubling up.</summary>
-        private List<GameplayMarker> pick(string type, int[] storeys, int count, ICollection<GameplayMarker> exclude = null)
+        /// <summary>
+        /// Seeded pick of the level's markers, spread over rooms before doubling up. Markers with a patrol route
+        /// (the L3 outside patrols, needed by a KILL door) are always taken first.
+        /// </summary>
+        private List<VantageTag> pick(Level level, string type, int count, ICollection<VantageTag> exclude = null)
         {
-            // Judged by where the marker is, not its floor field (some exported markers carry the wrong floor), and
-            // only inside the tower: an enemy spawned outside (a drone pad on a ledge) can't be reached.
-            var pool = _markers.Where(m => m.markerType == type && isOn(m, storeys) && (type != EnemySpawnMarker || _ground.ContainsKey(m))
+            var index = Levels.IndexOf(level);
+            var pool = _markers.Where(m => m.MarkerType == type && isMarkerOf(m, index) && _ground.ContainsKey(m)
                                            && (exclude == null || !exclude.Contains(m)))
                                .OrderBy(_ => _random.Next()).ToList();
-            var result = new List<GameplayMarker>();
-            var rooms = new HashSet<string>();
+            var result = new List<VantageTag>();
+            if (exclude == null)
+                foreach (var m in pool)
+                    if (result.Count < count && m.Has("patrol"))
+                        result.Add(m);
+            var rooms = new HashSet<string>(result.Select(m => m.Get("room", "")));
             foreach (var m in pool)
-                if (result.Count < count && rooms.Add(m.floor + "/" + m.room))
+                if (result.Count < count && !result.Contains(m) && rooms.Add(m.Get("room", m.name)))
                     result.Add(m);
             foreach (var m in pool)
                 if (result.Count < count && !result.Contains(m))
@@ -351,11 +362,13 @@ namespace Vantage
             return result;
         }
 
-        private void spawnSoldier(Level level, GameplayMarker at)
+        private void spawnSoldier(int index, VantageTag at)
         {
             if (SoldierPrefab == null) return;
+            var level = Levels[index];
             var go = Instantiate(SoldierPrefab, standAt(at) + Vector3.up * SoldierSpawnLift, Quaternion.Euler(0, at.transform.eulerAngles.y, 0));
-            go.name = $"Soldier - {level.Name} ({at.name})";
+            // Named after the marker, so the Blender KILL lists (KILL:MK_Enemy_*) find it.
+            go.name = at.name;
             var actor = go.GetComponent<BaseActor>();
             if (actor != null) actor.Side = EnemySide;
             foreach (var gun in go.GetComponentsInChildren<BaseGun>(true))
@@ -369,9 +382,15 @@ namespace Vantage
             }
             if (go.GetComponent<VantageKillReporter>() == null)
                 go.AddComponent<VantageKillReporter>().EnemyName = "Soldier";
-            if (go.GetComponent<VantageEnemyAggression>() == null)
-                go.AddComponent<VantageEnemyAggression>();
-            track(go);
+            var aggression = go.GetComponent<VantageEnemyAggression>();
+            if (aggression == null) aggression = go.AddComponent<VantageEnemyAggression>();
+            var route = at.Get("patrol");
+            if (!string.IsNullOrEmpty(route))
+            {
+                var path = Tower.GetComponentsInChildren<VantagePatrolPath>(true).FirstOrDefault(p => p.name == route);
+                if (path != null) aggression.PatrolPoints = path.GetPoints();
+            }
+            track(go, index, aggression);
         }
 
         /// <summary>Puts the level's gun in the soldier's hands and tells its AI to keep using that inventory slot.</summary>
@@ -393,26 +412,38 @@ namespace Vantage
             }
         }
 
-        private void spawnDrone(Level level, Vector3 position, GameObject prefab)
+        private GameObject spawnSpecial(int index, GameObject prefab, Vector3 position, Quaternion rotation, string name)
         {
-            if (prefab == null) return;
-            var go = Instantiate(prefab, position, Quaternion.identity);
-            go.name = (prefab == TurretPrefab ? "Turret - " : "Drone - ") + level.Name;
-            var drone = go.GetComponent<VantageDrone>();
-            if (drone != null && prefab != TurretPrefab)
+            if (prefab == null)
             {
-                drone.Accuracy = level.DroneAccuracy;
-                drone.FireInterval = level.DroneFireInterval;
+                Debug.Log($"[Vantage] No prefab for {name}; skipped.");
+                return null;
             }
-            track(go);
+            var go = Instantiate(prefab, position, rotation);
+            go.name = name;
+            track(go, index, null);
+            return go;
         }
 
-        private void track(GameObject go)
+        private void track(GameObject go, int index, VantageEnemyAggression aggression)
         {
+            _byName[go.name] = _alive.Count;
             _alive.Add(go);
-            _aliveDrones.Add(go.GetComponent<VantageDrone>());
-            _aliveMotors.Add(go.GetComponent<CharacterMotor>());
+            _level.Add(index);
+            _special.Add(go.GetComponent<IVantageEnemy>());
+            _motors.Add(go.GetComponent<CharacterMotor>());
+            _aggression.Add(aggression);
             _countedFrame = -1;
+        }
+
+        private bool isAlive(int i)
+        {
+            var go = _alive[i];
+            if (go == null || !go.activeInHierarchy) return false;
+            var special = _special[i];
+            if (special != null) return !special.IsDead;
+            var motor = _motors[i];
+            return motor == null || motor.IsAlive;
         }
 
         /// <summary>
@@ -423,48 +454,163 @@ namespace Vantage
         {
             for (int i = 0; i < _alive.Count; i++)
             {
-                if (!isAlive(i)) continue;
+                if (_level[i] != Current || !isAlive(i) || _special[i] is VantageDrone) continue;
                 var enemy = _alive[i].transform;
-                if (levelAt(enemy.position, false) == Current || LevelAt(enemy.position) == Current) continue;
-                var marker = pick(EnemySpawnMarker, Levels[Current].Storeys, 1).FirstOrDefault();
+                if (levelAt(enemy.position, 0.3f) == Current || LevelAt(enemy.position) == Current) continue;
+                var marker = pick(Levels[Current], EnemySpawnMarker, 1).FirstOrDefault();
                 if (marker == null) continue;
-                var lostAt = Tower.InverseTransformPoint(enemy.position);
-                if (_aliveDrones[i] != null)
-                    _aliveDrones[i].Relocate(marker.transform.position + Vector3.up * DroneSpawnHeight);
-                else
-                {
-                    var position = standAt(marker) + Vector3.up * SoldierSpawnLift;
-                    var body = enemy.GetComponent<Rigidbody>();
-                    if (body != null) { body.position = position; body.linearVelocity = Vector3.zero; }
-                    enemy.position = position;
-                }
-                Debug.Log($"[Vantage] {enemy.name} had left its level (at local {lostAt:F1}); returned to {marker.room}.");
+                var lostAt = enemy.position;
+                var position = standAt(marker) + Vector3.up * SoldierSpawnLift;
+                var body = enemy.GetComponent<Rigidbody>();
+                if (body != null) { body.position = position; body.linearVelocity = Vector3.zero; }
+                enemy.position = position;
+                Debug.Log($"[Vantage] {enemy.name} had left its level (at {lostAt:F1}); returned to {marker.name}.");
             }
-        }
-
-        private bool isAlive(int i)
-        {
-            var go = _alive[i];
-            if (go == null || !go.activeInHierarchy) return false;
-            var drone = _aliveDrones[i];
-            if (drone != null) return !drone.IsDead;
-            var motor = _aliveMotors[i];
-            return motor == null || motor.IsAlive;
         }
 
         #endregion
 
-        /// <summary>Lights on for the player's level and the storeys next to it; the rest of the tower stays dark.</summary>
-        private void updateLights()
+        #region Kill lists, alerts, ending
+
+        /// <summary>
+        /// True when no enemy named in the list is alive: names or prefixes ending in *. Markers of levels that haven't
+        /// started yet count as alive (their enemies aren't spawned yet).
+        /// </summary>
+        public bool KillListDone(IEnumerable<string> names)
         {
-            if (_lights == null || Tower == null) return;
-            var level = _playerLevel >= 0 ? _playerLevel : Mathf.Max(0, Current);
-            var storeys = new HashSet<int>();
-            if (level < Levels.Count)
-                foreach (var s in Levels[level].Storeys) { storeys.Add(s - 1); storeys.Add(s); storeys.Add(s + 1); }
-            foreach (var l in _lights)
-                if (l != null)
-                    l.enabled = storeys.Contains(storeyBelow(Tower.InverseTransformPoint(l.transform.position).y));
+            foreach (var raw in names)
+            {
+                var key = raw.Trim();
+                var prefix = key.EndsWith("*");
+                if (prefix) key = key.TrimEnd('*');
+                bool match(string n) => prefix ? n.StartsWith(key, StringComparison.Ordinal) : n == key;
+
+                for (int i = 0; i < _alive.Count; i++)
+                    if (_alive[i] != null && match(_alive[i].name) && isAlive(i))
+                        return false;
+                for (int level = Current + 1; level < Levels.Count; level++)
+                    foreach (var m in _markers)
+                        if (isMarkerOf(m, level) && match(m.name) && (m.MarkerType == EnemySpawnMarker || m.MarkerType == TurretMarker || m.MarkerType == HeavyMarker))
+                            return false;
+            }
+            return true;
         }
+
+        /// <summary>The named enemies come for the player (Blender "alert:" triggers).</summary>
+        public void Alert(IEnumerable<string> names)
+        {
+            foreach (var n in names)
+                if (_byName.TryGetValue(n.Trim(), out var i) && _aggression[i] != null)
+                    _aggression[i].Alerted = true;
+        }
+
+        /// <summary>Alarm: every enemy of the current level comes for the player until the level is clear.</summary>
+        public void StartHunt()
+        {
+            _huntAll = true;
+            for (int i = 0; i < _alive.Count; i++)
+                if (_level[i] == Current && _aggression[i] != null)
+                    _aggression[i].Alerted = true;
+        }
+
+        /// <summary>
+        /// The player is on the helipad. Before the finale's soldiers are dead nothing happens (a hint is shown);
+        /// then the boss appears. Returns true once the helipad has done its part.
+        /// </summary>
+        public bool ReachHelipad()
+        {
+            if (BossSpawned) return true;
+            if (Current != Levels.Count - 1 || !AwaitingHelipad)
+            {
+                if (Time.time >= _nextHelipadMessage)
+                {
+                    _nextHelipadMessage = Time.time + 4f;
+                    VantageEvents.RaiseMessage("Clear the platform");
+                }
+                return false;
+            }
+            BossSpawned = true;
+            AwaitingHelipad = false;
+            var marker = _markers.FirstOrDefault(m => m.name == BossMarker);
+            var at = marker != null ? marker.transform.position : transform.position;
+            // The Blender marker floats beside the platform (it was for a gunship): the boss lands on the nearest
+            // walkable point of the platform instead.
+            if (NavMesh.SamplePosition(at, out var ground, 12f, NavMesh.AllAreas)) at = ground.position;
+            var pad = VantageEvents.ActivePlayer();
+            var look = pad != null ? Quaternion.LookRotation(Vector3.ProjectOnPlane(pad.transform.position - at, Vector3.up)) : Quaternion.identity;
+            var boss = spawnSpecial(Current, BossPrefab, at, look, "Boss");
+            _countedFrame = -1;
+            VantageEvents.RaiseBossSpawned();
+            Debug.Log($"[Vantage] Boss {(boss != null ? "spawned" : "missing (no prefab): extraction starts")}.");
+            return true;
+        }
+
+        private void onKilled(string enemy, Vector3 position) => VantageDoor.RecheckKills();
+
+        private void onPlayerDied(string cause, Vector3 position) => VantageRun.Deaths++;
+
+        private void onWeapon(string weapon) => VantageRun.Weapons.Add(weapon);
+
+        #endregion
+
+        #region Checkpoint and doors
+
+        private void restoreWeapons()
+        {
+            if (VantageRun.Weapons.Count == 0) return;
+            var arsenal = FindFirstObjectByType<VantageArsenal>();
+            if (arsenal == null) return;
+            foreach (var w in VantageRun.Weapons)
+                arsenal.Unlock(w);
+        }
+
+        /// <summary>
+        /// Restart after a death on a later level: earlier levels count as cleared (gates and their doors open, their
+        /// consoles and pickups used), and the player starts at the level's arrival point.
+        /// </summary>
+        private void restoreCheckpoint(int level)
+        {
+            foreach (var gate in _gates)
+                if (gate.Level < level) gate.Open();
+            foreach (var door in VantageDoor.All)
+                if (levelAt(door.transform.position, 0.3f) < level || door.ClearLevel >= 0 && door.ClearLevel < level)
+                    door.ForceOpen();
+            foreach (var interact in Tower.GetComponentsInChildren<VantageInteract>(true))
+                if (levelAt(interact.transform.position, 0.3f) < level) interact.enabled = false;
+            foreach (var pickup in Tower.GetComponentsInChildren<VantagePickup>(true))
+                if (levelAt(pickup.transform.position, 0.3f) < level)
+                {
+                    VantageInventory.Add(pickup.item);
+                    pickup.gameObject.SetActive(false);
+                }
+
+            var arrival = Levels[level].Arrival;
+            var player = FindFirstObjectByType<ThirdPersonInput>();
+            if (arrival != null && player != null)
+            {
+                var body = player.GetComponent<Rigidbody>();
+                if (body != null) { body.position = arrival.position; body.linearVelocity = Vector3.zero; }
+                player.transform.SetPositionAndRotation(arrival.position, arrival.rotation);
+            }
+            Debug.Log($"[Vantage] Restarting at the checkpoint of {Levels[level].Name}.");
+        }
+
+        /// <summary>
+        /// Doors run around the level being fought (its enemies use them) and around the player (who may go back,
+        /// e.g. for a missed coin); the rest sleep.
+        /// </summary>
+        private void updateDoors()
+        {
+            foreach (var door in VantageDoor.All)
+            {
+                var l = levelAt(door.transform.position, 0.3f);
+                door.enabled = Completed || l < 0 || Mathf.Abs(l - Current) <= 1 || (_playerLevel >= 0 && Mathf.Abs(l - _playerLevel) <= 1);
+            }
+        }
+
+        /// <summary>The player is on the level being fought (alerted soldiers only chase the player there).</summary>
+        public bool PlayerOnCurrentLevel => Current >= 0 && !Completed && _playerLevel == Current;
+
+        #endregion
     }
 }

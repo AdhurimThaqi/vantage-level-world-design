@@ -9,7 +9,7 @@ namespace Vantage
     [RequireComponent(typeof(AudioSource))]
     public class VantageProceduralAudio : MonoBehaviour
     {
-        public enum Kind { Wind, DroneHum, RadioStatic, Sea, Generator, Buzz }
+        public enum Kind { Wind, DroneHum, RadioStatic, Sea, Generator, Buzz, Siren }
 
         public Kind Sound = Kind.Wind;
         [Range(0, 1)] public float Volume = 0.6f;
@@ -75,6 +75,7 @@ namespace Vantage
                 case Kind.Sea: return sea(seed);
                 case Kind.Generator: return generator(seed);
                 case Kind.Buzz: return buzz(seed);
+                case Kind.Siren: return siren();
                 case Kind.RadioStatic: return radio(seed);
                 default: return wind(seed);
             }
@@ -207,6 +208,26 @@ namespace Vantage
             }
 
             return finish("Buzz", data);
+        }
+
+        private static AudioClip siren()
+        {
+            // Military wail: the pitch climbs and falls between 520 and 1050 Hz every 2 s (phase integrated, so
+            // the sweep has no clicks), with a square-ish edge from the third harmonic.
+            const float seconds = 2f;
+            var count = (int)(Rate * seconds);
+            var data = new float[count];
+            var phase = 0.0;
+            for (int i = 0; i < count; i++)
+            {
+                var t = i / (float)Rate;
+                var sweep = 0.5f - 0.5f * Mathf.Cos(t / seconds * Mathf.PI * 2f);
+                var frequency = Mathf.Lerp(520f, 1050f, sweep);
+                phase += frequency / Rate;
+                var x = (float)(phase * Mathf.PI * 2.0);
+                data[i] = Mathf.Sin(x) * 0.7f + Mathf.Sin(x * 3f) * 0.2f;
+            }
+            return finish("Siren", data);
         }
 
         private static AudioClip finish(string name, float[] data)

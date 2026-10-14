@@ -1,23 +1,26 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Vantage
 {
     /// Gun / key pickups: walk into them.
+    // VANTAGE change: only the player picks up (not soldiers walking past); raises VantageEvents.ItemPickedUp; the
+    // idle spin moved to VantageKeyItem (the key's float and fly-to-player animation).
     public class VantagePickup : MonoBehaviour
     {
         public string item;
         public UnityEvent onPickedUp;
 
-        void Update() { transform.Rotate(Vector3.up, 60f * Time.deltaTime, Space.World); }
-
         void OnTriggerEnter(Collider other)
         {
-            if (!other.CompareTag("Player")) return;
+            var player = VantageEvents.ActivePlayer();
+            if (player == null || other.GetComponentInParent<CoverShooter.BaseActor>() != player) return;
             VantageInventory.Add(item);
+            VantageEvents.RaiseItemPickedUp(item);
             onPickedUp.Invoke();
-            gameObject.SetActive(false);
+            // VantageKeyItem hides it after its animation; without one it goes at once.
+            if (GetComponent<VantageKeyItem>() == null) gameObject.SetActive(false);
+            else enabled = false;
         }
     }
 }
