@@ -17,8 +17,9 @@ namespace Vantage
     {
         [Tooltip("The soldier engages the player inside this range when it has line of sight.")]
         public float EngageRange = 32f;
-        [Tooltip("Only cover this close is used, so soldiers hold their floor instead of running across the map.")]
-        public float CoverRange = 9f;
+        [Tooltip("Cover this close is used. 0 (default): soldiers don't take cover. In the tower they picked cover they "
+                 + "couldn't reach (a desk or corner in the way), stood in 'take cover' without firing, pressed into walls.")]
+        public float CoverRange = 0f;
         [Tooltip("Players more than this far above or below are on another floor and can't be seen.")]
         public float FloorTolerance = 2.6f;
         [Tooltip("Seconds between decisions.")]

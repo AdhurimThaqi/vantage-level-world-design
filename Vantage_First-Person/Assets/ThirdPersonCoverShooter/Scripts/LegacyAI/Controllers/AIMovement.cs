@@ -469,6 +469,13 @@ namespace CoverShooter
                             move(direction, _speed, false);
                         }
                     }
+                    // VANTAGE change: a target on another floor (the player below, a partial path's end) used to be
+                    // reached "horizontally" and then snapped to, which teleported soldiers through the floor. Such
+                    // a target is given up where the soldier stands.
+                    else if (Mathf.Abs(_target.y - transform.position.y) > 1.0f)
+                    {
+                        _mode = Mode.none;
+                    }
                     else
                     {
                         if (vector.magnitude > 0.03f)

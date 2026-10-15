@@ -1,0 +1,133 @@
+time,x,y,z,space
+0.0,0.99,4.10,-87.95,Military Base
+1.0,0.99,4.05,-87.95,Military Base
+2.1,0.99,4.13,-87.95,Military Base
+3.1,1.01,4.05,-88.01,Military Base
+4.1,1.07,4.05,-88.11,Military Base
+5.1,1.11,4.05,-88.13,Military Base
+6.1,1.12,4.05,-88.11,Military Base
+7.1,1.02,4.05,-87.93,Military Base
+8.1,1.13,4.05,-88.11,Military Base
+9.1,1.02,4.05,-87.94,Military Base
+10.1,1.13,4.05,-88.09,Military Base
+11.1,1.12,4.05,-88.08,Military Base
+12.1,1.02,4.05,-87.93,Military Base
+13.2,1.02,4.05,-87.93,Military Base
+14.2,1.06,4.05,-88.02,Military Base
+15.2,1.01,4.05,-87.93,Military Base
+16.2,1.05,4.05,-88.00,Military Base
+17.2,1.13,4.05,-88.04,Military Base
+18.2,1.15,4.05,-88.06,Military Base
+19.2,1.14,4.05,-88.08,Military Base
+20.2,1.09,4.05,-87.99,Military Base
+21.2,1.04,4.05,-87.89,Military Base
+22.2,1.06,4.05,-87.92,Military Base
+23.2,1.14,4.05,-87.98,Military Base
+24.2,1.17,4.05,-88.03,Military Base
+25.2,1.18,4.05,-88.00,Military Base
+26.2,1.11,4.05,-87.85,Military Base
+27.3,1.10,4.05,-87.82,Military Base
+28.3,1.14,4.05,-87.88,Military Base
+29.3,1.23,4.05,-87.91,Military Base
+30.3,1.24,4.05,-87.93,Military Base
+31.3,1.23,4.05,-87.91,Military Base
+32.3,1.17,4.05,-87.78,Military Base
+33.3,1.14,4.05,-87.77,Military Base
+34.3,1.17,4.05,-87.81,Military Base
+35.3,1.26,4.05,-87.86,Military Base
+36.3,1.29,4.05,-87.86,Military Base
+37.3,1.29,4.05,-87.86,Military Base
+38.3,1.17,4.05,-87.71,Military Base
+39.3,1.28,4.05,-87.84,Military Base
+40.3,1.28,4.05,-87.89,Military Base
+41.3,1.27,4.05,-87.86,Military Base
+42.4,1.13,4.05,-87.74,Military Base
+43.4,1.23,4.05,-87.72,Military Base
+44.4,2.70,8.38,-69.64,Level 2 (armory)
+45.4,2.68,8.37,-69.71,Level 2 (armory)
+46.4,2.87,8.37,-69.85,Level 2 (armory)
+47.4,2.85,8.37,-69.92,Level 2 (armory)
+48.4,2.61,8.37,-69.86,Level 2 (armory)
+49.4,2.52,8.37,-69.95,Level 2 (armory)
+50.4,2.43,8.37,-70.09,Level 2 (armory)
+51.4,2.40,8.37,-70.16,Level 2 (armory)
+52.4,2.72,8.37,-69.71,Level 2 (armory)
+53.4,2.67,8.37,-69.71,Level 2 (armory)
+54.5,2.68,8.37,-69.70,Level 2 (armory)
+55.5,2.46,8.37,-69.72,Level 2 (armory)
+56.5,2.25,8.37,-69.63,Level 2 (armory)
+57.5,2.19,8.37,-69.77,Level 2 (armory)
+58.5,2.19,8.37,-69.75,Level 2 (armory)
+59.5,2.04,8.37,-69.69,Level 2 (armory)
+60.5,2.14,8.37,-69.63,Level 2 (armory)
+61.5,2.15,8.37,-69.65,Level 2 (armory)
+62.5,1.99,8.37,-69.56,Level 2 (armory)
+63.5,2.00,8.37,-69.63,Level 2 (armory)
+64.5,2.02,8.37,-69.69,Level 2 (armory)
+65.5,1.84,8.37,-69.57,Level 2 (armory)
+66.6,1.96,8.37,-69.67,Level 2 (armory)
+67.6,1.79,8.37,-69.61,Level 2 (armory)
+68.6,1.72,8.37,-69.76,Level 2 (armory)
+69.6,1.75,8.37,-69.68,Level 2 (armory)
+70.6,1.57,8.37,-69.63,Level 2 (armory)
+71.6,1.62,8.37,-69.66,Level 2 (armory)
+72.7,1.59,8.37,-69.80,Level 2 (armory)
+73.7,1.44,8.37,-69.86,Level 2 (armory)
+74.7,1.43,8.37,-69.86,Level 2 (armory)
+75.7,1.39,8.37,-69.81,Level 2 (armory)
+76.7,1.48,8.37,-69.91,Level 2 (armory)
+77.7,1.57,8.37,-69.99,Level 2 (armory)
+78.7,1.56,8.37,-70.12,Level 2 (armory)
+79.7,1.72,8.37,-70.30,Level 2 (armory)
+80.7,1.68,8.37,-70.19,Level 2 (armory)
+81.7,1.69,8.37,-70.14,Level 2 (armory)
+82.7,1.69,8.37,-70.19,Level 2 (armory)
+83.8,1.27,8.37,-70.11,Level 2 (armory)
+84.8,1.22,8.37,-70.16,Level 2 (armory)
+85.9,2.87,8.37,-69.77,Level 2 (armory)
+86.9,0.03,8.37,-70.04,Level 2 (armory)
+87.9,-0.86,8.37,-67.10,Level 2 (armory)
+88.9,-0.96,8.37,-64.63,Level 2 (armory)
+89.9,0.88,8.37,-61.25,Level 2 (armory)
+90.9,3.91,12.68,-58.74,Level 3 (destroyed floor)
+91.9,3.91,12.68,-58.74,Level 3 (destroyed floor)
+92.9,3.83,12.68,-58.70,Level 3 (destroyed floor)
+93.9,3.90,12.68,-58.66,Level 3 (destroyed floor)
+94.9,3.87,12.68,-58.64,Level 3 (destroyed floor)
+95.9,3.86,12.68,-58.87,Level 3 (destroyed floor)
+96.9,3.91,12.68,-58.64,Level 3 (destroyed floor)
+98.0,3.91,12.68,-58.64,Level 3 (destroyed floor)
+99.0,3.71,12.68,-58.58,Level 3 (destroyed floor)
+100.0,3.90,12.68,-58.66,Level 3 (destroyed floor)
+101.0,3.88,12.68,-58.63,Level 3 (destroyed floor)
+102.0,3.82,12.68,-58.56,Level 3 (destroyed floor)
+103.0,3.82,12.68,-58.51,Level 3 (destroyed floor)
+104.0,3.71,12.68,-58.57,Level 3 (destroyed floor)
+105.0,3.77,12.68,-58.55,Level 3 (destroyed floor)
+106.0,3.61,12.68,-58.48,Level 3 (destroyed floor)
+107.0,3.61,12.68,-58.56,Level 3 (destroyed floor)
+108.0,3.63,12.68,-58.54,Level 3 (destroyed floor)
+109.0,3.53,12.68,-58.48,Level 3 (destroyed floor)
+110.0,3.63,12.68,-58.53,Level 3 (destroyed floor)
+111.0,3.58,12.68,-58.51,Level 3 (destroyed floor)
+112.0,3.50,12.68,-58.44,Level 3 (destroyed floor)
+113.0,3.43,12.68,-58.51,Level 3 (destroyed floor)
+114.1,3.52,12.68,-58.55,Level 3 (destroyed floor)
+115.1,3.64,12.68,-58.57,Level 3 (destroyed floor)
+116.1,3.59,12.68,-58.57,Level 3 (destroyed floor)
+117.1,3.41,12.68,-58.55,Level 3 (destroyed floor)
+118.1,3.52,12.68,-58.58,Level 3 (destroyed floor)
+119.1,3.62,12.68,-58.63,Level 3 (destroyed floor)
+120.1,3.58,12.68,-58.58,Level 3 (destroyed floor)
+121.1,3.48,12.68,-58.54,Level 3 (destroyed floor)
+122.1,3.60,12.68,-58.59,Level 3 (destroyed floor)
+123.1,3.61,12.68,-58.52,Level 3 (destroyed floor)
+124.1,3.61,12.68,-58.52,Level 3 (destroyed floor)
+125.1,3.50,12.68,-58.50,Level 3 (destroyed floor)
+126.2,3.46,12.68,-58.51,Level 3 (destroyed floor)
+127.2,3.41,12.68,-58.59,Level 3 (destroyed floor)
+128.2,3.39,12.68,-58.65,Level 3 (destroyed floor)
+129.2,3.39,12.68,-58.65,Level 3 (destroyed floor)
+130.2,3.36,12.68,-58.58,Level 3 (destroyed floor)
+131.2,3.13,12.68,-58.58,Level 3 (destroyed floor)
+132.3,3.30,12.68,-58.64,Level 3 (destroyed floor)

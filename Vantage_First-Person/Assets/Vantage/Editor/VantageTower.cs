@@ -95,7 +95,6 @@ namespace Vantage.EditorTools
             doorsOffNavMesh(tower);
             var flights = smoothStairs(tower, group(setup, "Stair Surfaces"));
             var gates = buildGates(tower, group(setup, "Level Gates"), flights);
-            covers(tower, group(setup, "Covers"));
             var start = playerStart(tower);
             pickups(tower, setup, start);
             keyAndSlot(tower);
@@ -108,6 +107,7 @@ namespace Vantage.EditorTools
             checkDoors(tower);
 
             VantageSetup.BakeNavMesh();
+            covers(tower, group(setup, "Covers"));
             coins(tower, group(setup, "Coins"), levels);
             EditorSceneManager.MarkSceneDirty(tower.gameObject.scene);
             Debug.Log($"[Vantage] Tower set up: {flights.Count} stair flights, {gates.Count} gates, {levels.Levels.Count} levels.");
@@ -372,9 +372,10 @@ namespace Vantage.EditorTools
         /// <summary>
         /// The template character can't step up, so every flight of the tower's stairs (LVL1_Stairs,
         /// LVL2_Stairs_To_L3, FINAL_Landing_Stairs) gets an invisible walking surface: the slope-limited upper
-        /// envelope of the real steps along the flight (never below a step edge, never steeper than 25.6°, under the
-        /// 26° where the template slows down), meeting floors and landings flush at both ends. The flights are found
-        /// from a height map of the steps; a landing between two flights is flat and belongs to neither.
+        /// envelope of the real steps along the flight (never below a step edge, at most ~31°), meeting floors and
+        /// landings flush at both ends. The flights are found
+        /// from a height map of the steps; a landing between two flights is flat and belongs to neither. The surface
+        /// stays close to the steps' own slope, so it meets the floor flush and doesn't float above the treads.
         /// </summary>
         private static List<Flight> smoothStairs(Transform tower, Transform parent)
         {
@@ -387,6 +388,7 @@ namespace Vantage.EditorTools
                 foreach (var f in found)
                 {
                     buildSurface(tower, parent, f, result.Count);
+                    blockForEnemies(tower, parent, f);
                     result.Add(f);
                 }
                 Debug.Log($"[Vantage] {stairs.name}: {found.Count} flights ({string.Join(", ", found.Select(f => $"{f.bottom.y:F2}->{f.top.y:F2} m, {f.width:F1} m wide"))}).");
@@ -469,16 +471,71 @@ namespace Vantage.EditorTools
                     }
                     var upPositive = c == 0 || c == 2;
                     float low = upPositive ? amin : amax, high = upPositive ? amax : amin, mid = (cmin + cmax) / 2;
+
+                    // The gradient test misses the flight's sides (its window reaches off the steps), so the real
+                    // width is measured: across the flight at several points, as far as the steps keep the flight's
+                    // height (a wall or the divider between two flights stops it). Medians of both sides.
+                    float heightOf(float along, float across)
+                    {
+                        float x = alongX ? along : across, z = alongX ? across : along;
+                        int a = Mathf.RoundToInt((x - lb.min.x) / cell), b = Mathf.RoundToInt((z - lb.min.z) / cell);
+                        return a < 0 || b < 0 || a >= nx || b >= nz ? float.NaN : h[a, b];
+                    }
+                    var lefts = new List<float>();
+                    var rights = new List<float>();
+                    for (float along = amin + 0.2f; along <= amax - 0.2f; along += 0.3f)
+                    {
+                        var expected = Mathf.Lerp(hmin, hmax, Mathf.InverseLerp(low, high, along));
+                        bool onFlight(float across) { var y = heightOf(along, across); return !float.IsNaN(y) && Mathf.Abs(y - expected) < 0.3f; }
+                        if (!onFlight(mid)) continue;
+                        float l = mid, r = mid;
+                        while (l - cell > mid - 1.6f && onFlight(l - cell)) l -= cell;
+                        while (r + cell < mid + 1.6f && onFlight(r + cell)) r += cell;
+                        lefts.Add(l);
+                        rights.Add(r);
+                    }
+                    if (lefts.Count > 0)
+                    {
+                        lefts.Sort();
+                        rights.Sort();
+                        cmin = lefts[lefts.Count / 2];
+                        cmax = rights[rights.Count / 2];
+                        mid = (cmin + cmax) / 2;
+                    }
                     Vector3 at(float along, float y) => alongX ? new Vector3(along, y, mid) : new Vector3(mid, y, along);
                     flights.Add(new Flight { bottom = at(low, hmin), top = at(high, hmax), width = cmax - cmin + cell, name = stairs.name });
                 }
             return flights;
         }
 
+        /// <summary>
+        /// Enemies stay on their level: the NavMesh runs over the real steps, so a hunting soldier could walk onto the
+        /// stairs (and was then teleported back by the safety net). A carving NavMesh obstacle over the flight's
+        /// steps takes them out of the AI's paths; it doesn't block the player.
+        /// </summary>
+        private static void blockForEnemies(Transform t, Transform parent, Flight piece)
+        {
+            var flat = piece.top - piece.bottom; flat.y = 0;
+            var dir = flat.normalized;
+            var go = new GameObject($"Stair Block {piece.name} {piece.bottom.y:F2}");
+            go.transform.SetParent(parent, false);
+            var height = piece.top.y - piece.bottom.y + 2f;
+            go.transform.SetPositionAndRotation(t.TransformPoint((piece.bottom + piece.top) / 2 + Vector3.up * 0.5f), t.rotation * Quaternion.LookRotation(dir));
+            var obstacle = go.AddComponent<UnityEngine.AI.NavMeshObstacle>();
+            obstacle.shape = UnityEngine.AI.NavMeshObstacleShape.Box;
+            obstacle.size = new Vector3(piece.width + 0.4f, height, flat.magnitude + 0.4f);
+            obstacle.carving = true;
+            obstacle.carveOnlyStationary = true;
+        }
+
         /// <summary>The walking surface over one flight (see smoothStairs).</summary>
         private static void buildSurface(Transform t, Transform parent, Flight piece, int index)
         {
-            const float slopeCap = 0.48f;  // 25.6°
+            // Up to ~31°: the character slows down above 26° and stops at 60° (CharacterMotor.MinSlope/MaxSlope),
+            // but at 35° it stalled near the top now and then. 25.6° made the surface start in mid-air before the
+            // steep (34°) flights, a 23 cm ledge at the foot, and float half a metre above the treads; 31° starts
+            // flush with the floor within the 1.4 m run-out and stays within ~15 cm of the step edges.
+            const float slopeCap = 0.6f;
             const float step = 0.1f, extend = 1.4f;
             var mask = VantagePhysics.Solid;
             var flat = piece.top - piece.bottom; flat.y = 0;
@@ -486,7 +543,7 @@ namespace Vantage.EditorTools
             var dir = flat.normalized;
             var side = Vector3.Cross(Vector3.up, dir);
             var rise = piece.top.y - piece.bottom.y;
-            var maxSlope = Mathf.Clamp(rise / run * 1.2f, 0.12f, slopeCap);
+            var maxSlope = Mathf.Clamp(rise / run * 1.15f, 0.12f, slopeCap);
             int nk = Mathf.CeilToInt((run + 2 * extend) / step) + 1;
             var lanes = new[] { -0.45f, -0.15f, 0.15f, 0.45f };
             var heights = new float[lanes.Length, nk];
@@ -513,6 +570,9 @@ namespace Vantage.EditorTools
                 for (int i = 1; i < nk; i++) env[i] = Mathf.Max(env[i], env[i - 1] - maxSlope * step);
                 for (int i = nk - 2; i >= 0; i--) env[i] = Mathf.Max(env[i], env[i + 1] - maxSlope * step);
                 for (int i = 0; i < nk; i++) { heights[j, i] = env[i]; hole[j, i] = float.IsNegativeInfinity(raw[i]); }
+                if (VantageEditorUtil.Arg("-vantageStairProfile") != null && (j == 1 || j == 2))
+                    Debug.Log($"[Vantage] Profile {piece.name} {piece.bottom.y:F2}-{piece.top.y:F2} lane {lanes[j]}: run {run:F2} rise {rise:F2} slope cap {maxSlope:F2} width {piece.width:F2}; k raw env: " +
+                              string.Join(" ", Enumerable.Range(0, nk).Where(i => i % 2 == 0 && i < 40).Select(i => $"{-extend + i * step:F1}:{(float.IsNegativeInfinity(raw[i]) ? "-" : raw[i].ToString("F2"))}/{env[i]:F2}")));
             }
 
             var vertices = new List<Vector3>();
@@ -549,6 +609,79 @@ namespace Vantage.EditorTools
             mesh.RecalculateBounds();
             go.AddComponent<MeshCollider>().sharedMesh = mesh;
             saveMesh(mesh, $"Stair Surface {index}");
+            sideEntry(t, parent, piece, index, dir, side, rise, run, k => heights[lanes.Length / 2, Mathf.Clamp(Mathf.RoundToInt((k + extend) / step), 0, nk - 1)]);
+        }
+
+        /// <summary>
+        /// A flight whose foot is against a wall can only be entered from the side, and the template character can't
+        /// step onto the first step from there. Such a flight gets an invisible wedge on its open side: from the room
+        /// floor up to the flight's surface along its low part (no steeper than the flight), so the player can walk
+        /// onto it from the side.
+        /// </summary>
+        private static void sideEntry(Transform t, Transform parent, Flight piece, int index, Vector3 dir, Vector3 side, float rise, float run, System.Func<float, float> surfaceAt)
+        {
+            const float radius = 0.3f;
+            bool free(Vector3 local)
+            {
+                var w = t.TransformPoint(local);
+                return !Physics.CheckCapsule(w + Vector3.up * (radius + 0.15f), w + Vector3.up * 1.6f, radius, VantagePhysics.Solid, QueryTriggerInteraction.Ignore);
+            }
+            var floorY = piece.bottom.y - 0.4f;
+            var foot = piece.bottom - dir * 0.7f; foot.y = floorY;
+            // Find the floor height in front of the foot; skip if the front is open.
+            if (Physics.Raycast(t.TransformPoint(foot + Vector3.up * 1.5f), Vector3.down, out var fh, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                foot.y = t.InverseTransformPoint(fh.point).y;
+            if (free(foot)) return;
+
+            var slope = Mathf.Clamp(rise / run, 0.3f, 0.7f);
+            foreach (var s in new[] { -1f, 1f })
+            {
+                // The floor beside the first step on this side must be open.
+                var beside = piece.bottom + dir * 0.5f + side * s * (piece.width / 2 + 0.6f);
+                if (!Physics.Raycast(t.TransformPoint(beside + Vector3.up * 1.5f), Vector3.down, out var bh, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) continue;
+                beside = t.InverseTransformPoint(bh.point);
+                if (beside.y > piece.bottom.y + 0.1f || !free(beside)) continue;
+                var floor = beside.y;
+                var vertices = new List<Vector3>();
+                var triangles = new List<int>();
+                // Strips across: the flight's edge at its surface height, out to the floor.
+                for (float k = -0.4f; k <= run; k += 0.1f)
+                {
+                    var top = surfaceAt(k);
+                    var height = top - floor;
+                    if (height > 1.0f) break;
+                    var reach = Mathf.Max(0.05f, height / slope) + 0.2f;
+                    var edge = piece.bottom + dir * k + side * s * (piece.width / 2 - 0.05f);
+                    edge.y = top + 0.01f;
+                    var outer = edge + side * s * reach;
+                    outer.y = floor + 0.01f;
+                    vertices.Add(t.TransformPoint(edge));
+                    vertices.Add(t.TransformPoint(outer));
+                }
+                if (vertices.Count < 4) continue;
+                // Every triangle faces up (a mesh collider is one-sided for rays: a face built the wrong way round let
+                // rays through but still stopped the character).
+                void tri(int x, int y, int z)
+                {
+                    var n = Vector3.Cross(vertices[y] - vertices[x], vertices[z] - vertices[x]);
+                    if (n.y >= 0) triangles.AddRange(new[] { x, y, z }); else triangles.AddRange(new[] { x, z, y });
+                }
+                for (int i = 0; i + 3 < vertices.Count; i += 2)
+                {
+                    tri(i, i + 2, i + 1);
+                    tri(i + 1, i + 2, i + 3);
+                }
+                var go = new GameObject($"Stair Side Entry {piece.name} {piece.bottom.y:F2}");
+                go.transform.SetParent(parent, false);
+                var mesh = new Mesh { name = go.name };
+                mesh.SetVertices(vertices.Select(v => go.transform.InverseTransformPoint(v)).ToList());
+                mesh.SetTriangles(triangles, 0);
+                mesh.RecalculateNormals();
+                mesh.RecalculateBounds();
+                go.AddComponent<MeshCollider>().sharedMesh = mesh;
+                saveMesh(mesh, $"Stair Side Entry {index}{(s > 0 ? "R" : "L")}");
+                Debug.Log($"[Vantage] {piece.name} {piece.bottom.y:F2}-{piece.top.y:F2}: foot against a wall, side entry on the {(s > 0 ? "right" : "left")}.");
+            }
         }
 
         private static void saveMesh(Mesh mesh, string name)
@@ -663,11 +796,25 @@ namespace Vantage.EditorTools
                     if (b.size.y < 0.75f || b.size.y > 2.4f) continue;
                     var wide = Mathf.Max(b.size.x, b.size.z);
                     if (wide < 0.9f || wide > 5f) continue;
-                    count += VantageCoverUtil.AddForBounds(n, b, parent);
+                    count += VantageCoverUtil.AddForBounds(n, b, parent, roomInFront);
                     pieces++;
                 }
             }
             Debug.Log($"[Vantage] Covers: {count} on {pieces} prop pieces.");
+        }
+
+        /// <summary>
+        /// A cover face is only kept if a character fits in front of it on walkable floor: faces against a wall made
+        /// the AI walk into the wall to take cover (hands and guns showing through). Needs the NavMesh baked.
+        /// </summary>
+        private static bool roomInFront(Vector3 faceCentre, Vector3 outward)
+        {
+            const float radius = 0.3f;
+            var stand = faceCentre + outward * 0.55f;
+            if (!Physics.Raycast(stand + Vector3.up * 0.8f, Vector3.down, out var hit, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) return false;
+            var p = hit.point;
+            if (Physics.CheckCapsule(p + Vector3.up * (radius + 0.1f), p + Vector3.up * 1.6f, radius + 0.05f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) return false;
+            return UnityEngine.AI.NavMesh.SamplePosition(p, out var nav, 0.3f, UnityEngine.AI.NavMesh.AllAreas);
         }
 
         /// <summary>World bounds of each connected piece of a mesh.</summary>
@@ -790,6 +937,30 @@ namespace Vantage.EditorTools
                 Debug.Log($"[Vantage] {west.name} locked during the lockdown ({west.unlockBy}).");
             }
             else Debug.LogWarning("[Vantage] Lockdown door rule: SHUTTER_Maintenance or DOOR_Corridor_West_OneWay missing.");
+
+            // Only level 2 uses E (the key slot). Level 1: the West Wing door stands open (the security console and
+            // the shutter's wall switch are switched off). Level 3: the override terminal is off; the robot room opens
+            // once every other enemy of the floor is dead, so the robot is the floor's last fight.
+            foreach (var console in new[] { "OBJ_Security_Console", "SWITCH_Shutter_Inside", "L3_TERMINAL_Override" })
+            {
+                var c = Find(tower, console);
+                var interact = c != null ? c.GetComponent<VantageInteract>() : null;
+                if (interact != null) { interact.enabled = false; EditorUtility.SetDirty(interact); }
+                else Debug.LogWarning($"[Vantage] No console {console}.");
+            }
+            void reopen(string name, bool locked, string unlockBy)
+            {
+                var t = Find(tower, name);
+                var door = t != null ? t.GetComponent<VantageDoor>() : null;
+                if (door == null) { Debug.LogWarning($"[Vantage] No door {name}."); return; }
+                door.locked = locked;
+                door.type = locked ? DoorType.Locked : DoorType.Auto;
+                door.unlockBy = unlockBy;
+                EditorUtility.SetDirty(door);
+            }
+            reopen("DOOR_SecurityOffice_WestWing_LOCKED", false, "");
+            reopen("L3_DOOR_RobotRoom_LOCKED", true, "KILL:L3_MK_Enemy_*");
+            Debug.Log("[Vantage] E only at the level 2 key slot: West Wing open, robot room opens when the other level 3 enemies are dead.");
 
             // Doors are open doorways: open from the start on the route, or once unlocked. The shutter and the gates
             // (bars) roll up.
@@ -1058,10 +1229,10 @@ namespace Vantage.EditorTools
 
             levels.Levels = new List<VantageTowerLevels.Level>
             {
-                new VantageTowerLevels.Level { Name = "Ground floor", Prefix = "MK_", FloorY = h[0], Soldiers = 6, Drones = 0, SoldierWeapon = "Pistol",
+                new VantageTowerLevels.Level { Name = "Ground floor", Prefix = "MK_", FloorY = h[0], Soldiers = 5, Drones = 0, SoldierWeapon = "Pistol",
                     SoldierDamage = 8f, SoldierHealth = 0.8f, ClearedMessage = "LOCKDOWN LIFTED  ·  STAIRS OPEN",
                     Arrival = arrival("Arrival Ground floor", start, startLook) },
-                new VantageTowerLevels.Level { Name = "Armory", Prefix = "L2_", FloorY = h[1], Soldiers = 6, Drones = 3, SoldierWeapon = "Pistol",
+                new VantageTowerLevels.Level { Name = "Armory", Prefix = "L2_", FloorY = h[1], Soldiers = 5, Drones = 2, SoldierWeapon = "Pistol",
                     SoldierDamage = 10f, SoldierHealth = 1f, DroneAccuracy = 0.4f, DroneFireInterval = 1.5f, ClearedMessage = "ARMORY CLEAR",
                     Arrival = topOf("Arrival Armory", "LVL1") },
                 new VantageTowerLevels.Level { Name = "Destroyed floor", Prefix = "L3_", FloorY = h[2], Soldiers = 5, Drones = 0,
@@ -1258,6 +1429,53 @@ namespace Vantage.EditorTools
         #endregion
 
         #region Report
+
+        /// <summary>
+        /// -executeMethod Vantage.EditorTools.VantageTower.HoleReportBatch (read-only): NavMesh points on each level
+        /// with no solid floor under them, where an agent would walk and fall through.
+        /// </summary>
+        public static void HoleReportBatch()
+        {
+            var exitCode = 0;
+            try
+            {
+                EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
+                var tower = FindTower().transform;
+                Physics.SyncTransforms();
+                var levels = Object.FindFirstObjectByType<VantageTowerLevels>();
+                var area = levels.TowerArea;
+                area.Encapsulate(levels.FinaleArea);
+                foreach (var level in levels.Levels)
+                {
+                    var holes = new List<string>();
+                    var whatAbove = new Dictionary<string, int>();
+                    int checkedPoints = 0;
+                    for (float x = area.min.x; x <= area.max.x; x += 0.5f)
+                        for (float z = area.min.z; z <= area.max.z; z += 0.5f)
+                        {
+                            var p = new Vector3(x, level.FloorY, z);
+                            if (!UnityEngine.AI.NavMesh.SamplePosition(p, out var nav, 0.25f, UnityEngine.AI.NavMesh.AllAreas) || Mathf.Abs(nav.position.y - level.FloorY) > 0.4f) continue;
+                            checkedPoints++;
+                            if (Physics.Raycast(nav.position + Vector3.up * 0.3f, Vector3.down, out var floor, 0.8f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) continue;
+                            holes.Add(nav.position.ToString("F1"));
+                            // Which render mesh made the NavMesh there?
+                            foreach (var r in tower.GetComponentsInChildren<MeshRenderer>(true))
+                                if (r.enabled && r.bounds.Contains(nav.position + Vector3.down * 0.02f) || r.bounds.Contains(nav.position))
+                                {
+                                    whatAbove.TryGetValue(r.name, out var n);
+                                    whatAbove[r.name] = n + 1;
+                                }
+                        }
+                    Debug.Log($"[Vantage] Holes {level.Name}: {holes.Count} of {checkedPoints} NavMesh points have no floor under them; meshes there: {string.Join(", ", whatAbove.OrderByDescending(k => k.Value).Take(8).Select(k => k.Key + " x" + k.Value))}; points {string.Join(" ", holes.Take(25))}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                exitCode = 1;
+            }
+            EditorApplication.Exit(exitCode);
+        }
 
         /// <summary>
         /// -executeMethod Vantage.EditorTools.VantageTower.ReportBatch

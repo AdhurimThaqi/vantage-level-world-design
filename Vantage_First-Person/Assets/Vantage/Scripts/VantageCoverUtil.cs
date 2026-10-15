@@ -67,14 +67,19 @@ namespace Vantage
             return made;
         }
 
-        /// <summary>Covers around a world-aligned box (e.g. one piece of a combined prop mesh).</summary>
-        public static int AddForBounds(string name, Bounds bounds, Transform container)
+        /// <summary>
+        /// Covers around a world-aligned box (e.g. one piece of a combined prop mesh). 'faceOk' (face centre, outward
+        /// normal) can reject faces with no room in front (against a wall).
+        /// </summary>
+        public static int AddForBounds(string name, Bounds bounds, Transform container, System.Func<Vector3, Vector3, bool> faceOk = null)
         {
             var made = 0;
-            made += face(name, bounds, Vector3.right, bounds.size.z, container);
-            made += face(name, bounds, Vector3.left, bounds.size.z, container);
-            made += face(name, bounds, Vector3.forward, bounds.size.x, container);
-            made += face(name, bounds, Vector3.back, bounds.size.x, container);
+            foreach (var (normal, width) in new[] { (Vector3.right, bounds.size.z), (Vector3.left, bounds.size.z), (Vector3.forward, bounds.size.x), (Vector3.back, bounds.size.x) })
+            {
+                var centre = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z) + Vector3.Scale(normal, bounds.extents);
+                if (faceOk != null && !faceOk(centre, normal)) continue;
+                made += face(name, bounds, normal, width, container);
+            }
             return made;
         }
 

@@ -45,6 +45,80 @@ namespace Vantage.Testing
             VantageRun.Reset();
             log($"level {levels.Current + 1} '{levels.CurrentName}', {levels.Remaining} enemies, seed {levels.Seed}");
 
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageDiagFall") >= 0)
+            {
+                foreach (var e in levels.Enemies.ToList()) kill(e);
+                for (float t = 0; t < 3f && levels.Current == 0; t += Time.deltaTime) yield return null;
+                var below = levels.Tower.GetComponentsInChildren<VantageTag>(true).First(m => m.name == "MK_Enemy_B_1").transform.position;
+                teleport(below, below + Vector3.forward);
+                var soldiers = levels.Enemies.Where(e => e != null && e.GetComponent<FighterBrain>() != null).ToList();
+                var last = soldiers.ToDictionary(e => e, e => (pos: e.transform.position, state: ""));
+                var floor = levels.Levels[1].FloorY;
+                for (float t = 0; t < 45f; t += 0.5f)
+                {
+                    yield return new WaitForSeconds(0.5f);
+                    foreach (var e in soldiers)
+                    {
+                        if (e == null) continue;
+                        var p = e.transform.position;
+                        var brain = e.GetComponent<FighterBrain>();
+                        var motor = e.GetComponent<CharacterMotor>();
+                        var state = $"{brain.State} cover {motor.IsInCover} climbing {motor.IsClimbingOrVaulting} grounded {motor.IsGrounded}";
+                        if (p.y < floor - 0.4f && last[e].pos.y >= floor - 0.4f)
+                            log($"DIAG FALL t={t:F1} {e.name}: {last[e].pos:F2} [{last[e].state}] -> {p:F2} [{state}]");
+                        last[e] = (p, state);
+                    }
+                }
+                log("DIAG fall watch done: " + string.Join("; ", soldiers.Where(e => e != null).Select(e => $"{e.name} {e.transform.position:F1} {last[e].state}")));
+                yield return finish();
+                yield break;
+            }
+
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageDiagPaths") >= 0)
+            {
+                yield return new WaitForSeconds(2f);   // carving obstacles settle
+                var marks = levels.Tower.GetComponentsInChildren<VantageTag>(true).Where(m => m.MarkerType == "EnemySpawn").ToList();
+                foreach (var a in marks.Where(m => m.name.StartsWith("L2_") || m.name.StartsWith("L3_")))
+                {
+                    var lowerPrefix = a.name.StartsWith("L3_") ? "L2_" : "MK_";
+                    foreach (var b in marks.Where(m => m.name.StartsWith(lowerPrefix)).Take(3))
+                    {
+                        if (!NavMesh.SamplePosition(a.transform.position, out var ha, 1f, NavMesh.AllAreas) || !NavMesh.SamplePosition(b.transform.position, out var hb, 1f, NavMesh.AllAreas)) continue;
+                        var path = new NavMeshPath();
+                        NavMesh.CalculatePath(ha.position, hb.position, NavMesh.AllAreas, path);
+                        if (path.status == NavMeshPathStatus.PathComplete)
+                            log($"DIAG path {a.name} -> {b.name}: COMPLETE via " + string.Join(" ", path.corners.Select(c => c.ToString("F1"))));
+                    }
+                }
+                log("DIAG paths done");
+                yield return finish();
+                yield break;
+            }
+
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageDiagStairs") >= 0)
+            {
+                foreach (var e in levels.Enemies.ToList()) kill(e);
+                for (float t = 0; t < 3f && levels.Current == 0; t += Time.deltaTime) yield return null;
+                yield return new WaitForSeconds(2f);
+                yield return walkUpLikeAPlayer(levels, 0, "LVL1");
+                foreach (var e in levels.Enemies.ToList()) kill(e);
+                VantageInventory.Add("Key");
+                var slot = GameObject.Find("L2_KEYSLOT_InsertKey");
+                if (slot != null) slot.GetComponent<VantageInteract>().TryUse();
+                for (float t = 0; t < 3f && levels.Current == 1; t += Time.deltaTime) yield return null;
+                yield return new WaitForSeconds(2f);
+                yield return walkUpLikeAPlayer(levels, 1, "LVL2");
+                yield return finish();
+                yield break;
+            }
+
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageDiag") >= 0)
+            {
+                yield return diagnose(levels);
+                yield return finish();
+                yield break;
+            }
+
             if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageBench") >= 0)
             {
                 yield return bench(levels);
@@ -61,18 +135,24 @@ namespace Vantage.Testing
             yield return alertedStayOnLevel(levels);
             yield return westDoorLockedDuringLockdown();
             yield return doorsOpenOnRoute();
+            yield return onlyLevel2UsesE();
+            yield return coversHaveRoom();
             yield return soldiersFightBack(levels);
             yield return hudSnapshot("hud_combat");
             yield return killDoorWaitsForItsLevel(levels);
             yield return clearLevel(levels, 0);
             yield return alarmStopsOnClear();
             yield return westDoorOpensAfterClear();
+            yield return soldiersStayOnTheirFloor(levels);
+            yield return stairsFromTheFloor(levels, 0, "LVL1");
             yield return hudSnapshot("hud_level_cleared");
             yield return keyOpensGate(levels);
             yield return lastEnemiesCome(levels);
             yield return clearLevel(levels, 1);
             yield return gateOpensAfterClear();
+            yield return stairsFromTheFloor(levels, 1, "LVL2");
             yield return killDoorsOpen(levels);
+            yield return robotRoomOpensLast(levels);
             yield return robotModelAndFriendlyFire(levels);
             yield return robotRifleOnly(levels);
             yield return clearLevel(levels, 2);
@@ -149,9 +229,212 @@ namespace Vantage.Testing
             yield return hudSnapshot("hud_end_screen");
         }
 
+        // ---------------- diagnosis (-vantageDiag) ----------------
+
+        /// <summary>
+        /// Evidence for playtest complaints, no pass/fail: covers inside walls, patrol points off the NavMesh, then for
+        /// each level the enemies after 40 s with the player at the level's arrival (where, inside a wall?, state),
+        /// and a walk along the real route to the next level (stalls and what blocks them).
+        /// </summary>
+        private IEnumerator diagnose(VantageTowerLevels levels)
+        {
+            var capsule = _motor.GetComponent<CapsuleCollider>();
+            var radius = capsule != null ? capsule.radius : 0.3f;
+            int covers = 0, coversBlocked = 0;
+            var blockedNames = new Dictionary<string, int>();
+            foreach (var cover in FindObjectsByType<Cover>(FindObjectsSortMode.None))
+            {
+                covers++;
+                // A cover's forward points into its obstacle; the character stands in front of it.
+                var stand = cover.transform.position - cover.transform.forward * 0.45f;
+                var floor = Physics.Raycast(stand + Vector3.up * 0.5f, Vector3.down, out var fh, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore) ? fh.point : stand;
+                var inside = Physics.CheckCapsule(floor + Vector3.up * (radius + 0.1f), floor + Vector3.up * 1.6f, radius * 0.8f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore);
+                var offMesh = !NavMesh.SamplePosition(floor, out var nh, 0.4f, NavMesh.AllAreas);
+                if (inside || offMesh)
+                {
+                    coversBlocked++;
+                    blockedNames.TryGetValue(cover.name, out var n);
+                    blockedNames[cover.name] = n + 1;
+                }
+            }
+            log($"DIAG covers: {coversBlocked}/{covers} have no room to stand in front (inside a wall or off the NavMesh): " + string.Join(", ", blockedNames.OrderByDescending(k => k.Value).Take(15).Select(k => $"{k.Key} x{k.Value}")));
+
+            foreach (var path in levels.Tower.GetComponentsInChildren<VantagePatrolPath>(true))
+            {
+                var pts = path.GetPoints();
+                log($"DIAG patrol {path.name}: " + string.Join(" | ", pts.Select(p => NavMesh.SamplePosition(p, out var h, 3f, NavMesh.AllAreas) ? $"{p:F1} nav {Vector3.Distance(p, h.position):F2} m" : $"{p:F1} NO NAVMESH")));
+            }
+
+            for (int level = 0; level < 3; level++)
+            {
+                if (levels.Current != level) { log($"DIAG stopped: current level {levels.Current + 1}, expected {level + 1}"); yield break; }
+                var arrival = levels.Levels[level].Arrival;
+                teleport(arrival.position, arrival.position + arrival.forward);
+                var spawned = levels.Enemies.Where(e => e != null && levels.LevelAt(e.transform.position) == level).ToDictionary(e => e, e => e.transform.position);
+                yield return new WaitForSeconds(40f);
+                foreach (var kv in spawned)
+                {
+                    var e = kv.Key;
+                    if (e == null) continue;
+                    var p = e.transform.position;
+                    var brain = e.GetComponent<FighterBrain>();
+                    var motor = e.GetComponent<CharacterMotor>();
+                    var c = e.GetComponent<CapsuleCollider>();
+                    var overl = Physics.OverlapCapsule(p + Vector3.up * 0.5f, p + Vector3.up * 1.4f, 0.25f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
+                                       .Where(o => !o.transform.IsChildOf(e.transform)).Select(o => o.name).Distinct().ToList();
+                    var nav = NavMesh.SamplePosition(p, out var nh, 1f, NavMesh.AllAreas) ? Vector3.Distance(new Vector3(p.x, nh.position.y, p.z), nh.position) : -1f;
+                    log($"DIAG L{level + 1} {e.name}: moved {Vector3.Distance(kv.Value, p):F1} m, level {levels.LevelAt(p) + 1}, state {(brain != null ? brain.State.ToString() : "-")}, cover {(motor != null && motor.IsInCover)}, alive {(motor != null ? motor.IsAlive : true)}, nav off {nav:F2} m, inside [{string.Join(",", overl)}]");
+                }
+                log($"DIAG L{level + 1}: {levels.Remaining} enemies alive after 40 s");
+                foreach (var e in levels.Enemies.ToList()) kill(e);
+                if (level == 1)
+                {
+                    VantageInventory.Add("Key");
+                    GameObject.Find("L2_KEYSLOT_InsertKey")?.GetComponent<VantageInteract>()?.TryUse();
+                }
+                for (float t = 0; t < 3f && levels.Current == level; t += Time.deltaTime) yield return null;
+                yield return new WaitForSeconds(1.5f);
+                // The real route from this level's arrival to the next one's.
+                var next = levels.Levels[level + 1].Arrival;
+                yield return walkRoute($"L{level + 1}->L{level + 2}", arrival.position, next.position);
+            }
+        }
+
+        /// <summary>
+        /// Walks from the level's arrival point to the foot of its first flight (NavMesh path on the floor), then up
+        /// each flight of that staircase in order and 2 m onto the next floor, like a player: logs every stall,
+        /// what blocks it and a screenshot.
+        /// </summary>
+        private IEnumerator walkUpLikeAPlayer(VantageTowerLevels levels, int level, string stairs)
+        {
+            var flights = FindObjectsByType<MeshCollider>(FindObjectsSortMode.None).Where(c => c.name.StartsWith("Stair Surface " + stairs)).OrderBy(c => c.bounds.min.y).ToList();
+            var points = new List<Vector3>();
+            var approaches = new List<Vector3>();
+            foreach (var surface in flights)
+            {
+                var v = surface.sharedMesh.vertices.Select(x => surface.transform.TransformPoint(x)).ToList();
+                float lo = v.Min(p => p.y), hi = v.Max(p => p.y);
+                var lows = v.Where(p => p.y < lo + 0.05f).ToList();
+                var highs = v.Where(p => p.y > hi - 0.05f).ToList();
+                var low = lows.Aggregate(Vector3.zero, (a, p) => a + p) / lows.Count;
+                var high = highs.Aggregate(Vector3.zero, (a, p) => a + p) / highs.Count;
+                var dir = high - low; dir.y = 0; dir.Normalize();
+                // The surface reaches 1.4 m past each end of the steps: onto the flight, up it, onto the landing or floor.
+                points.Add(low + dir * 1.0f);
+                points.Add(high + dir * 0.6f);
+                if (approaches.Count == 0)
+                {
+                    // Ways onto the first flight: from the front, or from either side (a foot against a wall).
+                    var side = Vector3.Cross(Vector3.up, dir);
+                    var half = surface.bounds.extents.x * Mathf.Abs(side.x) + surface.bounds.extents.z * Mathf.Abs(side.z);
+                    approaches.Add(low - dir * 0.2f);
+                    approaches.Add(low + dir * 1.0f + side * (half + 0.9f));
+                    approaches.Add(low + dir * 1.0f - side * (half + 0.9f));
+                }
+            }
+            var lastDir = points.Count >= 2 ? (points[points.Count - 1] - points[points.Count - 2]) : Vector3.forward; lastDir.y = 0;
+            points.Add(points[points.Count - 1] + lastDir.normalized * 2.0f);
+
+            var start = levels.Levels[level].Arrival.position;
+            // The reachable approach with the shortest floor path.
+            NavMeshPath path = null;
+            float best = float.MaxValue;
+            foreach (var a in approaches)
+            {
+                if (!NavMesh.SamplePosition(a, out var ah, 0.6f, NavMesh.AllAreas) || Mathf.Abs(ah.position.y - levels.Levels[level].FloorY) > 0.5f) continue;
+                var p = new NavMeshPath();
+                if (!NavMesh.CalculatePath(start, ah.position, NavMesh.AllAreas, p) || p.status != NavMeshPathStatus.PathComplete) continue;
+                float length = 0;
+                for (int c = 1; c < p.corners.Length; c++) length += Vector3.Distance(p.corners[c - 1], p.corners[c]);
+                if (length < best) { best = length; path = p; }
+            }
+            path ??= new NavMeshPath();
+            var route = path.corners.Length > 1 ? path.corners.Skip(1).ToList() : new List<Vector3>();
+            route.AddRange(points);
+            log($"DIAG walk {stairs}: floor path {path.status} ({path.corners.Length} corners), then {flights.Count} flights; route " + string.Join(" ", route.Select(p => p.ToString("F1"))));
+            teleport(start, route[0]);
+            yield return new WaitForSeconds(0.5f);
+            int stalls = 0;
+            for (int i = 0; i < route.Count; i++)
+            {
+                var target = route[i];
+                float t = 0, window = 0, stuckFor = 0;
+                var windowStart = _motor.transform.position;
+                while (t < 10f)
+                {
+                    var d = target - _motor.transform.position; d.y = 0;
+                    if (d.magnitude < 0.4f) break;
+                    _controller.MovementInput = new CharacterMovement(d.normalized, 1f);
+                    yield return null;
+                    t += Time.deltaTime;
+                    window += Time.deltaTime;
+                    if (window < 0.25f) continue;
+                    var p = _motor.transform.position;
+                    if (new Vector2(p.x - windowStart.x, p.z - windowStart.z).magnitude < 0.075f && t > 0.5f) stuckFor += window; else stuckFor = 0;
+                    window = 0; windowStart = p;
+                    if (stuckFor < 1f) continue;
+                    stalls++;
+                    _controller.MovementInput = new CharacterMovement();
+                    log($"DIAG walk {stairs}: STUCK #{stalls} at {p:F2} (level {levels.LevelAt(p) + 1}) going to point {i} {target:F2}, grounded {_motor.IsGrounded}:{obstacles(d.normalized)}");
+                    yield return hudSnapshot($"diag_stuck_{stairs}_{stalls}");
+                    teleport(target, i + 1 < route.Count ? route[i + 1] : target + d.normalized);
+                    yield return new WaitForSeconds(0.3f);
+                    break;
+                }
+            }
+            _controller.MovementInput = new CharacterMovement();
+            var end = _motor.transform.position;
+            _walkStalls = stalls;
+            log($"DIAG walk {stairs}: {stalls} stalls, ended at {end:F2} on level {levels.LevelAt(end) + 1}");
+        }
+
+        /// <summary>Follows the NavMesh path between two points with the character's own movement; logs every stall and what is in front.</summary>
+        private IEnumerator walkRoute(string name, Vector3 from, Vector3 to)
+        {
+            var path = new NavMeshPath();
+            NavMesh.CalculatePath(from, to, NavMesh.AllAreas, path);
+            log($"DIAG route {name}: path {path.status}, {path.corners.Length} corners");
+            if (path.corners.Length < 2) yield break;
+            teleport(path.corners[0], path.corners[1]);
+            yield return new WaitForSeconds(0.5f);
+            int stalls = 0;
+            for (int i = 1; i < path.corners.Length; i++)
+            {
+                var corner = path.corners[i];
+                float t = 0, window = 0, stuckFor = 0;
+                var windowStart = _motor.transform.position;
+                while (t < 12f)
+                {
+                    var d = corner - _motor.transform.position; d.y = 0;
+                    if (d.magnitude < 0.35f) break;
+                    _controller.MovementInput = new CharacterMovement(d.normalized, 1f);
+                    yield return null;
+                    t += Time.deltaTime;
+                    window += Time.deltaTime;
+                    if (window >= 0.25f)
+                    {
+                        var p = _motor.transform.position;
+                        if (new Vector2(p.x - windowStart.x, p.z - windowStart.z).magnitude < 0.075f && t > 0.5f) stuckFor += window; else stuckFor = 0;
+                        window = 0; windowStart = p;
+                        if (stuckFor >= 1f)
+                        {
+                            stalls++;
+                            log($"DIAG route {name}: STUCK at {p:F2} (y above corner {p.y - corner.y:F2}) heading to corner {i} {corner:F2}:{obstacles(d.normalized)}");
+                            // Hop past it so the rest of the route is checked too.
+                            teleport(corner, i + 1 < path.corners.Length ? path.corners[i + 1] : corner + d.normalized);
+                            yield return new WaitForSeconds(0.3f);
+                            break;
+                        }
+                    }
+                }
+            }
+            _controller.MovementInput = new CharacterMovement();
+            log($"DIAG route {name}: {stalls} stalls, ended {Vector3.Distance(_motor.transform.position, to):F1} m from the target");
+        }
+
         // ---------------- review fixes ----------------
 
-        private int _leftLevel;
+        private int _leftLevel, _walkStalls;
         private void onLog(string text, string stack, LogType type) { if (text.Contains("had left its level")) _leftLevel++; }
 
         /// <summary>
@@ -226,6 +509,84 @@ namespace Vantage.Testing
             else fail("left corridor door during lockdown: " + line);
         }
 
+        /// <summary>Only the level 2 key slot is used with E; every other console is switched off.</summary>
+        private IEnumerator onlyLevel2UsesE()
+        {
+            yield return null;
+            var active = FindObjectsByType<VantageInteract>(FindObjectsSortMode.None).Where(i => i.enabled).Select(i => i.name).ToList();
+            var line = "consoles in use: " + string.Join(", ", active);
+            if (active.Count == 1 && active[0] == "L2_KEYSLOT_InsertKey") log("PASS only the level 2 key slot uses E: " + line);
+            else fail("E consoles: " + line);
+        }
+
+        /// <summary>Every cover of the tower has room for a character in front of it (none faces into a wall).</summary>
+        private IEnumerator coversHaveRoom()
+        {
+            yield return null;
+            var capsule = _motor.GetComponent<CapsuleCollider>();
+            var radius = capsule != null ? capsule.radius : 0.3f;
+            var setup = GameObject.Find("VANTAGE Tower Setup");
+            var covers = setup != null ? setup.GetComponentsInChildren<Cover>() : new Cover[0];
+            var blocked = covers.Where(c =>
+            {
+                var stand = c.transform.position - c.transform.forward * 0.45f;
+                var floor = Physics.Raycast(stand + Vector3.up * 0.5f, Vector3.down, out var fh, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore) ? fh.point : stand;
+                return Physics.CheckCapsule(floor + Vector3.up * (radius + 0.15f), floor + Vector3.up * 1.6f, radius * 0.8f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
+                       || !NavMesh.SamplePosition(floor, out var nh, 0.4f, NavMesh.AllAreas);
+            }).Select(c => c.name).ToList();
+            var line = $"{blocked.Count}/{covers.Length} tower covers without room in front" + (blocked.Count > 0 ? ": " + string.Join(", ", blocked.Take(10)) : "");
+            if (covers.Length > 0 && blocked.Count == 0) log("PASS no cover faces into a wall: " + line);
+            else fail("covers: " + line);
+        }
+
+        /// <summary>The robot room stays locked until every other level 3 enemy is dead.</summary>
+        private IEnumerator robotRoomOpensLast(VantageTowerLevels levels)
+        {
+            var door = VantageDoor.Find("L3_DOOR_RobotRoom_LOCKED");
+            if (door == null) { fail("no L3_DOOR_RobotRoom_LOCKED"); yield break; }
+            var lockedBefore = door.IsLocked;
+            foreach (var e in levels.Enemies.Where(e => e != null && e.GetComponent<FighterBrain>() != null && levels.LevelAt(e.transform.position) == 2).ToList()) kill(e);
+            yield return new WaitForSeconds(0.5f);
+            var line = $"locked while soldiers lived {lockedBefore}, after they died locked {door.IsLocked}, open {door.OpenAmount:P0}";
+            if (lockedBefore && !door.IsLocked && door.OpenAmount == 1f) log("PASS the robot room opens when the rest of level 3 is dead: " + line);
+            else fail("robot room: " + line);
+        }
+
+        /// <summary>
+        /// With the player on level 1 right below level 2's soldiers for 20 s, none of them ends up on another floor
+        /// (the template AI used to snap a soldier onto a search target on the floor below: a teleport through the floor).
+        /// </summary>
+        private IEnumerator soldiersStayOnTheirFloor(VantageTowerLevels levels)
+        {
+            var below = levels.Tower.GetComponentsInChildren<VantageTag>(true).First(m => m.name == "MK_Enemy_B_1").transform.position;
+            if (NavMesh.SamplePosition(below, out var hit, 2f, NavMesh.AllAreas)) below = hit.position;
+            teleport(below, below + Vector3.forward);
+            _leftLevel = 0;
+            Application.logMessageReceived += onLog;
+            var soldiers = levels.Enemies.Where(e => e != null && e.GetComponent<FighterBrain>() != null && levels.LevelAt(e.transform.position) == 1).ToList();
+            var dropped = 0;
+            var floor = levels.Levels[1].FloorY;
+            for (float t = 0; t < 20f; t += 0.5f)
+            {
+                yield return new WaitForSeconds(0.5f);
+                dropped = Mathf.Max(dropped, soldiers.Count(e => e != null && e.transform.position.y < floor - 0.4f));
+            }
+            Application.logMessageReceived -= onLog;
+            var line = $"{soldiers.Count} level 2 soldiers, most below their floor at once {dropped}, safety-net returns {_leftLevel}";
+            if (soldiers.Count > 0 && dropped == 0 && _leftLevel == 0) log("PASS soldiers stay on their floor with the player below: " + line);
+            else fail("soldiers changed floor: " + line);
+        }
+
+        /// <summary>The real way up from the level's floor (through the shutter and the gate on level 1) has no catches.</summary>
+        private IEnumerator stairsFromTheFloor(VantageTowerLevels levels, int level, string stairs)
+        {
+            yield return walkUpLikeAPlayer(levels, level, stairs);
+            var end = _motor.transform.position;
+            var line = $"{_walkStalls} stalls, ended on level {levels.LevelAt(end) + 1}";
+            if (_walkStalls == 0 && levels.LevelAt(end) == level + 1) log($"PASS walking up the {stairs} stairs from the floor: " + line);
+            else fail($"{stairs} stairs from the floor: " + line);
+        }
+
         /// <summary>Once level 1 is clear the left corridor door is unlocked.</summary>
         private IEnumerator westDoorOpensAfterClear()
         {
@@ -242,12 +603,13 @@ namespace Vantage.Testing
         private IEnumerator doorsOpenOnRoute()
         {
             var open = VantageDoor.Find("DOOR_Corridor_East_RoomA");
-            var shut = VantageDoor.Find("DOOR_SecurityOffice_WestWing_LOCKED");
-            if (open == null || shut == null) { fail($"doors: Room A {open != null}, West Wing {shut != null}"); yield break; }
+            var westWing = VantageDoor.Find("DOOR_SecurityOffice_WestWing_LOCKED");
+            var shut = VantageDoor.Find("L3_DOOR_SERoom_LOCKED");
+            if (open == null || shut == null || westWing == null) { fail($"doors: Room A {open != null}, West Wing {westWing != null}, SE room {shut != null}"); yield break; }
             yield return null;
             var blocking = open.GetComponentsInChildren<Collider>().Any(c => c.enabled);
-            var line = $"Room A door open {open.OpenAmount:P0} (collider {(blocking ? "on" : "off")}), West Wing door open {shut.OpenAmount:P0} (locked {shut.IsLocked})";
-            if (open.OpenAmount == 1f && !blocking && shut.OpenAmount == 0f && shut.IsLocked) log("PASS route doors are open, locked doors shut: " + line);
+            var line = $"Room A door open {open.OpenAmount:P0} (collider {(blocking ? "on" : "off")}), West Wing open {westWing.OpenAmount:P0}, SE room door open {shut.OpenAmount:P0} (locked {shut.IsLocked})";
+            if (open.OpenAmount == 1f && !blocking && westWing.OpenAmount == 1f && shut.OpenAmount == 0f && shut.IsLocked) log("PASS route doors are open, locked doors shut: " + line);
             else fail("doors on the route: " + line);
         }
 
@@ -302,7 +664,8 @@ namespace Vantage.Testing
             robot.OnHit(new Hit(robot.transform.position + Vector3.up, Vector3.up, 1e5f, _motor.gameObject, robot.gameObject, HitType.Rifle, 0));
             yield return null;
             var line = $"health {before:F0} -> {afterPistol:F0} after 10 pistol hits ({warnings} warning), -> {afterRifle:F0} after a rifle hit, dead {robot.IsDead}, remaining {remaining} -> {levels.Remaining}";
-            if (afterPistol == before && warnings == 1 && afterRifle < before && robot.IsDead && levels.Remaining == remaining - 1) log("PASS robot is rifle-only: " + line);
+            // The robot may be the floor's last enemy (the robot room opens last), then its death starts the next level.
+            if (afterPistol == before && warnings == 1 && afterRifle < before && robot.IsDead && (levels.Remaining == remaining - 1 || levels.Current == 3)) log("PASS robot is rifle-only: " + line);
             else fail("robot: " + line);
         }
 
@@ -533,6 +896,7 @@ namespace Vantage.Testing
         /// <summary>Kills the level's enemies: its gates open (L1), the next level spawns, the alarm stops.</summary>
         private IEnumerator clearLevel(VantageTowerLevels levels, int level)
         {
+            if (levels.Current == level + 1) { log($"PASS level {level + 1} already cleared by the checks before (level {levels.Current + 1} '{levels.CurrentName}' running)"); yield break; }
             if (levels.Current != level) { fail($"clear level {level + 1}: the current level is {levels.Current + 1}"); yield break; }
             foreach (var e in levels.Enemies.ToList()) kill(e);
             for (float t = 0; t < 3f && levels.Current == level; t += Time.deltaTime)
@@ -707,9 +1071,18 @@ namespace Vantage.Testing
             if (drone != null) keep.Add(drone);
             foreach (var e in enemies.Where(e => !keep.Contains(e))) kill(e);
 
+            // The level's spawn point furthest from the survivors that the soldier can actually walk to (not
+            // behind a door that is still locked, such as the stairwell gate before the key).
             var prefix = levels.Levels[levels.Current].Prefix;
+            var walker = soldier != null ? soldier.transform.position : keep[0].transform.position;
+            bool reachable(Vector3 p)
+            {
+                if (!NavMesh.SamplePosition(p, out var a, 1f, NavMesh.AllAreas) || !NavMesh.SamplePosition(walker, out var b, 1f, NavMesh.AllAreas)) return false;
+                var path = new NavMeshPath();
+                return NavMesh.CalculatePath(b.position, a.position, NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete;
+            }
             var spot = levels.Tower.GetComponentsInChildren<VantageTag>(true)
-                             .Where(m => m.MarkerType == "EnemySpawn" && m.name.StartsWith(prefix))
+                             .Where(m => m.MarkerType == "EnemySpawn" && m.name.StartsWith(prefix) && reachable(m.transform.position))
                              .OrderByDescending(m => keep.Min(e => Vector3.Distance(e.transform.position, m.transform.position)))
                              .First().transform.position;
             if (NavMesh.SamplePosition(spot, out var hit, 2f, NavMesh.AllAreas)) spot = hit.position;

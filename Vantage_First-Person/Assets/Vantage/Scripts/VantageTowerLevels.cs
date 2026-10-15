@@ -366,7 +366,7 @@ namespace Vantage
         {
             if (SoldierPrefab == null) return;
             var level = Levels[index];
-            var go = Instantiate(SoldierPrefab, standAt(at) + Vector3.up * SoldierSpawnLift, Quaternion.Euler(0, at.transform.eulerAngles.y, 0));
+            var go = Instantiate(SoldierPrefab, standAt(at) + Vector3.up * SoldierSpawnLift, facing(at));
             // Named after the marker, so the Blender KILL lists (KILL:MK_Enemy_*) find it.
             go.name = at.name;
             var actor = go.GetComponent<BaseActor>();
@@ -391,6 +391,18 @@ namespace Vantage
                 if (path != null) aggression.PatrolPoints = path.GetPoints();
             }
             track(go, index, aggression);
+        }
+
+        /// <summary>
+        /// The marker's direction, unless a wall is close: then the soldier faces away from it, into the room
+        /// (facing a wall, its hands and gun showed through it).
+        /// </summary>
+        private Quaternion facing(VantageTag at)
+        {
+            var yaw = Quaternion.Euler(0, at.transform.eulerAngles.y, 0);
+            if (!NavMesh.FindClosestEdge(standAt(at), out var edge, NavMesh.AllAreas) || edge.distance > 1.5f) return yaw;
+            var away = edge.normal; away.y = 0;
+            return away.sqrMagnitude > 0.01f && Vector3.Dot(yaw * Vector3.forward, away) < 0.3f ? Quaternion.LookRotation(away) : yaw;
         }
 
         /// <summary>Puts the level's gun in the soldier's hands and tells its AI to keep using that inventory slot.</summary>
@@ -533,9 +545,20 @@ namespace Vantage
             AwaitingHelipad = false;
             var marker = _markers.FirstOrDefault(m => m.name == BossMarker);
             var at = marker != null ? marker.transform.position : transform.position;
-            // The Blender marker floats beside the platform (it was for a gunship): the boss lands on the nearest
-            // walkable point of the platform instead.
-            if (NavMesh.SamplePosition(at, out var ground, 12f, NavMesh.AllAreas)) at = ground.position;
+            // The Blender marker floats beyond the platform's edge (it was for a gunship): the boss stands on the
+            // platform's walking floor, as close to the marker as it gets (not on the railing tops).
+            var floorY = Levels[Current].FloorY;
+            var middle = new Vector3(FinaleArea.center.x, floorY, FinaleArea.center.z);
+            for (float k = 1f; k >= 0f; k -= 0.05f)
+            {
+                var probe = Vector3.Lerp(middle, new Vector3(at.x, floorY, at.z), k);
+                if (NavMesh.SamplePosition(probe, out var ground, 0.6f, NavMesh.AllAreas) && Mathf.Abs(ground.position.y - floorY) < 0.3f
+                    && levelAt(ground.position, 0.3f) == Current && !Physics.CheckCapsule(ground.position + Vector3.up * 1.0f, ground.position + Vector3.up * 2.5f, 0.8f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                {
+                    at = ground.position;
+                    break;
+                }
+            }
             var pad = VantageEvents.ActivePlayer();
             var look = pad != null ? Quaternion.LookRotation(Vector3.ProjectOnPlane(pad.transform.position - at, Vector3.up)) : Quaternion.identity;
             var boss = spawnSpecial(Current, BossPrefab, at, look, "Boss");

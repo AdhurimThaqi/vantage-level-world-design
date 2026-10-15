@@ -165,7 +165,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EngageRange: 32
-  CoverRange: 9
+  CoverRange: 0
   FloorTolerance: 2.6
   ThinkInterval: 0.5
   Alerted: 0

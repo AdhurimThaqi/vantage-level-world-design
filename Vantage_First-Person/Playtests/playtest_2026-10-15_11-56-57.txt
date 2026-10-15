@@ -1,0 +1,51 @@
+VANTAGE playtest  2026-10-15_11-56-57
+Enemy placement seed: 52703
+Session length: -183s (run -15s, deaths 4)  Completed: no   Furthest: Level 2 (armory)   Backtracks: 6
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)    155s   deaths 0
+  Level 2 (armory)    158s   deaths 0
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Drone          3
+  Turret         2
+  Soldier        1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Session started
+[    0.0s] Enemy placement seed 52703
+[    2.0s] Level 2 (armory) -> Level 1 (ground floor)
+[    2.0s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[   12.1s] Killed Drone in Level 1 (ground floor)
+[  108.7s] Level 1 (ground floor) -> Level 2 (armory)
+[  108.9s] Level 2 (armory) -> Level 1 (ground floor)
+[  108.9s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  112.6s] Level 1 (ground floor) -> Level 2 (armory)
+[  116.4s] Killed Turret in Level 2 (armory)
+[  118.1s] Level 2 (armory) -> Level 1 (ground floor)
+[  118.1s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  132.7s] Level 1 (ground floor) -> Level 2 (armory)
+[  133.6s] Level 2 (armory) -> Level 1 (ground floor)
+[  133.6s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  137.8s] Level 1 (ground floor) -> Level 2 (armory)
+[  137.9s] Level 2 (armory) -> Level 1 (ground floor)
+[  137.9s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  144.5s] Level 1 (ground floor) -> Level 2 (armory)
+[  147.4s] Level 2 (armory) -> Level 1 (ground floor)
+[  147.4s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  166.5s] Level 1 (ground floor) -> Level 2 (armory)
+[  172.0s] Killed Turret in Level 2 (armory)
+[  183.8s] Killed Soldier in Level 2 (armory)
+[  209.0s] Killed Drone in Level 2 (armory)
+[  216.3s] Coin 2/5
+[  235.6s] Killed Drone in Level 2 (armory)
+[  240.2s] Picked up Rifle
+[  247.2s] Coin 3/5
