@@ -98,7 +98,9 @@ namespace Vantage
             if (!arrived && Time.time - _lastOrder < ReorderInterval)
                 return;
             _lastOrder = Time.time;
-            _brain.ToWalkTo(PatrolPoints[_patrolIndex]);
+            // Broadcast like the template's brains do: AIMovement walks; FighterBrain.ToWalkTo alone only records it.
+            _brain.Message("ToWalkTo", PatrolPoints[_patrolIndex]);
+            _brain.Message("ToFaceWalkDirection");
         }
 
         private bool canSee(BaseActor player)
@@ -123,13 +125,20 @@ namespace Vantage
             _brain.ToOpenFire();
         }
 
-        /// <summary>Path to the player's current position; refreshed every few seconds as the player moves.</summary>
+        /// <summary>
+        /// Path to the player's current position; refreshed every few seconds as the player moves. The brain is set
+        /// to alerted first: its own fight states (circling, cover) would keep it near the last place it saw the player.
+        /// </summary>
         private void hunt(BaseActor player)
         {
             if (Time.time - _lastOrder < ReorderInterval)
                 return;
             _lastOrder = Time.time;
-            _brain.ToRunTo(player.transform.position);
+            var state = _brain.State;
+            if (state != FighterState.idleButAlerted && state != FighterState.process)
+                _brain.SetIdleAlertedState();
+            _brain.Message("ToRunTo", player.transform.position);
+            _brain.Message("ToFaceWalkDirection");
         }
     }
 }

@@ -14,6 +14,17 @@ Entry format:
 
 ---
 
+## 2026-10-16: Resumed and finished the playtest fixes; soldiers really hunt now (Claude session)
+**Asked:** "we had to cancel the work yesterday can you check real quick where u left and continue from there" (then: "its closed").
+**Done:**
+- Ran the open "resume here" list from 2026-10-15 (its edits were already in the user's commit eeb3325). Scene backup `_Backups/SampleScene_before_resume_verify_2026-10-16.unity`; SetupBatch re-run.
+- Found the real cause of "last enemies don't come" / soldiers standing around: `VantageEnemyAggression` called `FighterBrain.ToRunTo/ToWalkTo`, which in the template only *record* a target; nothing moved. Soldiers only moved by the brain's own states (circle, cover) around where they last saw the player. Fix: hunting sets the brain to idle-alerted and broadcasts `ToRunTo` (+ `ToFaceWalkDirection`); patrol broadcasts `ToWalkTo`. (Also noted: the player rig has a carving NavMeshObstacle; harmless, the template snaps targets within 3 m.)
+- Bot: "last enemies come" keeps the soldier with the longest reachable walk and needs that soldier to reach 8 m or see the player (a drone's shot no longer passes it); the covers check ignores characters' hit boxes and names the blocker.
+- Removed the `-vantageStairProfile` debug log from `VantageTower`.
+- Docs: CLAUDE.md (game summary, AIMovement edit, move-order rule, covers, stairs, bot checks, history), README (E only at the key slot, counts, robot room, covers, stairs), concept doc (current-level table, guidance, Revisions row Oct 15–16).
+**Verified:** dotnet build 0 errors; SetupBatch exit 0 (door check 11 ok, 0 FAIL; 4 flights; 133 covers; 5 coins). Bot ALL PASSED on seed 52703, 81812 and random 95468: boss on the platform and the full finale, soldier walks 22 m -> 7.5 m in 8.5 s to the player, stairs, E only on L2, covers.
+**Open:** Play mode by a human: how the hunt feels now that soldiers actually come (L1 alarm with only a pistol may be harder), patrols on L3 walking their routes. Not committed.
+
 ## 2026-10-15: Playtest fixes, in progress (Claude session), PAUSED (user's battery)
 **Asked:** "the door to proceed to the 2nd level even tho its green there is some collision ... also stairs need to be fixed and you only need to put the letter "E" msg to lvl 2 not everywhere and its not working on lvl 2 even if i clean all the enemies and get all the coins the door doesnt open ... remove like 3 enemies ... their way of patroling is not good they just stay in the wall stuck"; E-only choice: "Auto-open".
 **Found (diagnosis, seed 52703 from the user's log):** level 2 gate never opened because 5 of 6 L2 soldiers were alive (user killed 1). Causes: (1) stair surfaces capped at 25.6° on 34° stairs started 23 cm above the floor (the "collision at the green gate") and floated ~0.5 m above the steps, and were narrower than the flights; (2) 186 cover spots faced into walls, and soldiers stood in "take cover" never reaching them (no firing, pressed into walls); (3) the template AI (AIMovement) snapped soldiers onto search targets on the floor below (horizontal-only distance): soldiers teleported through floors, the safety net sent them back (blinking, "can't find the last enemies").

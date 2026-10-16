@@ -21,7 +21,7 @@ Open `Vantage_First-Person` in Unity **6000.0.58f2**, open `Assets/Scenes/Sample
 | Move / look | WASD / mouse |
 | Run | Left Shift |
 | Crouch | Left Ctrl (hold) |
-| Use (consoles, key slot, terminal) | E (the HUD shows "[E] …" when you can) |
+| Use (the level 2 key slot) | E (the HUD shows "[E] …" when you can) |
 | Take cover at a wall or object | Space (near it) |
 | Climb / vault low obstacles | Space (facing it) |
 | Roll | Double-tap a direction key |
@@ -45,9 +45,9 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 
 | Level | Spaces | Enemies | What it asks of you | How it opens |
 |---|---|---|---|---|
-| **1 · Ground floor** | entrance, checkpoint, rooms A–C, guard hall, turret hallway, security office, West Wing | 6 soldiers (pistols), a sentry turret | Survive the **lockdown**: the alarm trigger just inside the doors (or the security camera in Room A, if it sees you) drops the maintenance shutter and sends the floor after you. The door on the left of the corridor stays locked during the lockdown, so the only way on is the door to Room A on the right: rooms A → B → C, the console in the security office unlocks the West Wing, on into the turret hallway. | All of them dead: the shutter rolls up, the alarm stops, the red stair shutter opens |
-| **2 · Armory** | hall with barricades, Armory, Office, stairwell | 6 soldiers, 2 turrets, 3 drones | Take the **rifle** from the Armory and the **key** from the office desk (it floats and glows; it flies into your hands when you take it). Insert it in the slot by the stairwell gate with **E**: the key turns and the lamp goes green. | Key in **and** everyone dead: the stairwell gate rolls up |
-| **3 · Destroyed floor** | barracks, comms room, hall, the blown-out open area and broken slab outside, SE room, robot room | 5 soldiers, 2 outside patrols, the **heavy robot** | Entering the destroyed area alerts the two patrols on the broken slab; killing both opens the SE room. The override terminal in the comms room (E) opens the robot room. **Only the rifle hurts the robot** ("You need a better gun"). | Everyone dead: the exit to the outside stairs unlocks |
+| **1 · Ground floor** | entrance, checkpoint, rooms A–C, guard hall, turret hallway, security office, West Wing | 5 soldiers (pistols), a sentry turret | Survive the **lockdown**: the alarm trigger just inside the doors (or the security camera in Room A, if it sees you) drops the maintenance shutter and sends the floor after you. The door on the left of the corridor stays locked during the lockdown, so the only way on is the door to Room A on the right: rooms A → B → C, through the West Wing, on into the turret hallway. | All of them dead: the shutter rolls up, the alarm stops, the red stair shutter opens |
+| **2 · Armory** | hall with barricades, Armory, Office, stairwell | 5 soldiers, 2 turrets, 2 drones | Take the **rifle** from the Armory and the **key** from the office desk (it floats and glows; it flies into your hands when you take it). Insert it in the slot by the stairwell gate with **E**: the key turns and the lamp goes green. | Key in **and** everyone dead: the stairwell gate rolls up |
+| **3 · Destroyed floor** | barracks, comms room, hall, the blown-out open area and broken slab outside, SE room, robot room | 5 soldiers, 2 outside patrols, the **heavy robot** | Entering the destroyed area alerts the two patrols on the broken slab; killing both opens the SE room. The robot room opens once everyone else on the floor is dead. **Only the rifle hurts the robot** ("You need a better gun"). | Everyone dead: the exit to the outside stairs unlocks |
 | **Finale · Helipad** | outside stairs, platform, helipad | 2 soldiers, then the **boss** | Clear the platform, step onto the pad: the boss appears, a bigger red-eyed robot that also **charges** after a visible wind-up. | The boss dies: the helicopter lands, *THE TOWER IS SILENT* |
 
 - **Coins.** Five gold coins are hidden off the main route, one or two per level: a dead end on the ground floor, the far end of the office and a corner of the hall on level 2, the broken slab outside on level 3 (patrol ground), the far edge of the helipad. They are counted on the HUD and the end screen.
@@ -56,7 +56,7 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 - **HUD.** Kept to what you act on:
   - Top centre: the level, its name, one marker per enemy (it dims when that enemy dies), the goal of the moment (*FIND A WEAPON*, *LOCKDOWN · CLEAR THE FLOOR*, *REACH THE HELIPAD*, *DESTROY THE MACHINE*) and the coins found.
   - Bottom left: health, with a tick where regeneration stops. Bottom right: weapon and ammo.
-  - Centre: the enemy you aim at, short messages, and "[E] …" when you stand at a console.
+  - Centre: the enemy you aim at, short messages, and "[E] …" when you stand at the key slot.
   - Top left: the minimap, with nearby enemies, the distance to the tower and the level you are on.
 
 ### Mood
@@ -90,7 +90,7 @@ It is built by **Vantage → World → Build Military World** (`VantageMilitaryB
 
 ### Weapons and cover
 
-You start with nothing (`VantageArsenal`). The **pistol** lies just outside the main entrance (so you are armed before the trap springs), the **rifle** is in the level 2 Armory. Walking into one equips it. About 80 props of the tower (crates, sandbags, barriers, desks, rubble) and the base's cover props have cover markers, so both you and the soldiers can take cover at them. The camera keeps 30 cm clear of walls and only small props between the camera and the character fade out (`VantageCameraFader`).
+You start with nothing (`VantageArsenal`). The **pistol** lies just outside the main entrance (so you are armed before the trap springs), the **rifle** is in the level 2 Armory. Walking into one equips it. About 80 props of the tower (crates, sandbags, barriers, desks, rubble) and the base's cover props have cover markers, so you can take cover at them (only where there is room in front). Soldiers don't use cover; they fight in the open and come for you. The camera keeps 30 cm clear of walls and only small props between the camera and the character fade out (`VantageCameraFader`).
 
 ### Procedural enemy placement
 
@@ -167,7 +167,7 @@ Level_World_Design_/
 The tower models stay as exported from Blender; their import script (`VANTAGE_Tower/Scripts/Editor/VantageTowerPostprocessor.cs`) turns the Blender custom properties into doors, triggers, consoles and pickups. **Vantage → Tower → Set Up Tower** (`VantageTower`) adds everything the game needs around it, under *VANTAGE Tower Setup*, and is safe to run again:
 - places the tower (where the old tower stood, entrance flush with the ground) and hides the marker meshes
 - static flags, doors out of the NavMesh (locked ones block it with obstacles), the level rules of the stairwell gate and the helipad exit
-- **smooth stair surfaces** over every flight, found from the real steps and never steeper than 25.6°, and the red shutter on the ground-floor stairs
+- **smooth stair surfaces** over every flight, found from the real steps, as wide as the flight and flush with the floor at its foot (about 31°, a side entry where a wall blocks the foot), with NavMesh blockers so enemies stay on their floor, and the red shutter on the ground-floor stairs
 - cover on the props, the pistol and the rifle, the key and key slot, the alarm (beacons, lights, siren), the security camera, the extraction
 - **our soldier prefab** and the placeholder robot, boss and helicopter (built only when missing, so a real model put into them stays)
 - the level manager with the four levels, their restart points and difficulty

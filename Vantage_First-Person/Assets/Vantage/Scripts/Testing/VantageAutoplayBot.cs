@@ -527,13 +527,18 @@ namespace Vantage.Testing
             var radius = capsule != null ? capsule.radius : 0.3f;
             var setup = GameObject.Find("VANTAGE Tower Setup");
             var covers = setup != null ? setup.GetComponentsInChildren<Cover>() : new Cover[0];
-            var blocked = covers.Where(c =>
+            var blocked = covers.Select(c =>
             {
                 var stand = c.transform.position - c.transform.forward * 0.45f;
                 var floor = Physics.Raycast(stand + Vector3.up * 0.5f, Vector3.down, out var fh, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore) ? fh.point : stand;
-                return Physics.CheckCapsule(floor + Vector3.up * (radius + 0.15f), floor + Vector3.up * 1.6f, radius * 0.8f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
-                       || !NavMesh.SamplePosition(floor, out var nh, 0.4f, NavMesh.AllAreas);
-            }).Select(c => c.name).ToList();
+                // Characters' hit boxes aren't on the Character layer: a soldier standing there is not a wall.
+                var hits = Physics.OverlapCapsule(floor + Vector3.up * (radius + 0.15f), floor + Vector3.up * 1.6f, radius * 0.8f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
+                                  .Where(h => h.GetComponentInParent<CharacterMotor>() == null).ToArray();
+                if (hits.Length > 0) return $"{c.name} (blocked by {hits[0].name}, floor hit {(fh.collider != null ? fh.collider.name : "none")})";
+                if (!NavMesh.SamplePosition(floor, out var nh, 0.4f, NavMesh.AllAreas))
+                    return $"{c.name} (no NavMesh at {floor}, player {Vector3.Distance(floor, _motor.transform.position):F1} m away, floor hit {(fh.collider != null ? fh.collider.name : "none")})";
+                return null;
+            }).Where(s => s != null).ToList();
             var line = $"{blocked.Count}/{covers.Length} tower covers without room in front" + (blocked.Count > 0 ? ": " + string.Join(", ", blocked.Take(10)) : "");
             if (covers.Length > 0 && blocked.Count == 0) log("PASS no cover faces into a wall: " + line);
             else fail("covers: " + line);
@@ -1064,41 +1069,58 @@ namespace Vantage.Testing
         {
             var enemies = levels.Enemies.Where(e => e != null && e.activeInHierarchy && levels.LevelAt(e.transform.position) == levels.Current).ToList();
             if (enemies.Count < 3) { log("  last enemies: skipped (too few enemies)"); yield break; }
-            var keep = new List<GameObject>();
-            var soldier = enemies.FirstOrDefault(e => e.GetComponent<FighterBrain>() != null);
+            // The soldier that has the longest walk to a spawn point it can reach (not one shut in behind a door
+            // that is still locked, such as the stairwell gate before the key), and that spot for the player.
+            var prefix = levels.Levels[levels.Current].Prefix;
+            var markers = levels.Tower.GetComponentsInChildren<VantageTag>(true)
+                                .Where(m => m.MarkerType == "EnemySpawn" && m.name.StartsWith(prefix))
+                                .Select(m => NavMesh.SamplePosition(m.transform.position, out var mh, 2f, NavMesh.AllAreas) ? (Vector3?)mh.position : null)
+                                .Where(p => p != null).Select(p => p.Value).ToList();
+            bool reachable(Vector3 from, Vector3 to)
+            {
+                if (!NavMesh.SamplePosition(from, out var b, 1f, NavMesh.AllAreas)) return false;
+                var path = new NavMeshPath();
+                return NavMesh.CalculatePath(b.position, to, NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete;
+            }
+            GameObject soldier = null;
+            var spot = Vector3.zero;
+            float best = -1f;
+            foreach (var s in enemies.Where(e => e.GetComponent<FighterBrain>() != null))
+                foreach (var m in markers)
+                {
+                    var d = Vector3.Distance(s.transform.position, m);
+                    if (d > best && reachable(s.transform.position, m)) { best = d; soldier = s; spot = m; }
+                }
             var drone = enemies.FirstOrDefault(e => e.GetComponent<VantageDrone>() != null && e.GetComponent<VantageDrone>().Mobile);
+            var keep = new List<GameObject>();
             if (soldier != null) keep.Add(soldier);
             if (drone != null) keep.Add(drone);
+            if (keep.Count == 0) { log("  last enemies: skipped (no soldier or drone)"); yield break; }
+            if (soldier == null) spot = markers.OrderByDescending(m => Vector3.Distance(m, drone.transform.position)).First();
             foreach (var e in enemies.Where(e => !keep.Contains(e))) kill(e);
-
-            // The level's spawn point furthest from the survivors that the soldier can actually walk to (not
-            // behind a door that is still locked, such as the stairwell gate before the key).
-            var prefix = levels.Levels[levels.Current].Prefix;
-            var walker = soldier != null ? soldier.transform.position : keep[0].transform.position;
-            bool reachable(Vector3 p)
-            {
-                if (!NavMesh.SamplePosition(p, out var a, 1f, NavMesh.AllAreas) || !NavMesh.SamplePosition(walker, out var b, 1f, NavMesh.AllAreas)) return false;
-                var path = new NavMeshPath();
-                return NavMesh.CalculatePath(b.position, a.position, NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete;
-            }
-            var spot = levels.Tower.GetComponentsInChildren<VantageTag>(true)
-                             .Where(m => m.MarkerType == "EnemySpawn" && m.name.StartsWith(prefix) && reachable(m.transform.position))
-                             .OrderByDescending(m => keep.Min(e => Vector3.Distance(e.transform.position, m.transform.position)))
-                             .First().transform.position;
-            if (NavMesh.SamplePosition(spot, out var hit, 2f, NavMesh.AllAreas)) spot = hit.position;
             teleport(spot, spot + Vector3.forward);
             var damageBefore = _damageTaken;
             var startDistance = keep.Min(e => Vector3.Distance(e.transform.position, spot));
             log($"  last enemies: {keep.Count} left ({string.Join(", ", keep.Select(e => e.name))}), nearest {startDistance:F1} m, hunting={levels.Hunting}");
-            float t = 0, nearest = startDistance;
-            while (t < 30f && nearest > 8f && _damageTaken <= damageBefore)
+            // The soldier must walk up itself (a drone's shot from afar doesn't count): it once stood circling where it
+            // last saw the player, because the hunt order never reached its AIMovement.
+            var judged = soldier != null ? new List<GameObject> { soldier } : keep;
+            float judgedDistance() => judged.Where(e => e != null).Select(e => Vector3.Distance(e.transform.position, _motor.transform.position)).DefaultIfEmpty(0f).Min();
+            var brain = soldier != null ? soldier.GetComponent<FighterBrain>() : null;
+            bool soldierSees() => brain != null && brain.Threat != null && brain.Threat.transform == _motor.transform && brain.CanSeeTheThreat;
+            float t = 0, nearest = judgedDistance(), first = nearest;
+            bool sees = false;
+            while (t < 30f && nearest > 8f && !sees)
             {
                 yield return new WaitForSeconds(0.5f);
                 t += 0.5f;
-                nearest = keep.Where(e => e != null).Select(e => Vector3.Distance(e.transform.position, _motor.transform.position)).DefaultIfEmpty(0f).Min();
+                nearest = judgedDistance();
+                sees = soldierSees();
+                if (Mathf.Approximately(t % 10f, 0f) && brain != null)
+                    log($"  last enemies t={t:F0}: {soldier.name} {nearest:F1} m away, state {brain.State}, hunting={levels.Hunting}");
             }
-            var line = $"nearest enemy {startDistance:F1} m -> {nearest:F1} m in {t:F1} s, damage taken {_damageTaken - damageBefore:F0}";
-            if (nearest <= 8f || _damageTaken > damageBefore) log("PASS last enemies come to the player: " + line);
+            var line = $"{(soldier != null ? soldier.name : "nearest enemy")} {first:F1} m -> {nearest:F1} m in {t:F1} s{(sees ? ", has the player in sight" : "")}, damage taken {_damageTaken - damageBefore:F0}";
+            if (nearest <= 8f || sees) log("PASS last enemies come to the player: " + line);
             else fail("last enemies did not come: " + line);
         }
 

@@ -570,9 +570,6 @@ namespace Vantage.EditorTools
                 for (int i = 1; i < nk; i++) env[i] = Mathf.Max(env[i], env[i - 1] - maxSlope * step);
                 for (int i = nk - 2; i >= 0; i--) env[i] = Mathf.Max(env[i], env[i + 1] - maxSlope * step);
                 for (int i = 0; i < nk; i++) { heights[j, i] = env[i]; hole[j, i] = float.IsNegativeInfinity(raw[i]); }
-                if (VantageEditorUtil.Arg("-vantageStairProfile") != null && (j == 1 || j == 2))
-                    Debug.Log($"[Vantage] Profile {piece.name} {piece.bottom.y:F2}-{piece.top.y:F2} lane {lanes[j]}: run {run:F2} rise {rise:F2} slope cap {maxSlope:F2} width {piece.width:F2}; k raw env: " +
-                              string.Join(" ", Enumerable.Range(0, nk).Where(i => i % 2 == 0 && i < 40).Select(i => $"{-extend + i * step:F1}:{(float.IsNegativeInfinity(raw[i]) ? "-" : raw[i].ToString("F2"))}/{env[i]:F2}")));
             }
 
             var vertices = new List<Vector3>();
