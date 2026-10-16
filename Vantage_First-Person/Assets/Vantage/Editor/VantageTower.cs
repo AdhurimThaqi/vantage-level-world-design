@@ -956,8 +956,10 @@ namespace Vantage.EditorTools
                 EditorUtility.SetDirty(door);
             }
             reopen("DOOR_SecurityOffice_WestWing_LOCKED", false, "");
-            reopen("L3_DOOR_RobotRoom_LOCKED", true, "KILL:L3_MK_Enemy_*");
-            Debug.Log("[Vantage] E only at the level 2 key slot: West Wing open, robot room opens when the other level 3 enemies are dead.");
+            // The robot room is the only way to the destroyed area and the patrols (through the breach in its south
+            // wall), so it must open before them: when the indoor soldiers are dead.
+            reopen("L3_DOOR_RobotRoom_LOCKED", true, "KILL:L3_MK_Enemy_Barracks*,L3_MK_Enemy_Comms*,L3_MK_Enemy_Hall*");
+            Debug.Log("[Vantage] E only at the level 2 key slot: West Wing open, robot room opens when the indoor level 3 soldiers are dead.");
 
             // Doors are open doorways: open from the start on the route, or once unlocked. The shutter and the gates
             // (bars) roll up.

@@ -1,0 +1,39 @@
+VANTAGE playtest  2026-10-16_14-34-04
+Enemy placement seed: 52703
+Session length: 0s (run -8s, deaths 0)  Completed: no   Furthest: Military Base   Backtracks: 0
+
+Time per space
+  Military Base       4s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      0s   deaths 0
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Turret         3
+  Soldier        10
+  Drone          2
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 52703
+[    0.0s] Session started
+[    2.0s] Killed Turret in Level 1 (ground floor)
+[    2.0s] Killed Soldier in Level 1 (ground floor)
+[    2.0s] Killed Soldier in Level 1 (ground floor)
+[    2.0s] Killed Soldier in Level 1 (ground floor)
+[    2.0s] Killed Soldier in Level 1 (ground floor)
+[    2.0s] Killed Soldier in Level 1 (ground floor)
+[    2.0s] Killed Turret in Level 2 (armory)
+[    2.0s] Killed Turret in Level 2 (armory)
+[    2.0s] Killed Drone in Level 2 (armory)
+[    2.0s] Killed Drone in Level 2 (armory)
+[    2.1s] Killed Soldier in Level 2 (armory)
+[    2.1s] Killed Soldier in Level 2 (armory)
+[    2.1s] Killed Soldier in Level 2 (armory)
+[    2.1s] Killed Soldier in Level 2 (armory)
+[    2.1s] Killed Soldier in Level 2 (armory)

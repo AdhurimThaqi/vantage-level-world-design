@@ -1,3 +1,4 @@
+using System.Linq;
 using CoverShooter;
 using Unity.AI.Navigation;
 using UnityEditor;
@@ -83,7 +84,14 @@ namespace Vantage.EditorTools
                 surface.layerMask = ~(Layers.Character | Layers.Zones | (1 << VantagePhysics.IgnoreRaycastLayer) | (1 << LayerMask.NameToLayer("UI")));
             }
 
-            surface.BuildNavMesh();
+            // Carving obstacles (locked doors, the shutter, the stair gate and blocks) are baked in as unwalkable when
+            // they are on, and stay holes after they switch off at runtime: a door unlocked in play had no NavMesh in
+            // its opening, so level 3's rooms were separate islands. Bake without them; they carve at runtime.
+            var obstacles = Object.FindObjectsByType<UnityEngine.AI.NavMeshObstacle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                                  .Where(o => o.enabled).ToList();
+            foreach (var o in obstacles) o.enabled = false;
+            try { surface.BuildNavMesh(); }
+            finally { foreach (var o in obstacles) o.enabled = true; }
             saveNavMeshAsset(surface);
             EditorSceneManager.MarkSceneDirty(surface.gameObject.scene);
             Debug.Log("[Vantage] NavMesh baked. Re-run this after changing the level layout.");

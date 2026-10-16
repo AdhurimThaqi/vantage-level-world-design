@@ -95,6 +95,58 @@ namespace Vantage.Testing
                 yield break;
             }
 
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageDiagL3") >= 0)
+            {
+                // Level 3 reachability with the runtime door states: can the player walk from the arrival to the
+                // open area and both patrols while the robot room and the SE room are still locked?
+                VantageInventory.Add("Key");
+                for (int lv = 0; lv < 2; lv++)
+                {
+                    foreach (var e in levels.Enemies.ToList()) kill(e);
+                    if (lv == 1) { var slot = GameObject.Find("L2_KEYSLOT_InsertKey"); if (slot != null) slot.GetComponent<VantageInteract>().TryUse(); }
+                    for (float t = 0; t < 5f && levels.Current == lv; t += Time.deltaTime) yield return null;
+                }
+                var indoor = new[] { "L3_MK_Enemy_Barracks", "L3_MK_Enemy_Comms", "L3_MK_Enemy_Hall" };
+                foreach (var e in levels.Enemies.Where(e => e != null && indoor.Any(p => e.name.StartsWith(p))).ToList()) kill(e);
+                yield return new WaitForSeconds(2f);   // carving obstacles settle
+                var legs = new[] { ("Arrival Destroyed floor", "L3_DOOR_Comms_To_Hall"), ("L3_DOOR_Comms_To_Hall", "L3_DOOR_RobotRoom_LOCKED"),
+                                   ("L3_DOOR_RobotRoom_LOCKED", "L3_MK_Objective_Robot"), ("L3_MK_Objective_Robot", "LVL3_BreachEdges"),
+                                   ("LVL3_BreachEdges", "TRIGGER_L3_OpenArea_Enter"), ("TRIGGER_L3_OpenArea_Enter", "L3_PATROL_A"),
+                                   ("L3_DOOR_RobotRoom_LOCKED", "LVL3_BreachEdges"), ("Arrival Destroyed floor", "L3_PATROL_A"),
+                                   ("Arrival Destroyed floor", "L3_PATROL_B") };
+                foreach (var (from, to) in legs)
+                {
+                    var a = GameObject.Find(from); var b = GameObject.Find(to);
+                    if (a == null || b == null) { log($"DIAG L3 {from} -> {to}: object missing"); continue; }
+                    Vector3 centre(GameObject g) { var rs = g.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) return g.transform.position; var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); return new Vector3(bb.center.x, bb.min.y, bb.center.z); }
+                    var sa = NavMesh.SamplePosition(centre(a), out var ha, 2.5f, NavMesh.AllAreas);
+                    var sb = NavMesh.SamplePosition(centre(b), out var hb, 2.5f, NavMesh.AllAreas);
+                    if (!sa || !sb) { log($"DIAG L3 {from} -> {to}: no NavMesh near {(sa ? to : from)} ({(sa ? centre(b) : centre(a))})"); continue; }
+                    var path = new NavMeshPath();
+                    NavMesh.CalculatePath(ha.position, hb.position, NavMesh.AllAreas, path);
+                    var end = path.corners.Length > 0 ? path.corners[path.corners.Length - 1] : ha.position;
+                    log($"DIAG L3 {from} {ha.position} -> {to} {hb.position}: {path.status}, ends {Vector3.Distance(end, hb.position):F1} m short, last corner {end}");
+                }
+                var start = GameObject.Find("Arrival Destroyed floor").transform.position;
+                NavMesh.SamplePosition(start, out var hs, 2f, NavMesh.AllAreas);
+                foreach (var patrol in levels.Enemies.Where(e => e != null && e.name.StartsWith("L3_MK_Enemy_Patrol")))
+                {
+                    var on = NavMesh.SamplePosition(patrol.transform.position, out var hp, 1f, NavMesh.AllAreas);
+                    var on3 = NavMesh.SamplePosition(patrol.transform.position, out var hp3, 3f, NavMesh.AllAreas);
+                    var path = new NavMeshPath();
+                    if (on3) NavMesh.CalculatePath(hs.position, hp3.position, NavMesh.AllAreas, path);
+                    log($"DIAG L3 patrol {patrol.name} at {patrol.transform.position}: NavMesh within 1 m {on} ({hp.position}), within 3 m {on3} ({hp3.position}), path {path.status}");
+                }
+                foreach (var name in new[] { "L3_DOOR_RobotRoom_LOCKED", "L3_DOOR_SERoom_LOCKED", "L3_DOOR_Exit_To_Final" })
+                {
+                    var door = VantageDoor.Find(name);
+                    log($"DIAG L3 {name}: locked {(door != null ? door.IsLocked.ToString() : "missing")}");
+                }
+                log($"DIAG L3 level {levels.Current}, enemies alive {levels.Remaining}");
+                yield return finish();
+                yield break;
+            }
+
             if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageDiagStairs") >= 0)
             {
                 foreach (var e in levels.Enemies.ToList()) kill(e);
@@ -151,8 +203,8 @@ namespace Vantage.Testing
             yield return clearLevel(levels, 1);
             yield return gateOpensAfterClear();
             yield return stairsFromTheFloor(levels, 1, "LVL2");
+            yield return robotRoomOpensAfterIndoorSoldiers(levels);
             yield return killDoorsOpen(levels);
-            yield return robotRoomOpensLast(levels);
             yield return robotModelAndFriendlyFire(levels);
             yield return robotRifleOnly(levels);
             yield return clearLevel(levels, 2);
@@ -544,17 +596,42 @@ namespace Vantage.Testing
             else fail("covers: " + line);
         }
 
-        /// <summary>The robot room stays locked until every other level 3 enemy is dead.</summary>
-        private IEnumerator robotRoomOpensLast(VantageTowerLevels levels)
+        /// <summary>
+        /// The robot room opens when the indoor soldiers (barracks, comms, hall) are dead, and then the player can walk
+        /// from the arrival through it and the breach to both outside patrols. The robot room is the only way to the
+        /// destroyed area: when it waited for the patrols too, level 3 could not be finished (2026-10-16).
+        /// </summary>
+        private IEnumerator robotRoomOpensAfterIndoorSoldiers(VantageTowerLevels levels)
         {
             var door = VantageDoor.Find("L3_DOOR_RobotRoom_LOCKED");
             if (door == null) { fail("no L3_DOOR_RobotRoom_LOCKED"); yield break; }
             var lockedBefore = door.IsLocked;
-            foreach (var e in levels.Enemies.Where(e => e != null && e.GetComponent<FighterBrain>() != null && levels.LevelAt(e.transform.position) == 2).ToList()) kill(e);
-            yield return new WaitForSeconds(0.5f);
-            var line = $"locked while soldiers lived {lockedBefore}, after they died locked {door.IsLocked}, open {door.OpenAmount:P0}";
-            if (lockedBefore && !door.IsLocked && door.OpenAmount == 1f) log("PASS the robot room opens when the rest of level 3 is dead: " + line);
-            else fail("robot room: " + line);
+            var indoor = new[] { "L3_MK_Enemy_Barracks", "L3_MK_Enemy_Comms", "L3_MK_Enemy_Hall" };
+            foreach (var e in levels.Enemies.Where(e => e != null && indoor.Any(p => e.name.StartsWith(p))).ToList()) kill(e);
+            yield return new WaitForSeconds(1.5f);   // the door's obstacle stops carving
+            var patrolsAlive = levels.Enemies.Count(e => e != null && e.name.StartsWith("L3_MK_Enemy_Patrol") && e.GetComponent<CharacterMotor>() != null && e.GetComponent<CharacterMotor>().IsAlive);
+            // From the hall doorway in the middle of the floor (the player stands at the arrival, and the rig's carving
+            // obstacle cuts the NavMesh there).
+            var hallDoor = VantageDoor.Find("L3_DOOR_Comms_To_Hall").transform;
+            var hallRenderers = hallDoor.GetComponentsInChildren<Renderer>(true);
+            var hallPoint = hallRenderers.Length > 0 ? hallRenderers[0].bounds.center : hallDoor.position;
+            NavMesh.SamplePosition(hallPoint, out var from, 2.5f, NavMesh.AllAreas);
+            var reach = new List<string>();
+            var reachable = new List<bool>();
+            // Where the patrol soldiers actually stand (their markers sample onto other surfaces).
+            foreach (var patrol in levels.Enemies.Where(e => e != null && e.name.StartsWith("L3_MK_Enemy_Patrol")))
+            {
+                var path = new NavMeshPath();
+                var ok = NavMesh.SamplePosition(patrol.transform.position, out var to, 1f, NavMesh.AllAreas)
+                         && NavMesh.CalculatePath(from.position, to.position, NavMesh.AllAreas, path) && path.status == NavMeshPathStatus.PathComplete;
+                reach.Add($"{patrol.name} {(ok ? "reachable" : "NOT reachable")}");
+                reachable.Add(ok);
+            }
+            var patrolsReachable = reachable.Count == 2 && reachable.All(r => r);
+            var line = $"locked before {lockedBefore}, after the indoor soldiers locked {door.IsLocked}, open {door.OpenAmount:P0}, patrols alive {patrolsAlive}; " + string.Join(", ", reach);
+            if (lockedBefore && !door.IsLocked && door.OpenAmount == 1f && patrolsAlive == 2 && patrolsReachable)
+                log("PASS the robot room opens after the indoor soldiers and leads to the patrols: " + line);
+            else fail("robot room / level 3 reachability: " + line);
         }
 
         /// <summary>

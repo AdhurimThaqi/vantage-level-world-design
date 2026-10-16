@@ -14,6 +14,16 @@ Entry format:
 
 ---
 
+## 2026-10-16: 5-minute presentation; level 3 softlock found and fixed (Claude session)
+**Asked:** "We have a presentation next week - 5min can you prepare like at PaperDocumentation- folder add everything i need to have to present" (professor: map of the planned level, what happens, the emotion, ideally a blockout; recommended video: Peter Field, "Spatial Communication in Level Design").
+**Done:**
+- New `Editor/VantageFloorPlans.cs` (Vantage → Documentation → Render Floor Plans; `RenderBatch`, `DoorReportBatch`): top-down floor plans cut at 2.4 m, collider cross-section for the walls, JSON of named objects in pixels, NavMesh regions, optional NavMesh routes.
+- Drawing the maps exposed a **softlock on level 3**: the destroyed area and both patrols can only be reached through the robot room (breach in its south wall), and since 2026-10-15 the robot room waited for every other L3 enemy, the patrols included. Fix: `VantageTower` robot room `KILL:L3_MK_Enemy_Barracks*,L3_MK_Enemy_Comms*,L3_MK_Enemy_Hall*`. Also `VantageSetup.BakeNavMesh` now bakes with all NavMeshObstacles off (enabled carving obstacles are baked in as holes). Bot: `robotRoomOpensAfterIndoorSoldiers` (door opens with the patrols alive, and both patrols are reachable on the live NavMesh), runs before the patrol kill-door check; `-vantageDiagL3`. Scene backup `_Backups/SampleScene_before_robot_room_fix_2026-10-16.unity`.
+- Presentation in `PaperDocumentation-/Presentation/`: `VANTAGE_Presentation.pptx` (8 slides, speaker notes, Bahnschrift), `.pdf` backup, `Speaker_Script.md` (timed to 4:45, likely questions), `maps/` (3 annotated level maps: route, numbered beats, gates, pickups, coins, emotion tags), `screenshots/`.
+- Concept doc: L3 row, gating paragraph and two Revisions rows corrected (console/terminal leftovers, robot room order). README L3 row, CLAUDE.md (L3 rule, bake rule, reachability rule, tool table, bot checks, history).
+**Verified:** dotnet build 0 errors; SetupBatch exit 0 (door check 11 ok); `-vantageDiagL3`: arrival → both patrols PathComplete once the robot room opens; bot ALL PASSED on seed 52703 and random 22671 (35 PASS lines incl. the new reachability check). Deck: validate.py passed, every slide rendered through PowerPoint and checked (no overflow, titles aligned).
+**Open:** In Play mode, walk level 3 by hand once (rooms → robot room → breach → patrols → SE room → exit). Present from the PDF if the room computer lacks Bahnschrift. Not committed.
+
 ## 2026-10-16: Resumed and finished the playtest fixes; soldiers really hunt now (Claude session)
 **Asked:** "we had to cancel the work yesterday can you check real quick where u left and continue from there" (then: "its closed").
 **Done:**
