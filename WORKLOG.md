@@ -14,6 +14,18 @@ Entry format:
 
 ---
 
+## 2026-10-19: Design for outside sentries, warning ring and intro cutscene (Claude session)
+**Asked:** after the presentation: enemies outside on the 3rd floor that patrol there and stop the player from "trying to go somewhere else instead of tower"; the professor suggested a cutscene. Answers: warning ring (free / warning / kill), sentries on both sides (broken slab and helipad platform), intro cutscene only; approaches A (soldier prefab + `VantageSentry`), A (routes from the NavMesh), shared camera helper; all four design sections approved.
+**Done:** Spec `docs/superpowers/specs/2026-10-19-sentries-ring-intro-design.md` (not committed: CLAUDE.md says commit only when asked). Memory: the user will make sounds in SoundCrea and model enemies/helicopter/drones/turret, so new sounds get AudioClip slots with synthesized fallbacks.
+**Verified:** not verified (design only; code read: level brain, soldier aggression, extraction, world builder).
+**Open:** User review of the spec, then the implementation plan. Separate later task: `Model` children for drones and turret.
+
+## 2026-10-19: Presentation feedback; ideas for L3 outside sentries and a cutscene (Claude session)
+**Asked:** "just finished the presentation and it went pretty well ... we need i think some enemies on the 3rd floor on the outside that will patrol the outside area only and will check if the player tries to run away the professor suggested a cut scene ... What do you think?"
+**Done:** Discussion only, no changes. Recommended: L3 outside sentries as a reason-based boundary, kept separate from the L3 kill lists, and stopped from chasing; one short, skippable intro flyover that shows the helipad goal and the sentries (optional 2–3 s boss reveal). Asked the user what "running away" means (leaving the tower, dropping off the L3 slab, or skipping ahead).
+**Verified:** not verified (no code read or run).
+**Open:** User's answer on "running away" and the cutscene's scope; then a spec, the concept-doc Revisions row and the bot checks.
+
 ## 2026-10-19: Presentation restyled to a white, classic look (Claude session)
 **Asked:** "can you maybe change the theme to white background and classic presentation so u cant tell i used ai"
 **Done:** Took the user's latest saved deck (with their Montserrat and title-image edits) and changed colours only: theme colours (white page, near-black text, grey secondary text, light grey cards, gold darkened to C98A00 so it reads on white), every slide background set to white, colour references on master, layouts and slides swapped from light-on-dark to dark-on-light (text on coloured pills and circles kept), the emotion chart recoloured (white plot, light grid, dark labels), bubble-slide lock labels darker red. On the bubble slide, names too wide for their bubbles after the font change were shrunk (9–10.5 pt) and the "FINALE Helipad" header no longer wraps. Layout, text and images unchanged. Scripts: scratchpad `lighten.py`.
