@@ -14,6 +14,12 @@ Entry format:
 
 ---
 
+## 2026-10-19: Bubble diagram slide in the presentation (Claude session)
+**Asked:** "i updated the presentation a bit we are missing the bubble diagram - please check out and only add that to the prsentation dont touch anything else the new bubble diagram should be based on how the level looks like now"
+**Done:** Added slide 3 "Bubble diagram: how the spaces connect" to `PaperDocumentation-/Presentation/VANTAGE_Presentation.pptx` (after the overview, before Level 1), built in PowerPoint with native, editable shapes in the deck's theme colours: one panel per level (L1 loop Outside → Entrance → Room A → B → C → West Wing → Turret hall, shutter to the stairs and the left door locked; L2 hall hub with Armory/rifle, Office/key, key slot to the stairwell; L3 Barracks/Comms → Hall → Robot room → Destroyed area (breach) → Slab (patrols) → SE room → Exit; Finale Helipad/boss → Extraction), red dashed links with their unlock condition, 5 coin badges, legend, takeaway line, speaker notes. Based on the current maps (`maps/`) and the concept doc. Nothing else in the deck changed (slide numbers are fields and moved up by one). The PDF backup and `Speaker_Script.md` were not touched.
+**Verified:** Rendered through PowerPoint and checked (no overlaps or overflow); text of all other 8 slides identical to before; validate.py passed.
+**Open:** `VANTAGE_Presentation.pdf` and `Speaker_Script.md` do not include the new slide yet (left alone as asked). Not committed.
+
 ## 2026-10-16: 5-minute presentation; level 3 softlock found and fixed (Claude session)
 **Asked:** "We have a presentation next week - 5min can you prepare like at PaperDocumentation- folder add everything i need to have to present" (professor: map of the planned level, what happens, the emotion, ideally a blockout; recommended video: Peter Field, "Spatial Communication in Level Design").
 **Done:**
