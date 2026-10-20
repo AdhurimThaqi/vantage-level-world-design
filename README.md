@@ -199,7 +199,7 @@ Bought-in and provided assets build the bricks. The level layout, floor plans, e
 | *Stylized Coin Pack* (`Assets/PolyKebap`) | PolyKebap | The collectible coins (check the pack's licence before a commercial release) |
 | *Military Training Environment* (`Assets/Blender_Asset/MilitaryEnvUnity`) | My own work, built in Blender | The whole world: terrain, forest, the military base, props |
 | *Player character* (`Assets/Blender_Asset/AdhurimCharacter`) | My own avatar, made with Avaturn and exported from Blender | The player's body, animated by the template through Unity's humanoid retargeting (Vantage → Player → Use Character Model). Check Avaturn's terms before a commercial release. |
-| Robot, boss, helicopter | Placeholders built from boxes by `VantagePlaceholders` | Until my Blender models replace them |
+| Robot, boss, helicopter | Placeholders built from boxes by `VantagePlaceholders` | Until my Blender models replace them | The placeholders will be replaced with real models which will be modeled in blender
 | *TextMesh Pro* (Unity, Essential Resources) | Unity Technologies | Text rendering for the HUD and minimap |
 
 <!-- TODO before hand-in: check the publisher names against the Asset Store pages and add the store links. -->
