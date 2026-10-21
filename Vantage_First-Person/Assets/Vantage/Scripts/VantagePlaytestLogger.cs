@@ -53,7 +53,10 @@ namespace Vantage
             VantageEvents.LevelCompleted += onComplete;
             VantageEvents.CoinCollected += onCoin;
             VantageEvents.AlarmRaised += onAlarm;
+            VantageIntro.Finished += onIntro;
         }
+
+        private void onIntro(bool skipped, float at) => log(skipped ? $"Intro skipped at {at:F1} s" : "Intro watched");
 
         private void onCoin(int collected, int total) => log($"Coin {collected}/{total}");
         private void onAlarm(string source) => log($"Alarm raised by the {source}");
@@ -67,6 +70,7 @@ namespace Vantage
             VantageEvents.LevelCompleted -= onComplete;
             VantageEvents.CoinCollected -= onCoin;
             VantageEvents.AlarmRaised -= onAlarm;
+            VantageIntro.Finished -= onIntro;
             write();
         }
 

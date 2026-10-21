@@ -1,0 +1,22 @@
+VANTAGE playtest  2026-10-21_12-38-30
+Enemy placement seed: 40406
+Session length: 5s (run 227s, deaths 3)  Completed: no   Furthest: Level 2 (armory)   Backtracks: 0
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      2s   deaths 1
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  217.3s] Enemy placement seed 40406
+[    0.0s] Session started
+[    1.8s] DEATH in Level 2 (armory) at (3.1, 8.4, -69.9) (health reached zero)

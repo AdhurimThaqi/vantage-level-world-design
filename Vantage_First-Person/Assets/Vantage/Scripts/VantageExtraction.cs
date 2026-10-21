@@ -83,21 +83,12 @@ namespace Vantage
             return null;
         }
 
-        /// <summary>Controls off, can't be hurt; the camera stops following and will pull back.</summary>
+        /// <summary>Controls off, can't be hurt; the camera stops following and will pull back. Never ended: the end screen follows.</summary>
         private void freezePlayer()
         {
-            var player = VantageEvents.ActivePlayer();
-            if (player != null)
-            {
-                var input = player.GetComponent<ThirdPersonInput>();
-                if (input != null) input.enabled = false;
-                var health = player.GetComponent<CharacterHealth>();
-                if (health != null) health.IsTakingDamage = false;
-            }
+            VantageCinematic.Begin();
             _camera = Camera.main;
             if (_camera == null) return;
-            foreach (var follow in _camera.GetComponents<MonoBehaviour>())
-                if (follow is ThirdPersonCamera || follow is VantageCameraFader) follow.enabled = false;
             _camFrom = _camera.transform.position;
             _camFromRot = _camera.transform.rotation;
             var side = Vector3.Cross(Vector3.up, (_start - _land).normalized);

@@ -103,12 +103,15 @@ namespace Vantage.EditorTools
             VantagePlaceholders.Build(false);
             var levels = levelManager(tower, setup, flights, start);
             extraction(tower, setup, levels);
+            boundary(tower, setup);
+            intro(tower, setup);
             pointToolsAtTower(tower);
             checkDoors(tower);
 
             VantageSetup.BakeNavMesh();
             covers(tower, group(setup, "Covers"));
             coins(tower, group(setup, "Coins"), levels);
+            sentries(tower, setup, levels);
             EditorSceneManager.MarkSceneDirty(tower.gameObject.scene);
             Debug.Log($"[Vantage] Tower set up: {flights.Count} stair flights, {gates.Count} gates, {levels.Levels.Count} levels.");
         }
@@ -1307,6 +1310,114 @@ namespace Vantage.EditorTools
             var away = landing.position - levels.TowerArea.center; away.y = 0;
             e.ApproachFrom = away.normalized;
             Debug.Log($"[Vantage] Extraction: lands at {landing.position:F1}, comes from {e.ApproachFrom:F2}.");
+        }
+
+        /// <summary>
+        /// The warning ring (VantageBoundary) around the tower plot: the tower's footprint (helipad included) plus
+        /// 8 m, measured like the world tool's plot, so the free zone starts where the levelled ground ends.
+        /// </summary>
+        private static void boundary(Transform tower, Transform parent)
+        {
+            var model = levelModel(tower) ?? tower;
+            var renderers = model.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) { Debug.LogWarning("[Vantage] Boundary: the tower has no renderers, no ring."); return; }
+            var b = renderers[0].bounds;
+            foreach (var r in renderers) b.Encapsulate(r.bounds);
+            var go = new GameObject("Boundary");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z);
+            var ring = go.AddComponent<VantageBoundary>();
+            ring.Plot = Rect.MinMaxRect(b.min.x - 8f, b.min.z - 8f, b.max.x + 8f, b.max.z + 8f);
+            Debug.Log($"[Vantage] Boundary: plot {ring.Plot}, free {ring.FreeDistance} m, warning {ring.WarningDistance} m.");
+        }
+
+        /// <summary>
+        /// The two sentries' routes, traced from the NavMesh just baked: the broken slab (3rd-floor height, outside
+        /// the building's footprint and the finale area) and the helipad platform. A missing area logs FAIL and that
+        /// sentry is left out; nothing else depends on it.
+        /// </summary>
+        private static void sentries(Transform tower, Transform parent, VantageTowerLevels levels)
+        {
+            var go = new GameObject("Sentries");
+            go.transform.SetParent(parent, false);
+            var spawner = go.AddComponent<VantageSentries>();
+            spawner.SoldierPrefab = levels.SoldierPrefab;
+            var drone = levels.DronePrefab != null ? levels.DronePrefab.GetComponent<VantageDrone>() : null;
+            spawner.TracerMaterial = drone != null && drone.Tracer != null ? drone.Tracer.sharedMaterial : null;
+            if (spawner.TracerMaterial == null) Debug.LogWarning("[Vantage] Sentries: no drone tracer material, ring shots show no tracer.");
+            var centre = levels.TowerArea.center;
+            var finale = levels.FinaleArea;
+            bool inFinale(Vector3 p) => p.x >= finale.min.x && p.x <= finale.max.x && p.z >= finale.min.z && p.z <= finale.max.z;
+            // Locked doors and stair blockers carve the NavMesh at runtime (the bake ran without them): keep the
+            // routes 1.5 m clear of every obstacle, or a sentry stands in a hole (and in a doorway).
+            var blocked = new List<Bounds>();
+            foreach (var obstacle in Object.FindObjectsByType<UnityEngine.AI.NavMeshObstacle>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var o = obstacle.transform;
+                var c = obstacle.center; var e = obstacle.size * 0.5f;
+                var ob = new Bounds(o.TransformPoint(c), Vector3.zero);
+                for (int corner = 0; corner < 8; corner++)
+                    ob.Encapsulate(o.TransformPoint(c + new Vector3((corner & 1) == 0 ? -e.x : e.x, (corner & 2) == 0 ? -e.y : e.y, (corner & 4) == 0 ? -e.z : e.z)));
+                ob.Expand(new Vector3(3f, 1f, 3f));
+                blocked.Add(ob);
+            }
+            bool clear(Vector3 p) { foreach (var ob in blocked) if (ob.Contains(p)) return false; return true; }
+
+            var floor3 = LevelHeights(tower)[2];
+            var building = Find(tower, "LVL2_FloorSlab");
+            Bounds footprint = default;
+            var hasFootprint = building != null && WorldBounds(building, out footprint);
+            // Within the tower's area (its LVL* renderers, the slab included): base rooftops at the same height
+            // elsewhere in the world must not count.
+            var area = levels.TowerArea;
+            bool slab(Vector3 p) => Mathf.Abs(p.y - floor3) < 1f && !inFinale(p) && clear(p)
+                                    && p.x >= area.min.x - 1f && p.x <= area.max.x + 1f && p.z >= area.min.z - 1f && p.z <= area.max.z + 1f
+                                    && !(hasFootprint && p.x > footprint.min.x && p.x < footprint.max.x && p.z > footprint.min.z && p.z < footprint.max.z);
+            var slabSearch = area; slabSearch.Expand(new Vector3(2f, 0f, 2f));
+            addRoute(spawner, "Slab", 2, VantageSentryRoutes.Trace(slabSearch, floor3, slab, centre, 4, 1.5f, 12f, out var slabArea), slabArea);
+
+            var platform = Find(tower, "FINAL_Platform");
+            var platformY = float.NaN;
+            if (platform != null && WorldBounds(platform, out var pb)
+                && UnityEngine.AI.NavMesh.SamplePosition(new Vector3(pb.center.x, pb.max.y, pb.center.z), out var top, 6f, UnityEngine.AI.NavMesh.AllAreas))
+                platformY = top.position.y;
+            var padArea = 0f;
+            bool pad(Vector3 p) => !float.IsNaN(platformY) && inFinale(p) && Mathf.Abs(p.y - platformY) < 1f && clear(p);
+            addRoute(spawner, "Helipad", levels.Levels.Count - 1, float.IsNaN(platformY) ? new List<Vector3>()
+                     : VantageSentryRoutes.Trace(finale, platformY, pad, centre, 4, 1.5f, 12f, out padArea), padArea);
+        }
+
+        private static void addRoute(VantageSentries spawner, string name, int level, List<Vector3> points, float area)
+        {
+            if (points.Count < 2)
+            {
+                Debug.Log($"[Vantage] Sentry route {name}: FAIL no walkable area big enough (found {area:F0} m²), no sentry there.");
+                return;
+            }
+            var length = 0f;
+            var legs = new List<string>();
+            for (int i = 1; i < points.Count; i++)
+            {
+                length += Vector3.Distance(points[i - 1], points[i]);
+                var path = new UnityEngine.AI.NavMeshPath();
+                UnityEngine.AI.NavMesh.CalculatePath(points[i - 1], points[i], UnityEngine.AI.NavMesh.AllAreas, path);
+                if (path.status != UnityEngine.AI.NavMeshPathStatus.PathComplete) legs.Add($"leg {i} {path.status}");
+            }
+            if (legs.Count > 0) Debug.Log($"[Vantage] Sentry route {name}: FAIL not walkable: {string.Join(", ", legs)}.");
+            spawner.Routes.Add(new VantageSentries.Route { Name = name, Level = level, Points = points });
+            Debug.Log($"[Vantage] Sentry route {name}: {points.Count} points, {length:F1} m (area {area:F0} m²): {string.Join(" ", points.Select(p => p.ToString("F1")))}.");
+        }
+
+        /// <summary>The intro cutscene: where the entrance is and which way it faces, and the helipad it ends on.</summary>
+        private static void intro(Transform tower, Transform parent)
+        {
+            var go = new GameObject("Intro");
+            go.transform.SetParent(parent, false);
+            var intro = go.AddComponent<VantageIntro>();
+            intro.EntrancePoint = EntrancePoint(tower) ?? tower.position;
+            intro.EntranceFacing = EntranceFacing(tower);
+            intro.Helipad = Find(tower, "FINAL_Helipad");
+            Debug.Log($"[Vantage] Intro: entrance {intro.EntrancePoint:F1} facing {intro.EntranceFacing:F0}, helipad {(intro.Helipad != null ? "found" : "missing")}.");
         }
 
         #region Coins

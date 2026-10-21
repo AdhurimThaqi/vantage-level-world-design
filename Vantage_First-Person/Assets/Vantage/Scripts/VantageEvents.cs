@@ -27,7 +27,11 @@ namespace Vantage
         public static event Action<int, int> CoinCollected;                 // collected, total
         public static event Action BossSpawned;
         public static event Action GameWon;
+        public static event Action CinematicStarted;                        // the camera is taken over (VantageCinematic)
+        public static event Action CinematicEnded;
 
+        public static void RaiseCinematicStarted() => CinematicStarted?.Invoke();
+        public static void RaiseCinematicEnded() => CinematicEnded?.Invoke();
         public static void RaiseMessage(string text) => Message?.Invoke(text);
         public static void RaiseAlarm(string source) => AlarmRaised?.Invoke(source);
         public static void RaiseAlarmStopped() => AlarmStopped?.Invoke();

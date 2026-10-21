@@ -33,7 +33,11 @@ namespace Vantage
         private RectTransform _canvas, _hud;
 
         private TMP_Text _hp, _ammo, _reserve, _weapon, _levelNumber, _levelName, _hint, _notice, _bannerTitle, _bannerSub, _death, _deathSub;
-        private TMP_Text _prompt, _coins, _endTitle, _endStats, _endAgain;
+        private TMP_Text _prompt, _coins, _endTitle, _endStats, _endAgain, _warning;
+        private float _warningFirstAt = -1f;
+
+        /// <summary>The ring warning ("sentries above") is on screen.</summary>
+        public bool WarningVisible { get; private set; }
         private Image _hpFill, _hpTrail, _regenCap, _targetFill, _targetTrail, _flash, _vignette, _deathBackground, _endBackground;
         private string _shownPrompt, _shownHint;
         private int _shownCoins = -1;
@@ -138,7 +142,7 @@ namespace Vantage
         {
             var dead = (_player != null && _player.IsDead) || (_motor != null && !_motor.IsAlive);
             var won = _wonAt >= 0;
-            _hud.gameObject.SetActive(!dead && !won);
+            _hud.gameObject.SetActive(!dead && !won && !VantageCinematic.Active);
             if (!dead && !won)
             {
                 updateHealth();
@@ -360,6 +364,21 @@ namespace Vantage
             var bannerAlpha = Mathf.Clamp01(b / 0.25f) * Mathf.Clamp01((3.5f - b) / 0.6f);
             _bannerTitle.color = new Color(1, 1, 1, bannerAlpha);
             _bannerSub.color = new Color(Accent.r, Accent.g, Accent.b, bannerAlpha);
+
+            updateRingWarning();
+        }
+
+        /// <summary>"Sentries above" while the player is in the ring's warning band or kill zone; it flashes the first time.</summary>
+        private void updateRingWarning()
+        {
+            var ring = VantageBoundary.Instance;
+            var warn = ring != null && !VantageCinematic.Active
+                       && (ring.PlayerZone == VantageBoundary.Zone.Warning || ring.PlayerZone == VantageBoundary.Zone.Kill);
+            WarningVisible = warn;
+            if (warn && _warningFirstAt < 0f) _warningFirstAt = Time.time;
+            var flashing = warn && Time.time - _warningFirstAt < 1.5f;
+            var alpha = !warn ? 0f : flashing ? 0.5f + 0.5f * Mathf.Sign(Mathf.Sin(Time.time * 18f)) : 0.9f;
+            _warning.color = new Color(Danger.r, Danger.g, Danger.b, alpha);
         }
 
         private void updateOverlays(bool dead)
@@ -444,6 +463,9 @@ namespace Vantage
             _bannerSub = VantageUI.Text(_hud, "Banner Detail", 28, TextAlignmentOptions.Center, new Vector2(0.5f, 0.7f), new Vector2(0, -62), new Vector2(1400, 40));
             _bannerTitle.color = _bannerSub.color = Color.clear;
             _prompt = VantageUI.Text(_hud, "Prompt", 30, TextAlignmentOptions.Center, new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(900, 40));
+            _warning = VantageUI.Text(_hud, "Ring Warning", 34, TextAlignmentOptions.Center, new Vector2(0.5f, 0.64f), Vector2.zero, new Vector2(1200, 46));
+            _warning.text = VantageUI.Caps("Sentries above: get back to the tower");
+            _warning.color = Color.clear;
 
             // Death screen.
             _deathBackground = VantageUI.Image(VantageUI.Stretch("Death Background", _canvas), Color.clear);

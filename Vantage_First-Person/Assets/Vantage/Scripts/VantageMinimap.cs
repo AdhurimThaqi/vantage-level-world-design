@@ -33,7 +33,8 @@ namespace Vantage
         private float _otherFloor = 3f;
 
         private RectTransform _frame;
-        private RawImage _map;
+        private RawImage _map, _ring;
+        private RectTransform _canvas;
         private RectTransform _arrow, _tower;
         private TMP_Text _distance, _place;
         private readonly List<Image> _dots = new List<Image>();
@@ -51,6 +52,9 @@ namespace Vantage
 
         private void LateUpdate()
         {
+            // Hidden while a cinematic has the camera (intro, extraction).
+            if (_canvas.gameObject.activeSelf == VantageCinematic.Active)
+                _canvas.gameObject.SetActive(!VantageCinematic.Active);
             var player = VantageEvents.ActivePlayer();
             if (player == null)
                 return; // dead: the map holds its last view under the death screen
@@ -60,6 +64,7 @@ namespace Vantage
             var u = (pos.x - WorldArea.x) / WorldArea.width;
             var v = (pos.z - WorldArea.y) / WorldArea.height;
             _map.uvRect = new Rect(u - view / 2, v - view / 2, view, view * WorldArea.width / WorldArea.height);
+            if (_ring != null) _ring.uvRect = _map.uvRect;
 
             _arrow.localEulerAngles = new Vector3(0, 0, -player.transform.eulerAngles.y);
 
@@ -148,6 +153,7 @@ namespace Vantage
         private void build()
         {
             var canvas = VantageUI.Canvas("VANTAGE Minimap Canvas", 40, transform);
+            _canvas = canvas;
 
             // Top-left corner: the map in a thin frame, distance and place below it.
             var panel = VantageUI.Rect("Minimap", canvas, new Vector2(0, 1), new Vector2(40, -40), new Vector2(SizePixels + 4, SizePixels + 4));
@@ -158,6 +164,13 @@ namespace Vantage
             _map.texture = Map;
             _map.raycastTarget = false;
             _map.color = new Color(0.8f, 0.8f, 0.8f);
+            var ring = ringTexture();
+            if (ring != null)
+            {
+                _ring = VantageUI.Stretch("Warning Ring", _frame).gameObject.AddComponent<RawImage>();
+                _ring.texture = ring;
+                _ring.raycastTarget = false;
+            }
 
             _tower = VantageUI.Rect("Tower", _frame, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(14, 14));
             VantageUI.Image(_tower, Accent, VantageUI.Pixel).rectTransform.localEulerAngles = new Vector3(0, 0, 45);
@@ -168,6 +181,34 @@ namespace Vantage
             _distance = VantageUI.Text(canvas, "Distance", 24, TextAlignmentOptions.TopLeft, new Vector2(0, 1), new Vector2(42, -SizePixels - 52), new Vector2(SizePixels, 28));
             _place = VantageUI.Text(canvas, "Place", 18, TextAlignmentOptions.TopLeft, new Vector2(0, 1), new Vector2(42, -SizePixels - 78), new Vector2(SizePixels, 24));
             _place.color = VantageUI.Muted;
+        }
+
+        /// <summary>
+        /// The warning ring over the map image (same world area, scrolled with it): the free zone's edge as a thin
+        /// line and the warning band tinted red. Drawn once; null without a VantageBoundary.
+        /// </summary>
+        private Texture2D ringTexture()
+        {
+            var ring = FindAnyObjectByType<VantageBoundary>();
+            if (ring == null || ring.Plot.width <= 0) return null;
+            var w = Mathf.Clamp(Mathf.RoundToInt(WorldArea.width), 256, 1024);
+            var h = Mathf.Clamp(Mathf.RoundToInt(w * WorldArea.height / WorldArea.width), 256, 1024);
+            var metresPerPixel = WorldArea.width / w;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[w * h];
+            var band = new Color32(240, 60, 40, 40);
+            var edge = new Color32(255, 200, 80, 200);
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    var world = new Vector3(WorldArea.x + (x + 0.5f) * WorldArea.width / w, 0f, WorldArea.y + (y + 0.5f) * WorldArea.height / h);
+                    var d = ring.OutsidePlot(world);
+                    px[y * w + x] = Mathf.Abs(d - ring.FreeDistance) <= metresPerPixel * 0.75f ? edge
+                                   : d > ring.FreeDistance && d <= ring.WarningDistance ? band : new Color32(0, 0, 0, 0);
+                }
+            tex.SetPixels32(px);
+            tex.Apply();
+            return tex;
         }
 
         private static Sprite _arrowSprite;

@@ -32,6 +32,7 @@ Open `Vantage_First-Person` in Unity **6000.0.58f2**, open `Assets/Scenes/Sample
 | Grenade | Hold G, aim, left mouse to throw |
 | Melee | F |
 | Play again (end screen) | Enter |
+| Skip the intro | Any key or mouse button |
 
 Playtest hotkeys:
 - **F1** shows the playtest overlay (seed, current space, hotkeys).
@@ -50,6 +51,8 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 | **3 · Destroyed floor** | barracks, comms room, hall, the blown-out open area and broken slab outside, SE room, robot room | 5 soldiers, 2 outside patrols, the **heavy robot** | Clearing the barracks, comms and hall opens the robot room, the way through to the destroyed area (a breach in its wall). Entering the destroyed area alerts the two patrols on the broken slab; killing both opens the SE room. **Only the rifle hurts the robot** ("You need a better gun"). | Everyone dead: the exit to the outside stairs unlocks |
 | **Finale · Helipad** | outside stairs, platform, helipad | 2 soldiers, then the **boss** | Clear the platform, step onto the pad: the boss appears, a bigger red-eyed robot that also **charges** after a visible wind-up. | The boss dies: the helicopter lands, *THE TOWER IS SILENT* |
 
+- **Intro.** A new run opens with a 13-second flyover: in over the base onto the tower, up to the sentry on the broken slab, across to the helipad (the way out), then down into your own camera. Any key skips it; it doesn't play again after a death.
+- **Sentries and the warning ring.** Two sentries patrol the outside of the top: the rim of the broken slab and the rim of the helipad platform, stopping at each end to scan the ground. Near the tower you are free. Walk more than 15 m past the tower's plot and the HUD warns *SENTRIES ABOVE: GET BACK TO THE TOWER* while they fire warning shots into the dirt at your feet (a red glint gives each one away first); go past 35 m, or stay in the warning band for 5 s, and they shoot to hit until you are back. Up on their level they fight like any soldier. They hold no door shut, and a sentry you kill stays dead for the run. The minimap shows the ring.
 - **Coins.** Five gold coins are hidden off the main route, one or two per level: a dead end on the ground floor, the far end of the office and a corner of the hall on level 2, the broken slab outside on level 3 (patrol ground), the far edge of the helipad. They are counted on the HUD and the end screen.
 - **End screen.** Time, deaths, coins, and three achievements: *All coins*, *No deaths*, *Under 15 minutes*.
 - **Dying** restarts the level you were on after three seconds (a checkpoint per level). Weapons and coins you found stay found; the level's enemies, doors and key are back where they started.
@@ -57,7 +60,7 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
   - Top centre: the level, its name, one marker per enemy (it dims when that enemy dies), the goal of the moment (*FIND A WEAPON*, *LOCKDOWN · CLEAR THE FLOOR*, *REACH THE HELIPAD*, *DESTROY THE MACHINE*) and the coins found.
   - Bottom left: health, with a tick where regeneration stops. Bottom right: weapon and ammo.
   - Centre: the enemy you aim at, short messages, and "[E] …" when you stand at the key slot.
-  - Top left: the minimap, with nearby enemies, the distance to the tower and the level you are on.
+  - Top left: the minimap, with nearby enemies, the distance to the tower, the level you are on and the warning ring (its inner edge as a line, the warning band tinted red).
 
 ### Mood
 
@@ -99,6 +102,7 @@ You start with nothing (`VantageArsenal`). The **pistol** lies just outside the 
 ### Automated playtest
 
 **Vantage → Test → Run Autoplay Test** (or batch: `-executeMethod Vantage.EditorTools.VantageAutoplay.RunBatch`, exit code 0 = passed) plays the real level and logs every result with `[Bot]`. It checks, in order:
+- the intro plays on a new run, frames the slab sentry, and a skip gives back control and the player's camera
 - the security camera spots the player and springs the trap; walking through the trigger afterwards doesn't spring it twice
 - the main entrance can be walked through without getting stuck
 - soldiers fire and deal damage
@@ -111,9 +115,13 @@ You start with nothing (`VantageArsenal`). The **pistol** lies just outside the 
 - every stair flight can be climbed without stalling
 - the finale: the boss appears on the pad, its death brings the helicopter and the win
 - dying on level 2 restarts there with the pistol and a collected coin kept
-- a shot-out camera stays quiet, while the trigger still springs the trap
+- a shot-out camera stays quiet, while the trigger still springs the trap; no intro after a death, the intro again after *play again*
+- the warning ring: the zones, the 5-second grace (reset by stepping back), the HUD warning, no shots in the free zone, warning shots then hits in the warning band, hits in the kill zone, no hits without line of sight, silence during a cutscene
+- the sentries: both spawn on their routes and walk them without straying more than 6 m or changing level, they hold no lock (level 3's exit and the helipad open with both alive), and a killed sentry stays dead after a death
 
-With `-vantageShots <folder>` it also saves screenshots of the game **with the HUD**: combat, alarm, key prompt, level cleared, boss, end screen.
+`-vantageOnly cinematic|ring|sentries|intro` runs one group of checks for quick iteration.
+
+With `-vantageShots <folder>` it also saves screenshots of the game **with the HUD**: combat, alarm, key prompt, level cleared, boss, end screen, the ring warning (`hud_warning`) and the intro's sentry shot (`intro_shot2`).
 
 ### Playtest logging
 

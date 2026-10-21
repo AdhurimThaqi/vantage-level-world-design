@@ -14,7 +14,11 @@ namespace Vantage
         public static int Checkpoint;
         public static readonly HashSet<string> Weapons = new HashSet<string>();
         public static readonly HashSet<string> Coins = new HashSet<string>();
+        /// <summary>Sentries killed this run (VantageSentries doesn't spawn them again after a death).</summary>
+        public static readonly HashSet<string> DeadSentries = new HashSet<string>();
         public static int Deaths;
+        /// <summary>The intro has played this run (it doesn't replay after a death).</summary>
+        public static bool IntroPlayed;
         public static float StartTime;
 
         public static float Elapsed => Time.realtimeSinceStartup - StartTime;
@@ -27,6 +31,8 @@ namespace Vantage
             Checkpoint = 0;
             Weapons.Clear();
             Coins.Clear();
+            DeadSentries.Clear();
+            IntroPlayed = false;
             Deaths = 0;
             StartTime = Time.realtimeSinceStartup;
         }

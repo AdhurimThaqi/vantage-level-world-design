@@ -1,0 +1,31 @@
+VANTAGE playtest  2026-10-21_12-39-53
+Enemy placement seed: 23359
+Session length: -287s (run -9s, deaths 10)  Completed: no   Furthest: Level 2 (armory)   Backtracks: 3
+
+Time per space
+  Military Base      14s   deaths 0
+  Level 1 (ground floor)     33s   deaths 0
+  Level 2 (armory)      3s   deaths 0
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Soldier        1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  287.2s] Enemy placement seed 23359
+[    0.0s] Session started
+[    2.9s] Level 2 (armory) -> Level 1 (ground floor)
+[    2.9s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[   10.6s] Alarm raised by the trigger
+[   11.4s] Picked up Pistol
+[   11.7s] Level 1 (ground floor) -> Military Base
+[   11.7s] BACKTRACK to Military Base (furthest so far: Level 2 (armory))
+[   12.9s] Killed Soldier in Level 2 (armory)
+[   26.1s] Military Base -> Level 1 (ground floor)
+[   26.1s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))

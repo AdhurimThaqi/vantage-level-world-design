@@ -178,6 +178,17 @@ namespace Vantage.Testing
                 yield break;
             }
 
+            // -vantageOnly <group>: only that group's checks (quick iteration on one feature).
+            var onlyArg = System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageOnly");
+            if (onlyArg >= 0 && onlyArg + 1 < System.Environment.GetCommandLineArgs().Length)
+            {
+                if (System.Environment.GetCommandLineArgs()[onlyArg + 1] != "intro") yield return skipIntro();
+                yield return runGroup(System.Environment.GetCommandLineArgs()[onlyArg + 1], levels);
+                yield return finish();
+                yield break;
+            }
+
+            yield return introChecks();
             yield return cameraSpotsPlayer();
             yield return hudSnapshot("hud_alarm");
             teleport(_start, _start + Vector3.forward);
@@ -214,7 +225,482 @@ namespace Vantage.Testing
             yield return playAgain();
             yield return checkpointRestore();
             yield return shotCameraStaysQuiet();
+            // Sentries and the ring last: the sentry checks clear the levels and end with a reload.
+            yield return ringChecks(VantageTowerLevels.Instance);
+            yield return sentryChecks(VantageTowerLevels.Instance);
             yield return finish();
+        }
+
+        /// <summary>The checks of one feature group (-vantageOnly): cinematic, ring, sentries, intro.</summary>
+        private IEnumerator runGroup(string group, VantageTowerLevels levels)
+        {
+            log($"only group '{group}'");
+            switch (group)
+            {
+                case "cinematic":
+                    yield return cinematicRoundTrip();
+                    break;
+                case "ring":
+                    yield return ringChecks(levels);
+                    break;
+                case "sentries":
+                    yield return sentryChecks(levels);
+                    break;
+                case "intro":
+                    yield return introChecks();
+                    break;
+                default:
+                    fail($"unknown -vantageOnly group '{group}'");
+                    break;
+            }
+        }
+
+        // ---------------- cinematics ----------------
+
+        /// <summary>Ends the intro if it is playing and gives the player back to the bot (no keyboard input).</summary>
+        private IEnumerator skipIntro()
+        {
+            if (VantageIntro.Instance != null && VantageIntro.Instance.Playing)
+            {
+                while (VantageIntro.Instance.Elapsed < 0.6f) yield return null;
+                VantageIntro.Instance.Skip();
+                yield return null;
+            }
+            var input = _motor.GetComponent<ThirdPersonInput>();
+            if (input != null) input.enabled = false;
+            if (_controller != null) _controller.WaitForUpdateCall = false;
+        }
+
+        /// <summary>
+        /// The intro on a new run: it is playing with the camera taken over and the HUD hidden; at 5 s the slab
+        /// sentry is in frame (screenshot intro_shot2); a skip ends it at once and gives back control and the
+        /// follow camera near the player; skipping again or ending the cinematic again changes nothing.
+        /// </summary>
+        private IEnumerator introChecks()
+        {
+            var intro = VantageIntro.Instance;
+            if (intro == null) { fail("intro: no VantageIntro in the scene"); yield break; }
+            var hud = _motor.GetComponent<VantagePlayerHUD>();
+            var hudCanvas = GameObject.Find("VANTAGE HUD");
+            var hudHidden = hudCanvas == null || hudCanvas.transform.Find("HUD") == null || !hudCanvas.transform.Find("HUD").gameObject.activeInHierarchy;
+            var line = $"playing {intro.Playing} at {intro.Elapsed:F1} s, cinematic {VantageCinematic.Active}, HUD hidden {hudHidden}";
+            if (intro.Playing && VantageCinematic.Active && hudHidden) log("PASS intro plays on a new run: " + line);
+            else { fail("intro on a new run: " + line); yield break; }
+
+            while (intro.Playing && intro.Elapsed < 5f) yield return null;
+            var cam = Camera.main;
+            var slab = sentry("SENTRY_Slab");
+            var view = cam != null && slab != null ? cam.WorldToViewportPoint(slab.transform.position + Vector3.up) : Vector3.zero;
+            var framed = view.z > 0 && view.x > 0.05f && view.x < 0.95f && view.y > 0.05f && view.y < 0.95f;
+            yield return hudSnapshot("intro_shot2");
+            if (framed) log($"PASS intro shot 2 frames the slab sentry (viewport {view:F2})");
+            else fail($"intro shot 2: slab sentry {(slab == null ? "missing" : $"at viewport {view:F2}")}");
+
+            var follow = cam != null ? cam.GetComponent<ThirdPersonCamera>() : null;
+            var input = _motor.GetComponent<ThirdPersonInput>();
+            intro.Skip();
+            yield return null;
+            var near = cam != null && Vector3.Distance(cam.transform.position, _motor.transform.position) < 4f;
+            var after = $"playing {intro.Playing}, cinematic {VantageCinematic.Active}, input {(input != null && input.enabled)}, follow {(follow != null && follow.enabled)}, camera near the player {near}";
+            intro.Skip();
+            VantageCinematic.End();
+            yield return null;
+            var again = $"playing {intro.Playing}, cinematic {VantageCinematic.Active}, input {(input != null && input.enabled)}, follow {(follow != null && follow.enabled)}";
+            if (!intro.Playing && !VantageCinematic.Active && input != null && input.enabled && follow != null && follow.enabled && near
+                && again == $"playing False, cinematic False, input True, follow True")
+                log("PASS intro skip restores control: " + after);
+            else
+                fail($"intro skip: {after}; after a second skip {again}");
+            yield return skipIntro();
+        }
+
+        /// <summary>
+        /// VantageCinematic.Begin switches off the player's input and damage and the camera's follow and fade;
+        /// End puts back exactly what Begin changed, and a second End changes nothing.
+        /// </summary>
+        private IEnumerator cinematicRoundTrip()
+        {
+            var cam = Camera.main;
+            var follow = cam != null ? cam.GetComponent<ThirdPersonCamera>() : null;
+            var fader = cam != null ? cam.GetComponent<VantageCameraFader>() : null;
+            var input = _motor.GetComponent<ThirdPersonInput>();
+            if (follow == null || fader == null || input == null || _health == null)
+            {
+                fail($"cinematic: camera follow {follow != null}, fader {fader != null}, input {input != null}, health {_health != null}");
+                yield break;
+            }
+            // The bot keeps the player's input off; switch it on so Begin has something to take away.
+            input.enabled = true;
+            string state() => $"input {input.enabled}, damage {_health.IsTakingDamage}, follow {follow.enabled}, fader {fader.enabled}";
+            var before = state();
+            int started = 0, ended = 0;
+            System.Action onStart = () => started++, onEnd = () => ended++;
+            VantageEvents.CinematicStarted += onStart;
+            VantageEvents.CinematicEnded += onEnd;
+
+            VantageCinematic.Begin();
+            yield return null;
+            var during = state();
+            var activeDuring = VantageCinematic.Active;
+            VantageCinematic.End();
+            VantageCinematic.End();
+            yield return null;
+            var after = state();
+
+            VantageEvents.CinematicStarted -= onStart;
+            VantageEvents.CinematicEnded -= onEnd;
+            input.enabled = false;
+            var line = $"before [{before}], during [{during}] active {activeDuring}, after [{after}] active {VantageCinematic.Active}, started {started}, ended {ended}";
+            if (during == "input False, damage False, follow False, fader False" && activeDuring && after == before
+                && !VantageCinematic.Active && started == 1 && ended == 1)
+                log("PASS cinematic begin/end restores control: " + line);
+            else
+                fail("cinematic begin/end: " + line);
+        }
+
+        // ---------------- sentries ----------------
+
+        private IEnumerator sentryChecks(VantageTowerLevels levels)
+        {
+            yield return sentriesSpawnAndWalk();
+            yield return sentriesStayOnRoute(levels);
+            yield return sentriesNotInLocks(levels);
+            yield return sentryStaysDead();
+        }
+
+        private VantageSentry sentry(string name) => VantageSentries.All.FirstOrDefault(s => s != null && s.name == name);
+
+        /// <summary>For 30 s neither sentry gets more than 6 m from its route, and neither changes level.</summary>
+        private IEnumerator sentriesStayOnRoute(VantageTowerLevels levels)
+        {
+            var sentries = VantageSentries.All.Where(s => s != null && !s.IsDead).ToList();
+            if (sentries.Count < 2) { fail($"sentries stay on route: {sentries.Count}/2 sentries alive"); yield break; }
+            var level = sentries.ToDictionary(s => s, s => levels.LevelAt(s.transform.position));
+            var worst = sentries.ToDictionary(s => s, s => 0f);
+            var moved = new List<string>();
+            for (float t = 0; t < 30f; t += 0.5f)
+            {
+                yield return new WaitForSeconds(0.5f);
+                foreach (var s in sentries)
+                {
+                    worst[s] = Mathf.Max(worst[s], s.DistanceFromRoute);
+                    var now = levels.LevelAt(s.transform.position);
+                    if (now != level[s] && !moved.Contains(s.name)) moved.Add($"{s.name} level {level[s]} -> {now}");
+                }
+            }
+            var line = string.Join("; ", sentries.Select(s => $"{s.name} max {worst[s]:F1} m from route")) + (moved.Count > 0 ? "; " + string.Join(", ", moved) : "");
+            if (worst.Values.All(d => d <= 6f) && moved.Count == 0) log("PASS sentries stay on their route: " + line);
+            else fail("sentries stay on route: " + line);
+        }
+
+        /// <summary>
+        /// Sentries are not level enemies: level 3's exit opens and the finale's helipad waits for the player with
+        /// both sentries alive.
+        /// </summary>
+        private IEnumerator sentriesNotInLocks(VantageTowerLevels levels)
+        {
+            var counted = levels.Enemies.Count(e => e != null && e.name.StartsWith("SENTRY_"));
+            for (int level = levels.Current; level < 3 && levels.Current == level; level++)
+                yield return clearLevel(levels, level);
+            var exit = VantageDoor.Find("L3_DOOR_Exit_To_Final");
+            for (float t = 0; t < 3f && exit != null && exit.IsLocked; t += Time.deltaTime) yield return null;
+            foreach (var e in levels.Enemies.ToList()) kill(e);
+            for (float t = 0; t < 3f && !levels.AwaitingHelipad; t += Time.deltaTime) yield return null;
+            var alive = VantageSentries.All.Count(s => s != null && !s.IsDead);
+            var line = $"sentries counted as level enemies {counted}, current level {levels.Current + 1}, L3 exit locked {(exit == null ? "missing" : exit.IsLocked.ToString())}, " +
+                       $"helipad waiting {levels.AwaitingHelipad}, sentries alive {alive}";
+            if (counted == 0 && exit != null && !exit.IsLocked && levels.AwaitingHelipad && alive == 2)
+                log("PASS sentries hold no lock: " + line);
+            else
+                fail("sentries hold no lock: " + line);
+        }
+
+        /// <summary>A sentry killed before a death is not back after the reload; the other one is.</summary>
+        private IEnumerator sentryStaysDead()
+        {
+            var slab = sentry("SENTRY_Slab");
+            if (slab == null) { fail("sentry stays dead: no SENTRY_Slab"); yield break; }
+            kill(slab.gameObject);
+            yield return new WaitForSeconds(1f);
+            var recorded = VantageRun.DeadSentries.Contains("SENTRY_Slab");
+            VantageEvents.RaisePlayerDied("bot", _motor.transform.position);
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scene.path, new UnityEngine.SceneManagement.LoadSceneParameters(UnityEngine.SceneManagement.LoadSceneMode.Single));
+            yield return new WaitForSeconds(2f);
+            if (!acquire()) yield break;
+            var line = $"recorded dead {recorded}, after the reload SENTRY_Slab {(sentry("SENTRY_Slab") != null ? "back" : "gone")}, SENTRY_Helipad {(sentry("SENTRY_Helipad") != null ? "there" : "missing")}";
+            if (recorded && sentry("SENTRY_Slab") == null && sentry("SENTRY_Helipad") != null) log("PASS sentry stays dead after a death: " + line);
+            else fail("sentry stays dead: " + line);
+        }
+
+        /// <summary>Both sentries stand on the NavMesh of their route and walk at least 5 m within 15 s.</summary>
+        private IEnumerator sentriesSpawnAndWalk()
+        {
+            var all = VantageSentries.All;
+            var names = new[] { "SENTRY_Slab", "SENTRY_Helipad" };
+            var found = names.Select(n => all.FirstOrDefault(s => s != null && s.name == n)).ToArray();
+            var start = found.Select(s => s != null ? s.transform.position : Vector3.zero).ToArray();
+            var walked = new float[found.Length];
+            var last = (Vector3[])start.Clone();
+            for (float t = 0; t < 15f; t += 0.5f)
+            {
+                yield return new WaitForSeconds(0.5f);
+                for (int i = 0; i < found.Length; i++)
+                    if (found[i] != null)
+                    {
+                        var p = found[i].transform.position;
+                        walked[i] += Vector3.Distance(new Vector3(p.x, 0, p.z), new Vector3(last[i].x, 0, last[i].z));
+                        last[i] = p;
+                    }
+            }
+            var parts = new List<string>();
+            var ok = true;
+            for (int i = 0; i < found.Length; i++)
+            {
+                if (found[i] == null) { parts.Add($"{names[i]} missing"); ok = false; continue; }
+                var onNav = NavMesh.SamplePosition(start[i], out var hit, 1f, NavMesh.AllAreas);
+                parts.Add($"{names[i]} at {start[i]:F1} on NavMesh {onNav}, walked {walked[i]:F1} m");
+                ok &= onNav && walked[i] >= 5f;
+            }
+            var line = string.Join("; ", parts);
+            if (ok) log("PASS sentries spawn and walk: " + line);
+            else fail("sentries spawn and walk: " + line);
+        }
+
+        // ---------------- the warning ring ----------------
+
+        /// <summary>All ring checks, the player back at the start afterwards.</summary>
+        private IEnumerator ringChecks(VantageTowerLevels levels)
+        {
+            var ring = VantageBoundary.Instance;
+            if (ring == null) { fail("ring: no VantageBoundary in the scene"); yield break; }
+            yield return ringZones(levels, ring);
+            yield return ringGraceResets(ring);
+            yield return ringHudWarning(ring);
+            // The ground floor's own soldiers can see out of the entrance: clear it, so only sentries can fire.
+            if (levels.Current == 0) yield return clearLevel(levels, 0);
+            yield return ringFreeIsQuiet(ring);
+            yield return ringWarningThenHits(ring);
+            yield return ringKillZone(ring);
+            yield return ringNeedsSight(ring);
+            yield return ringQuietInCinematic(ring);
+            teleport(_start, _start + Vector3.forward);
+            heal();
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        private void heal() { if (_health != null) _health.Health = _health.MaxHealth; _lastHealth = _health != null ? _health.Health : 0f; }
+
+        private int ringShots() => VantageSentries.All.Where(s => s != null).Sum(s => s.WarningShots + s.Hits);
+
+        /// <summary>
+        /// A point `distance` m outside the plot that a living sentry can see (eye to the player's chest height),
+        /// trying directions around the plot; null when none. With `seenByNone`, a point no sentry can see.
+        /// </summary>
+        private Vector3? ringPointInSight(VantageBoundary ring, float distance, bool seenByNone = false)
+        {
+            var centre = new Vector3(ring.Plot.center.x, _start.y, ring.Plot.center.y);
+            var baseDir = _start - centre; baseDir.y = 0; baseDir.Normalize();
+            var eyes = VantageSentries.All.Where(s => s != null && !s.IsDead).Select(s => s.transform.position + Vector3.up * 1.6f).ToList();
+            if (seenByNone)
+            {
+                // Hidden must hold wherever the sentries walk: every metre of every route, at eye height.
+                eyes.Clear();
+                var spawner = FindAnyObjectByType<VantageSentries>();
+                if (spawner != null)
+                    foreach (var route in spawner.Routes)
+                        for (int i = 1; i < route.Points.Count; i++)
+                        {
+                            var steps = Mathf.CeilToInt(Vector3.Distance(route.Points[i - 1], route.Points[i]));
+                            for (int s = 0; s <= steps; s++)
+                                eyes.Add(Vector3.Lerp(route.Points[i - 1], route.Points[i], (float)s / Mathf.Max(1, steps)) + Vector3.up * 1.6f);
+                        }
+            }
+            if (eyes.Count == 0) return null;
+            for (int a = 0; a < 360; a += 10)
+            {
+                var dir = Quaternion.Euler(0, a, 0) * baseDir;
+                var p = centre;
+                for (int i = 0; i < 600 && ring.OutsidePlot(p) < distance; i++) p += dir * 0.5f;
+                if (!Physics.Raycast(p + Vector3.up * 60f, Vector3.down, out var ground, 120f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) continue;
+                if (!NavMesh.SamplePosition(ground.point, out var nav, 2f, NavMesh.AllAreas)) continue;
+                var chest = nav.position + Vector3.up * 1.3f;
+                var seen = eyes.Count(e => !Physics.Linecast(e, chest, VantagePhysics.Solid, QueryTriggerInteraction.Ignore));
+                if (seenByNone ? seen == 0 : seen > 0) return nav.position;
+            }
+            return null;
+        }
+
+        /// <summary>8 s in the free zone: no sentry fires, no damage.</summary>
+        private IEnumerator ringFreeIsQuiet(VantageBoundary ring)
+        {
+            heal();
+            var p = ringPoint(ring, 5f);
+            teleport(p, p + Vector3.forward);
+            yield return new WaitForSeconds(0.5f);
+            var shots = ringShots();
+            var damage = _damageTaken;
+            yield return new WaitForSeconds(8f);
+            var line = $"shots {ringShots() - shots}, damage {_damageTaken - damage:F0}";
+            if (ringShots() == shots && _damageTaken == damage) log("PASS ring free zone is quiet: " + line);
+            else fail("ring free zone: " + line);
+        }
+
+        /// <summary>In the warning band in sight of a sentry: warning shots without damage for the grace time, then hits.</summary>
+        private IEnumerator ringWarningThenHits(VantageBoundary ring)
+        {
+            heal();
+            var p = ringPointInSight(ring, 25f);
+            if (p == null) { fail("ring warning: no point in the warning band a sentry can see"); yield break; }
+            var free = ringPoint(ring, 5f);
+            teleport(free, free + Vector3.forward);
+            yield return new WaitForSeconds(1f);    // grace timer reset
+            var warnings = VantageSentries.All.Where(s => s != null).Sum(s => s.WarningShots);
+            var damage = _damageTaken;
+            teleport(p.Value, p.Value + Vector3.forward);
+            yield return new WaitForSeconds(4.8f);
+            var warningShots = VantageSentries.All.Where(s => s != null).Sum(s => s.WarningShots) - warnings;
+            var damageInGrace = _damageTaken - damage;
+            yield return new WaitForSeconds(2.2f);
+            var damageAfter = _damageTaken - damage;
+            var line = $"at {p.Value:F1}: warning shots in the grace time {warningShots}, damage in the grace time {damageInGrace:F0}, damage by 7 s {damageAfter:F0}";
+            if (warningShots >= 1 && damageInGrace == 0 && damageAfter > 0) log("PASS ring warning shots, then hits: " + line);
+            else fail("ring warning then hits: " + line);
+        }
+
+        /// <summary>Beyond 35 m in sight: damage within 3 s; back in the free zone it stops.</summary>
+        private IEnumerator ringKillZone(VantageBoundary ring)
+        {
+            heal();
+            var p = ringPointInSight(ring, 42f);
+            if (p == null) { fail("ring kill zone: no point beyond 35 m a sentry can see"); yield break; }
+            var damage = _damageTaken;
+            teleport(p.Value, p.Value + Vector3.forward);
+            yield return new WaitForSeconds(3f);
+            var hit = _damageTaken - damage;
+            var free = ringPoint(ring, 5f);
+            teleport(free, free + Vector3.forward);
+            yield return new WaitForSeconds(0.6f);
+            var settled = _damageTaken;
+            yield return new WaitForSeconds(4f);
+            var line = $"at {p.Value:F1}: damage in 3 s {hit:F0}, damage in the free zone afterwards {_damageTaken - settled:F0}";
+            if (hit > 0 && _damageTaken == settled) log("PASS ring kill zone: " + line);
+            else fail("ring kill zone: " + line);
+        }
+
+        /// <summary>In the kill zone behind cover (no sentry can see the player): no hits.</summary>
+        private IEnumerator ringNeedsSight(VantageBoundary ring)
+        {
+            heal();
+            Vector3? p = null;
+            foreach (var distance in new[] { 42f, 55f, 70f, 90f })
+                if ((p = ringPointInSight(ring, distance, seenByNone: true)) != null) break;
+            if (p == null) { fail("ring needs sight: no point beyond 35 m (up to 90 m) hidden from both sentry routes"); yield break; }
+            var damage = _damageTaken;
+            var shots = VantageSentries.All.Where(s => s != null).Sum(s => s.Hits);
+            teleport(p.Value, p.Value + Vector3.forward);
+            yield return new WaitForSeconds(4f);
+            var line = $"at {p.Value:F1}: hits {VantageSentries.All.Where(s => s != null).Sum(s => s.Hits) - shots}, damage {_damageTaken - damage:F0}";
+            if (_damageTaken == damage) log("PASS ring needs sight: " + line);
+            else fail("ring needs sight: " + line);
+        }
+
+        /// <summary>In the kill zone in sight, a cinematic stops all ring fire.</summary>
+        private IEnumerator ringQuietInCinematic(VantageBoundary ring)
+        {
+            heal();
+            var p = ringPointInSight(ring, 42f);
+            if (p == null) { fail("ring cinematic: no point beyond 35 m a sentry can see"); yield break; }
+            teleport(p.Value, p.Value + Vector3.forward);
+            VantageCinematic.Begin();
+            yield return new WaitForSeconds(0.5f);
+            var shots = ringShots();
+            yield return new WaitForSeconds(3f);
+            var during = ringShots() - shots;
+            VantageCinematic.End();
+            var line = $"shots during the cinematic {during}";
+            if (during == 0) log("PASS ring quiet in a cinematic: " + line);
+            else fail("ring cinematic: " + line);
+        }
+
+        /// <summary>
+        /// A ground point `distance` m outside the tower plot, straight out from the plot centre through the player
+        /// start (the approach side), on the ground.
+        /// </summary>
+        private Vector3 ringPoint(VantageBoundary ring, float distance)
+        {
+            var centre = new Vector3(ring.Plot.center.x, _start.y, ring.Plot.center.y);
+            var dir = _start - centre; dir.y = 0;
+            dir = dir.sqrMagnitude > 0.01f ? dir.normalized : Vector3.back;
+            var p = _start;
+            for (int i = 0; i < 400 && ring.OutsidePlot(p) < distance; i++) p += dir * 0.5f;
+            if (Physics.Raycast(p + Vector3.up * 60f, Vector3.down, out var hit, 120f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                p = hit.point;
+            if (NavMesh.SamplePosition(p, out var nav, 3f, NavMesh.AllAreas)) p = nav.position;
+            return p;
+        }
+
+        /// <summary>Zones from the geometry: free 5 m out, warning 25 m, kill 45 m; inside at the L2 arrival (L1's is the start outside).</summary>
+        private IEnumerator ringZones(VantageTowerLevels levels, VantageBoundary ring)
+        {
+            var free = ring.ZoneAt(ringPoint(ring, 5f));
+            var warning = ring.ZoneAt(ringPoint(ring, 25f));
+            var kill = ring.ZoneAt(ringPoint(ring, 45f));
+            var arrival = levels.Levels[1].Arrival;
+            var inside = arrival != null ? ring.ZoneAt(arrival.position) : VantageBoundary.Zone.Free;
+            var line = $"5 m {free}, 25 m {warning}, 45 m {kill}, L2 arrival {inside}; plot {ring.Plot}";
+            if (free == VantageBoundary.Zone.Free && warning == VantageBoundary.Zone.Warning && kill == VantageBoundary.Zone.Kill && inside == VantageBoundary.Zone.Inside)
+                log("PASS ring zones: " + line);
+            else
+                fail("ring zones: " + line);
+            yield break;
+        }
+
+        /// <summary>
+        /// Standing in the warning band turns into the kill zone after the grace time (5 s); a step back into the
+        /// free zone resets the timer.
+        /// </summary>
+        private IEnumerator ringGraceResets(VantageBoundary ring)
+        {
+            var band = ringPoint(ring, 25f);
+            var free = ringPoint(ring, 5f);
+            teleport(band, band + Vector3.forward);
+            yield return new WaitForSeconds(4f);
+            var at4 = ring.PlayerZone;
+            yield return new WaitForSeconds(1.5f);
+            var at55 = ring.PlayerZone;
+            teleport(free, free + Vector3.forward);
+            yield return new WaitForSeconds(1f);
+            var back = ring.PlayerZone;
+            teleport(band, band + Vector3.forward);
+            yield return new WaitForSeconds(4f);
+            var again = ring.PlayerZone;
+            var line = $"warning band at 4 s {at4}, at 5.5 s {at55}, free zone {back}, back in the band at 4 s {again}";
+            if (at4 == VantageBoundary.Zone.Warning && at55 == VantageBoundary.Zone.Kill && back == VantageBoundary.Zone.Free && again == VantageBoundary.Zone.Warning)
+                log("PASS ring grace resets: " + line);
+            else
+                fail("ring grace: " + line);
+        }
+
+        /// <summary>The HUD warns in the warning band and not in the free zone.</summary>
+        private IEnumerator ringHudWarning(VantageBoundary ring)
+        {
+            var hud = _motor.GetComponent<VantagePlayerHUD>();
+            if (hud == null) { fail("ring HUD: no VantagePlayerHUD on the player"); yield break; }
+            var free = ringPoint(ring, 5f);
+            teleport(free, free + Vector3.forward);
+            yield return new WaitForSeconds(1f);
+            var inFree = hud.WarningVisible;
+            var band = ringPoint(ring, 25f);
+            teleport(band, band + Vector3.forward);
+            yield return new WaitForSeconds(1f);
+            var inBand = hud.WarningVisible;
+            yield return hudSnapshot("hud_warning");
+            teleport(free, free + Vector3.forward);
+            yield return new WaitForSeconds(1f);
+            var line = $"free zone {inFree}, warning band {inBand}";
+            if (!inFree && inBand) log("PASS ring HUD warning: " + line);
+            else fail("ring HUD warning: " + line);
         }
 
         /// <summary>Finds the player and makes it a test dummy: invulnerable, no auto-cover, driven by the bot.</summary>
@@ -715,6 +1201,10 @@ namespace Vantage.Testing
             extraction.PlayAgain();
             yield return new WaitForSeconds(2.5f);
             if (!acquire()) yield break;
+            var introAgain = VantageIntro.Instance != null && VantageIntro.Instance.Playing;
+            yield return skipIntro();
+            if (introAgain) log("PASS the intro plays again on a new run");
+            else fail("the intro did not play on the new run after play again");
             var levels = VantageTowerLevels.Instance;
             var line = $"level {levels.Current + 1}, weapons {VantageRun.Weapons.Count}, coins {VantageRun.Coins.Count}, deaths {VantageRun.Deaths}";
             if (levels.Current == 0 && VantageRun.Weapons.Count == 0 && VantageRun.Coins.Count == 0 && VantageRun.Deaths == 0) log("PASS play again starts a new run: " + line);
@@ -1223,6 +1713,9 @@ namespace Vantage.Testing
             yield return new WaitForSeconds(2f);
             if (!acquire()) yield break;
             var levels = VantageTowerLevels.Instance;
+            var introAfterDeath = VantageIntro.Instance != null && VantageIntro.Instance.Playing;
+            if (!introAfterDeath && !VantageCinematic.Active) log("PASS no intro after a death");
+            else fail($"intro after a death: playing {introAfterDeath}, cinematic {VantageCinematic.Active}");
             var arrival = levels.Levels[1].Arrival;
             var near = arrival != null && Vector3.Distance(_motor.transform.position, arrival.position) < 2f;
             var gateOpen = FindObjectsByType<VantageFloorGate>(FindObjectsSortMode.None).Where(g => g.Level == 0).All(g => g.IsOpen);
