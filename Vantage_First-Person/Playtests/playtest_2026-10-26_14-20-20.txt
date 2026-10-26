@@ -1,0 +1,27 @@
+VANTAGE playtest  2026-10-26_14-20-20
+Enemy placement seed: 33921
+Session length: 107s (run 385s, deaths 5)  Completed: no   Furthest: Level 3 (destroyed floor)   Backtracks: 0
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      2s   deaths 0
+  Level 3 (destroyed floor)    102s   deaths 1
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Soldier        3
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  270.7s] Enemy placement seed 33921
+[    0.0s] Session started
+[    1.4s] Level 2 (armory) -> Level 3 (destroyed floor)
+[    3.8s] Killed Soldier in Level 3 (destroyed floor)
+[   12.2s] Killed Soldier in Level 3 (destroyed floor)
+[   55.9s] Killed Soldier in Level 3 (destroyed floor)
+[  103.8s] DEATH in Level 3 (destroyed floor) at (-5.2, 12.7, -66.3) (health reached zero)

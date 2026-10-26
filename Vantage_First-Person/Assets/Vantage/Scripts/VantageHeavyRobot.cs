@@ -265,7 +265,7 @@ namespace Vantage
                 _alerted = true;
                 _lastKnown = attacker.transform.position;
             }
-            if (RifleOnly && hit.Type != HitType.Rifle && hit.Type != HitType.RifleMelee)
+            if (RifleOnly && pistolRound(hit, attacker))
             {
                 if (Time.time >= _nextMessage)
                 {
@@ -277,6 +277,19 @@ namespace Vantage
             _health.Deal(hit.Damage);
             if (HitEffect != null) Destroy(Instantiate(HitEffect, hit.Position, Quaternion.LookRotation(hit.Normal)), 3f);
             if (_health.Health <= 0) die();
+        }
+
+        /// <summary>
+        /// A round the armour stops. A character's round is judged by the gun in its hand, not by the hit's type: the
+        /// template rig's drum rifle is set up as a pistol-type gun (that picks its hold animation and IK), so all its
+        /// rounds arrive as pistol hits and the robot said "better gun" to the best gun. Only the pistol bounces off.
+        /// </summary>
+        private static bool pistolRound(Hit hit, BaseActor attacker)
+        {
+            var motor = attacker != null ? attacker.GetComponent<CharacterMotor>() : null;
+            if (motor != null && motor.IsEquipped && motor.Weapon.RightItem != null)
+                return motor.Weapon.RightItem.name.StartsWith("Pistol");
+            return hit.Type != HitType.Rifle && hit.Type != HitType.RifleMelee;
         }
 
         private void die()

@@ -233,7 +233,7 @@ namespace Vantage.Testing
             yield return finish();
         }
 
-        /// <summary>The checks of one feature group (-vantageOnly): cinematic, ring, sentries, intro, spawns, respawn.</summary>
+        /// <summary>The checks of one feature group (-vantageOnly): cinematic, ring, sentries, intro, spawns, respawn, robot.</summary>
         private IEnumerator runGroup(string group, VantageTowerLevels levels)
         {
             log($"only group '{group}'");
@@ -250,6 +250,11 @@ namespace Vantage.Testing
                     break;
                 case "intro":
                     yield return introChecks();
+                    break;
+                case "robot":
+                    yield return clearLevel(levels, 0);
+                    yield return clearLevel(levels, 1);
+                    yield return robotRifleOnly(levels);
                     break;
                 case "respawn":
                     yield return respawnIsSafe(2);
@@ -1266,30 +1271,44 @@ namespace Vantage.Testing
         // ---------------- robot ----------------
 
         /// <summary>
-        /// Level 3's heavy robot: ten pistol hits leave its health alone and say "You need a better gun" once (not per
-        /// bullet); rifle hits hurt it; killed, it counts as dead for the level.
+        /// Level 3's heavy robot, hit with the player's real guns (each hit typed as that gun types it): ten pistol hits
+        /// leave its health alone and say "You need a better gun" once (not per bullet); the drum rifle hurts it with
+        /// no warning (its template type is "pistol"); killed, it counts as dead for the level.
         /// </summary>
         private IEnumerator robotRifleOnly(VantageTowerLevels levels)
         {
             var robot = levels.Enemies.Where(e => e != null).Select(e => e.GetComponent<VantageHeavyRobot>()).FirstOrDefault(r => r != null && !r.IsBoss);
             if (robot == null) { fail("level 3 has no heavy robot"); yield break; }
+            // The player's real guns, each hit typed the way that gun types it (the template's drum rifle sends pistol hits).
+            var arsenal = _motor.GetComponent<VantageArsenal>();
+            arsenal.Unlock("Pistol");
+            arsenal.Unlock("Rifle");
+            Hit shot(float damage)
+            {
+                var type = _motor.Weapon.Gun != null && _motor.Weapon.Gun.Type == WeaponType.Rifle ? HitType.Rifle : HitType.Pistol;
+                return new Hit(robot.transform.position + Vector3.up, Vector3.up, damage, _motor.gameObject, robot.gameObject, type, 0);
+            }
             var before = robot.Health;
             _messages.Clear();
+            arsenal.EquipNow("Pistol");
             for (int i = 0; i < 10; i++)
             {
-                robot.OnHit(new Hit(robot.transform.position + Vector3.up, Vector3.up, 30f, _motor.gameObject, robot.gameObject, HitType.Pistol, 0));
+                robot.OnHit(shot(30f));
                 yield return new WaitForSeconds(0.1f);
             }
             var afterPistol = robot.Health;
             var warnings = _messages.Count(m => m == "You need a better gun");
-            robot.OnHit(new Hit(robot.transform.position + Vector3.up, Vector3.up, 50f, _motor.gameObject, robot.gameObject, HitType.Rifle, 0));
+            arsenal.EquipNow("Rifle");
+            var rifleType = shot(0f).Type;
+            robot.OnHit(shot(50f));
             var afterRifle = robot.Health;
+            var rifleWarnings = _messages.Count(m => m == "You need a better gun") - warnings;
             var remaining = levels.Remaining;
-            robot.OnHit(new Hit(robot.transform.position + Vector3.up, Vector3.up, 1e5f, _motor.gameObject, robot.gameObject, HitType.Rifle, 0));
+            robot.OnHit(shot(1e5f));
             yield return null;
-            var line = $"health {before:F0} -> {afterPistol:F0} after 10 pistol hits ({warnings} warning), -> {afterRifle:F0} after a rifle hit, dead {robot.IsDead}, remaining {remaining} -> {levels.Remaining}";
+            var line = $"health {before:F0} -> {afterPistol:F0} after 10 pistol hits ({warnings} warning), -> {afterRifle:F0} after a drum rifle hit (typed {rifleType}, {rifleWarnings} warnings), dead {robot.IsDead}, remaining {remaining} -> {levels.Remaining}";
             // The robot may be the floor's last enemy (the robot room opens last), then its death starts the next level.
-            if (afterPistol == before && warnings == 1 && afterRifle < before && robot.IsDead && (levels.Remaining == remaining - 1 || levels.Current == 3)) log("PASS robot is rifle-only: " + line);
+            if (afterPistol == before && warnings == 1 && afterRifle < before && rifleWarnings == 0 && robot.IsDead && (levels.Remaining == remaining - 1 || levels.Current == 3)) log("PASS robot is rifle-only: " + line);
             else fail("robot: " + line);
         }
 
