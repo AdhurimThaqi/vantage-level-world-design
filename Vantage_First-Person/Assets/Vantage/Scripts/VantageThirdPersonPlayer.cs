@@ -27,7 +27,7 @@ namespace Vantage
         private CharacterMotor _motor;
         private CharacterHealth _health;
         private float _previousHealth;
-        private float _lastDamage = -100f;
+        private float _lastDamage = -100f, _protectedUntil = -1f;
         private bool _dead;
 
         /// <summary>
@@ -55,8 +55,31 @@ namespace Vantage
                 gameObject.AddComponent<VantagePlayerHUD>();
         }
 
+        /// <summary>No damage for a few seconds (restart at a checkpoint), so the player can look around first.</summary>
+        public void Protect(float seconds)
+        {
+            if (_health == null || seconds <= 0f) return;
+            _protectedUntil = Time.time + seconds;
+            _health.IsTakingDamage = false;
+        }
+
+        /// <summary>True while the restart protection lasts.</summary>
+        public bool Protected => _protectedUntil > 0f;
+
+        /// <summary>Ends the protection now (also used by the autoplay bot, which switches this component off).</summary>
+        public void EndProtection()
+        {
+            if (_protectedUntil <= 0f) return;
+            _protectedUntil = -1f;
+            // A camera takeover switches damage off itself and gives it back when it ends.
+            if (_health != null && !VantageCinematic.Active) _health.IsTakingDamage = true;
+        }
+
         private void Update()
         {
+            if (_protectedUntil > 0f && Time.time >= _protectedUntil)
+                EndProtection();
+
             if (_health != null)
             {
                 if (_health.Health < _previousHealth)

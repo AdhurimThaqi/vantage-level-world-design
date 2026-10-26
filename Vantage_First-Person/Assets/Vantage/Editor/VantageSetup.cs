@@ -84,6 +84,8 @@ namespace Vantage.EditorTools
                 surface.layerMask = ~(Layers.Character | Layers.Zones | (1 << VantagePhysics.IgnoreRaycastLayer) | (1 << LayerMask.NameToLayer("UI")));
             }
 
+            matchAgentRadius(surface.agentTypeID);
+
             // Carving obstacles (locked doors, the shutter, the stair gate and blocks) are baked in as unwalkable when
             // they are on, and stay holes after they switch off at runtime: a door unlocked in play had no NavMesh in
             // its opening, so level 3's rooms were separate islands. Bake without them; they carve at runtime.
@@ -95,6 +97,34 @@ namespace Vantage.EditorTools
             saveNavMeshAsset(surface);
             EditorSceneManager.MarkSceneDirty(surface.gameObject.scene);
             Debug.Log("[Vantage] NavMesh baked. Re-run this after changing the level layout.");
+        }
+
+        /// <summary>
+        /// The NavMesh is baked for the characters' real width (the soldier's body capsule; the player's is the same),
+        /// not Unity's default 0.5 m agent: with 0.5 a gap the characters walk through (the ~0.6 m between the L2 Office
+        /// desks) was closed for the AI, so the Office's soldiers could never come out and hunters never get in.
+        /// </summary>
+        private static void matchAgentRadius(int agentTypeID)
+        {
+            var soldier = AssetDatabase.LoadAssetAtPath<GameObject>(VantageTower.SoldierPrefabPath);
+            var capsule = soldier != null ? soldier.GetComponent<CapsuleCollider>() : null;
+            if (capsule == null) return;
+            var settings = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/NavMeshAreas.asset").FirstOrDefault();
+            if (settings == null) return;
+            var so = new SerializedObject(settings);
+            var list = so.FindProperty("m_Settings");
+            for (int i = 0; i < list.arraySize; i++)
+            {
+                var entry = list.GetArrayElementAtIndex(i);
+                if (entry.FindPropertyRelative("agentTypeID").intValue != agentTypeID) continue;
+                var radius = entry.FindPropertyRelative("agentRadius");
+                if (Mathf.Abs(radius.floatValue - capsule.radius) < 0.01f) return;
+                Debug.Log($"[Vantage] NavMesh agent radius {radius.floatValue:F2} m -> {capsule.radius:F2} m (the soldier's body).");
+                radius.floatValue = capsule.radius;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                AssetDatabase.SaveAssets();
+                return;
+            }
         }
 
         /// <summary>

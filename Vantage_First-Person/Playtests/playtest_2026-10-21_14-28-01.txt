@@ -1,0 +1,49 @@
+VANTAGE playtest  2026-10-21_14-28-01
+Enemy placement seed: 11265
+Session length: -51s (run -4s, deaths 2)  Completed: no   Furthest: Level 2 (armory)   Backtracks: 1
+
+Time per space
+  Military Base       5s   deaths 0
+  Level 1 (ground floor)     91s   deaths 0
+  Level 2 (armory)    168s   deaths 0
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Soldier        9
+  Turret         3
+  Drone          2
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[   50.6s] Enemy placement seed 11265
+[    0.0s] Session started
+[    2.0s] Military Base -> Level 1 (ground floor)
+[    2.7s] Picked up Pistol
+[    5.7s] Level 1 (ground floor) -> Military Base
+[    5.7s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[    6.6s] Killed Soldier in Level 1 (ground floor)
+[    8.5s] Military Base -> Level 1 (ground floor)
+[    9.5s] Alarm raised by the trigger
+[   15.7s] Killed Soldier in Level 1 (ground floor)
+[   23.4s] Killed Soldier in Level 1 (ground floor)
+[   34.5s] Killed Soldier in Level 1 (ground floor)
+[   38.9s] Killed Soldier in Level 1 (ground floor)
+[   48.5s] Killed Turret in Level 1 (ground floor)
+[   52.3s] Coin 1/5
+[   70.8s] Killed Drone in Level 2 (armory)
+[   75.5s] Killed Soldier in Level 2 (armory)
+[   78.6s] Killed Soldier in Level 2 (armory)
+[   90.0s] Killed Soldier in Level 2 (armory)
+[   94.5s] Killed Turret in Level 2 (armory)
+[   95.6s] Level 1 (ground floor) -> Level 2 (armory)
+[  100.4s] Killed Turret in Level 2 (armory)
+[  114.6s] Killed Soldier in Level 2 (armory)
+[  120.8s] Coin 2/5
+[  127.7s] Killed Drone in Level 2 (armory)
+[  140.2s] Picked up Rifle
+[  144.8s] Coin 3/5

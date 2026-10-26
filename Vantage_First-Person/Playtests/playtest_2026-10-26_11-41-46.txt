@@ -1,0 +1,30 @@
+VANTAGE playtest  2026-10-26_11-41-46
+Enemy placement seed: 19546
+Session length: 31s (run 155s, deaths 5)  Completed: no   Furthest: Level 1 (ground floor)   Backtracks: 0
+
+Time per space
+  Military Base      15s   deaths 0
+  Level 1 (ground floor)     14s   deaths 1
+  Level 2 (armory)      0s   deaths 0
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Soldier        4
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  116.5s] Enemy placement seed 19546
+[    0.0s] Session started
+[    8.3s] Killed Soldier in Level 1 (ground floor)
+[    9.7s] Killed Soldier in Level 1 (ground floor)
+[   12.5s] Killed Soldier in Level 1 (ground floor)
+[   14.4s] Picked up Pistol
+[   14.5s] Military Base -> Level 1 (ground floor)
+[   15.6s] Alarm raised by the trigger
+[   21.4s] Killed Soldier in Level 1 (ground floor)
+[   28.2s] DEATH in Level 1 (ground floor) at (3.1, 4.1, -74.1) (health reached zero)

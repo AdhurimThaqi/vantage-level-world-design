@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8e3be9c1bdd775c4bac52443374f14e5
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 215906
+  packageName: Advanced Helicopter Controller
+  packageVersion: 1.0
+  assetPath: Assets/AdvancedHelicopterController/README.md
+  uploadId: 714896

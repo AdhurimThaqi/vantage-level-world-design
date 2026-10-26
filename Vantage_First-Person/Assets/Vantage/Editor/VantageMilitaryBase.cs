@@ -32,6 +32,10 @@ namespace Vantage.EditorTools
         public const string MinimapName = "VANTAGE Minimap";
         private const string OutFolder = "Assets/Vantage/World";
         private const float Blend = 35f;        // width of the terrain blend from the plot back to the hills
+        // Performance: the warning ring keeps the player within ~35 m of the plot, so the world further out is backdrop.
+        private const float WorldReach = 220f;  // full trees, rocks, props and buildings only this far past the plot
+        private const int FarTreeEvery = 3;     // beyond it, every 3rd big tree becomes a low-poly far conifer
+        private const int HorizonEvery = 4;     // and every 4th tree of the pack's horizon forest is kept
 
         /// <summary>Scene roots from the old industrial yard, removed when the military world takes over.</summary>
         private static readonly string[] LegacyRoots = { "Map", "Plane" };
@@ -705,23 +709,40 @@ namespace Vantage.EditorTools
                 if (model != null) protos.Add(new TreePrototype { prefab = model, bendFactor = 0f });
                 else Debug.LogWarning("[Vantage] Military pack: missing tree model " + path);
             }
+            // Backdrop stand-in: the pack's low-poly far conifer (a tenth of a real tree), no collider.
+            var farModel = AssetDatabase.LoadAssetAtPath<GameObject>($"{packRoot}/Models/Vegetation/T_Far_Conifer.fbx");
+            var farProto = farModel != null ? protos.Count : -1;
+            if (farModel != null) protos.Add(new TreePrototype { prefab = farModel, bendFactor = 0f });
             td.treePrototypes = protos.ToArray();
             var trees = new List<TreeInstance>(data.trees.Length / 6);
-            int skipped = 0;
+            int skipped = 0, beyond = 0, far = 0;
             for (int i = 0; i + 5 < data.trees.Length; i += 6)
             {
                 var proto = index[(int)data.trees[i]];
                 if (proto < 0) continue;
                 float ux = -data.trees[i + 1], uz = -data.trees[i + 2];
                 var wx = ux + ground.Offset.x; var wz = uz + ground.Offset.z;
-                if (ground.OutsidePlot(wx, wz) < 3f) { skipped++; continue; }
+                var outside = ground.OutsidePlot(wx, wz);
+                if (outside < 3f) { skipped++; continue; }
                 var y = ground.Height(wx, wz) - ground.Offset.y;
+                var scale = data.trees[i + 5];
+                if (outside > WorldReach)
+                {
+                    // Backdrop: every few big trees become a far conifer of the same height, the rest are dropped.
+                    beyond++;
+                    var farHeight = farProto >= 0 ? treeHeight(farModel) : 0f;
+                    if (farHeight <= 0 || !data.tree_names[(int)data.trees[i]].StartsWith("T_") || (i / 6) % FarTreeEvery != 0)
+                        continue;
+                    scale *= treeHeight(protos[proto].prefab) / farHeight;
+                    proto = farProto;
+                    far++;
+                }
                 trees.Add(new TreeInstance
                 {
                     prototypeIndex = proto,
                     position = new Vector3((ux + ground.Size / 2) / ground.Size, Mathf.Clamp01((y - info.hmin) / range), (uz + ground.Size / 2) / ground.Size),
                     rotation = -data.trees[i + 4],
-                    widthScale = data.trees[i + 5], heightScale = data.trees[i + 5],
+                    widthScale = scale, heightScale = scale,
                     color = Color.white, lightmapColor = Color.white,
                 });
             }
@@ -736,14 +757,15 @@ namespace Vantage.EditorTools
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(ground.Offset.x - ground.Size / 2, ground.Offset.y + info.hmin, ground.Offset.z - ground.Size / 2);
             var terrain = go.GetComponent<Terrain>();
-            // Performance: the base is backdrop. Trees are plain meshes without LODs, so their draw distance is
-            // what keeps the frame cheap; fog and the instanced horizon forest cover the far range.
+            // Performance: the base is backdrop. Trees are plain meshes without LODs, so only WorldReach around
+            // the plot has real ones; further out stand low-poly far conifers, and fog and the instanced horizon
+            // forest cover the far range.
             terrain.drawInstanced = true;
             terrain.treeDistance = 450f;
             terrain.treeBillboardDistance = 150f;
             terrain.treeMaximumFullLODCount = 300;
-            terrain.detailObjectDistance = 80f;
-            terrain.detailObjectDensity = 1f;
+            terrain.detailObjectDistance = 60f;
+            terrain.detailObjectDensity = 0.7f;
             terrain.heightmapPixelError = 5f;
             terrain.basemapDistance = 250f;
             terrain.shadowCastingMode = ShadowCastingMode.TwoSided;
@@ -756,7 +778,19 @@ namespace Vantage.EditorTools
                 terrain.materialTemplate = mat;
             }
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
-            Debug.Log($"[Vantage] Terrain: {trees.Count} trees/rocks ({skipped} removed under the tower plot), {detailModels.Count} grass/fern types.");
+            Debug.Log($"[Vantage] Terrain: {trees.Count} trees/rocks ({skipped} removed under the tower plot; {beyond} beyond {WorldReach:F0} m, of which {far} kept as far conifers), {detailModels.Count} grass/fern types.");
+        }
+
+        private static readonly Dictionary<GameObject, float> treeHeights = new Dictionary<GameObject, float>();
+
+        /// <summary>A tree model's height at scale 1 (its renderers' bounds), cached per prototype.</summary>
+        private static float treeHeight(GameObject prefab)
+        {
+            if (treeHeights.TryGetValue(prefab, out var h)) return h;
+            h = 0f;
+            foreach (var f in prefab.GetComponentsInChildren<MeshFilter>())
+                if (f.sharedMesh != null) h = Mathf.Max(h, f.sharedMesh.bounds.size.y * f.transform.lossyScale.y);
+            return treeHeights[prefab] = h;
         }
 
         /// <summary>
@@ -809,9 +843,12 @@ namespace Vantage.EditorTools
             };
 
             var cache = new Dictionary<string, GameObject>();
-            int removed = 0, placed = 0;
+            int removed = 0, placed = 0, beyond = 0;
             void place(Item it, string folder, string category, bool occluder)
             {
+                var at = root.position + pos(it.p);
+                if (ground.OutsidePlot(at.x, at.z) > WorldReach) { beyond++; return; } // backdrop: not built
+
                 if (!cache.TryGetValue(it.k, out var model))
                     cache[it.k] = model = AssetDatabase.LoadAssetAtPath<GameObject>($"{packRoot}/Models/{folder}/{it.k}.fbx");
                 if (model == null) { Debug.LogWarning("[Vantage] Military pack: missing model " + it.k); return; }
@@ -839,7 +876,7 @@ namespace Vantage.EditorTools
 
             foreach (var it in data.buildings) place(it, "Buildings", "03_BUILDINGS", true);
             foreach (var it in data.props) place(it, "Props", it.c, false);
-            Debug.Log($"[Vantage] Buildings and props: {placed} placed.");
+            Debug.Log($"[Vantage] Buildings and props: {placed} placed, {beyond} beyond {WorldReach:F0} m left out.");
             return removed;
         }
 
@@ -993,6 +1030,10 @@ namespace Vantage.EditorTools
             return mesh;
         }
 
+        /// <summary>
+        /// The horizon forest, drawn instanced every frame without culling, so it is thinned to every
+        /// <see cref="HorizonEvery"/>th tree.
+        /// </summary>
         private static void distantForest(Placements data, string packRoot, Transform parent)
         {
             var far = AssetDatabase.LoadAssetAtPath<GameObject>($"{packRoot}/Models/Vegetation/T_Far_Conifer.fbx");
@@ -1002,16 +1043,12 @@ namespace Vantage.EditorTools
             renderer.mesh = far.GetComponentInChildren<MeshFilter>().sharedMesh;
             renderer.material = far.GetComponentInChildren<MeshRenderer>().sharedMaterial;
             if (renderer.material != null) renderer.material.enableInstancing = true;
-            int n = data.distant.Length / 5;
-            var d = new float[n * 5];
-            for (int i = 0; i < n; i++)
-            {
-                int o = i * 5;
-                d[o] = -data.distant[o]; d[o + 1] = data.distant[o + 2]; d[o + 2] = -data.distant[o + 1];
-                d[o + 3] = -data.distant[o + 3] * Mathf.Rad2Deg; d[o + 4] = data.distant[o + 4];
-            }
-            renderer.data = d; // positions are local: the root's offset moves the horizon with the base
+            var d = new List<float>(data.distant.Length / HorizonEvery);
+            for (int o = 0; o + 4 < data.distant.Length; o += 5 * HorizonEvery)
+                d.AddRange(new[] { -data.distant[o], data.distant[o + 2], -data.distant[o + 1], -data.distant[o + 3] * Mathf.Rad2Deg, data.distant[o + 4] });
+            renderer.data = d.ToArray(); // positions are local: the root's offset moves the horizon with the base
             renderer.Build();
+            Debug.Log($"[Vantage] Distant forest: {d.Count / 5} of {data.distant.Length / 5} horizon trees.");
         }
 
         /// <summary>Props that make sense to crouch behind, by pack model name.</summary>

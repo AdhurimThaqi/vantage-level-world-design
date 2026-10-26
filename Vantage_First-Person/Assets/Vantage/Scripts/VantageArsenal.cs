@@ -60,6 +60,19 @@ namespace Vantage
             return true;
         }
 
+        /// <summary>Puts an unlocked weapon straight into the hands, without the equip animation (checkpoint restart).</summary>
+        public void EquipNow(string weaponName)
+        {
+            var index = System.Array.FindIndex(_all, w => w.RightItem != null && w.RightItem.name == weaponName);
+            if (index < 0 || !_unlocked.Contains(weaponName)) return;
+            _motor.Weapon = _all[index];
+            _motor.IsEquipped = true;
+            if (_controller != null) _controller.InputEquip(_all[index]);
+            setActive(_all[index].RightItem, true);
+            setActive(_all[index].LeftItem, true);
+            refresh();
+        }
+
         /// <summary>
         /// The inventory only lists unlocked weapons; locked ones are hidden, holster included.
         /// </summary>

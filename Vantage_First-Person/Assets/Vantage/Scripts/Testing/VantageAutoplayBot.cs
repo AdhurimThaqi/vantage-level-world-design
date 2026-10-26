@@ -209,6 +209,7 @@ namespace Vantage.Testing
             yield return soldiersStayOnTheirFloor(levels);
             yield return stairsFromTheFloor(levels, 0, "LVL1");
             yield return hudSnapshot("hud_level_cleared");
+            yield return level2SpawnsReachable(levels);
             yield return keyOpensGate(levels);
             yield return lastEnemiesCome(levels);
             yield return clearLevel(levels, 1);
@@ -224,6 +225,7 @@ namespace Vantage.Testing
             yield return finale(levels);
             yield return playAgain();
             yield return checkpointRestore();
+            yield return respawnIsSafe(2);
             yield return shotCameraStaysQuiet();
             // Sentries and the ring last: the sentry checks clear the levels and end with a reload.
             yield return ringChecks(VantageTowerLevels.Instance);
@@ -231,7 +233,7 @@ namespace Vantage.Testing
             yield return finish();
         }
 
-        /// <summary>The checks of one feature group (-vantageOnly): cinematic, ring, sentries, intro.</summary>
+        /// <summary>The checks of one feature group (-vantageOnly): cinematic, ring, sentries, intro, spawns, respawn.</summary>
         private IEnumerator runGroup(string group, VantageTowerLevels levels)
         {
             log($"only group '{group}'");
@@ -248,6 +250,13 @@ namespace Vantage.Testing
                     break;
                 case "intro":
                     yield return introChecks();
+                    break;
+                case "respawn":
+                    yield return respawnIsSafe(2);
+                    break;
+                case "spawns":
+                    yield return clearLevel(levels, 0);
+                    yield return level2SpawnsReachable(levels);
                     break;
                 default:
                     fail($"unknown -vantageOnly group '{group}'");
@@ -287,14 +296,32 @@ namespace Vantage.Testing
             if (intro.Playing && VantageCinematic.Active && hudHidden) log("PASS intro plays on a new run: " + line);
             else { fail("intro on a new run: " + line); yield break; }
 
-            while (intro.Playing && intro.Elapsed < 5f) yield return null;
+            // Shot 2: the deserter walks out into the warning band, gets a warning shot, runs, and the slab sentry
+            // shoots him; he and the sentry share the frame.
+            while (intro.Playing && intro.Elapsed < VantageIntro.KillAt - 0.3f) yield return null;
             var cam = Camera.main;
             var slab = sentry("SENTRY_Slab");
+            var deserter = intro.Deserter;
+            bool inView(Vector3 p) { var v = cam != null ? cam.WorldToViewportPoint(p) : Vector3.zero; return v.z > 0 && v.x > 0.03f && v.x < 0.97f && v.y > 0.03f && v.y < 0.97f; }
+            var ring = VantageBoundary.Instance;
+            var zone = deserter != null && ring != null ? ring.ZoneAt(deserter.transform.position).ToString() : "-";
+            var beat = deserter == null ? "no deserter" :
+                $"alive {!deserter.IsDead}, {(ring != null ? ring.OutsidePlot(deserter.transform.position) : 0):F0} m past the plot ({zone}), warning shot {intro.WarningShotFired}, " +
+                $"in frame {inView(deserter.AimPoint)}, slab sentry in frame {(slab != null && inView(slab.transform.position + Vector3.up))}";
+            yield return hudSnapshot("intro_deserter");
+            while (intro.Playing && intro.Elapsed < VantageIntro.KillAt + 1f) yield return null;
+            var shot = deserter != null && deserter.IsDead;
+            if (deserter != null && intro.WarningShotFired && zone == "Warning" && inView(deserter.AimPoint) && slab != null && inView(slab.transform.position + Vector3.up) && shot)
+                log($"PASS intro deserter: before the shot {beat}; dead after it {shot}");
+            else
+                fail($"intro deserter: before the shot {beat}; dead after it {shot}");
+
+            while (intro.Playing && intro.Elapsed < VantageIntro.ShotSentry - 0.3f) yield return null;
             var view = cam != null && slab != null ? cam.WorldToViewportPoint(slab.transform.position + Vector3.up) : Vector3.zero;
             var framed = view.z > 0 && view.x > 0.05f && view.x < 0.95f && view.y > 0.05f && view.y < 0.95f;
             yield return hudSnapshot("intro_shot2");
-            if (framed) log($"PASS intro shot 2 frames the slab sentry (viewport {view:F2})");
-            else fail($"intro shot 2: slab sentry {(slab == null ? "missing" : $"at viewport {view:F2}")}");
+            if (framed) log($"PASS intro frames the slab sentry (viewport {view:F2})");
+            else fail($"intro sentry shot: slab sentry {(slab == null ? "missing" : $"at viewport {view:F2}")}");
 
             var follow = cam != null ? cam.GetComponent<ThirdPersonCamera>() : null;
             var input = _motor.GetComponent<ThirdPersonInput>();
@@ -311,6 +338,10 @@ namespace Vantage.Testing
                 log("PASS intro skip restores control: " + after);
             else
                 fail($"intro skip: {after}; after a second skip {again}");
+            var banner = hudCanvas != null ? hudCanvas.GetComponentsInChildren<TMPro.TMP_Text>(true).FirstOrDefault(x => x.name == "Banner") : null;
+            var objective = banner != null ? banner.text : "(no banner)";
+            if (objective.Contains("PISTOL")) log($"PASS objective banner after the intro: '{objective}'");
+            else fail($"objective banner after the intro: '{objective}'");
             yield return skipIntro();
         }
 
@@ -474,6 +505,9 @@ namespace Vantage.Testing
         {
             var ring = VantageBoundary.Instance;
             if (ring == null) { fail("ring: no VantageBoundary in the scene"); yield break; }
+            // The check before reloads into a new run, so the intro plays, and the ring is off during a cutscene
+            // (this is why "ring grace" used to fail at the end of the full run: the intro was still on).
+            yield return skipIntro();
             yield return ringZones(levels, ring);
             yield return ringGraceResets(ring);
             yield return ringHudWarning(ring);
@@ -723,7 +757,9 @@ namespace Vantage.Testing
             _controller.WaitForUpdateCall = false;   // the input component normally ticks the controller
             // Invulnerable for the test: damage is measured, but the bot can't die and trigger a level restart.
             var rules = _motor.GetComponent<VantageThirdPersonPlayer>();
-            if (rules != null) rules.enabled = false;
+            // The restart protection is noted for the respawn check, then ended: later checks measure damage.
+            _protectedAtAcquire = rules != null && rules.Protected && !_health.IsTakingDamage;
+            if (rules != null) { rules.EndProtection(); rules.enabled = false; }
             _health.MaxHealth = 1e6f;
             _health.Health = 1e6f;
             _lastHealth = _health.Health;
@@ -732,6 +768,7 @@ namespace Vantage.Testing
         }
 
         private Vector3 _start;
+        private bool _protectedAtAcquire;
 
         // ---------------- finale ----------------
 
@@ -843,6 +880,20 @@ namespace Vantage.Testing
         /// each flight of that staircase in order and 2 m onto the next floor, like a player: logs every stall,
         /// what blocks it and a screenshot.
         /// </summary>
+        /// <summary>
+        /// The NavMesh on a level's floor just ahead of its restart point (that is on the stairs below the floor,
+        /// which the runtime NavMesh leaves out).
+        /// </summary>
+        private static Vector3 floorAhead(VantageTowerLevels levels, int level)
+        {
+            var arrival = levels.Levels[level].Arrival;
+            var floor = levels.Levels[level].FloorY;
+            for (float ahead = 0f; ahead < 5f; ahead += 0.25f)
+                if (NavMesh.SamplePosition(arrival.position + arrival.forward * ahead, out var hit, 1.5f, NavMesh.AllAreas) && Mathf.Abs(hit.position.y - floor) < 0.3f)
+                    return hit.position;
+            return arrival.position;
+        }
+
         private IEnumerator walkUpLikeAPlayer(VantageTowerLevels levels, int level, string stairs)
         {
             var flights = FindObjectsByType<MeshCollider>(FindObjectsSortMode.None).Where(c => c.name.StartsWith("Stair Surface " + stairs)).OrderBy(c => c.bounds.min.y).ToList();
@@ -862,18 +913,19 @@ namespace Vantage.Testing
                 points.Add(high + dir * 0.6f);
                 if (approaches.Count == 0)
                 {
-                    // Ways onto the first flight: from the front, or from either side (a foot against a wall).
+                    // Ways onto the first flight: from the front, or from either side over its side steps (a foot
+                    // against a wall), starting on the floor in front of them.
                     var side = Vector3.Cross(Vector3.up, dir);
                     var half = surface.bounds.extents.x * Mathf.Abs(side.x) + surface.bounds.extents.z * Mathf.Abs(side.z);
                     approaches.Add(low - dir * 0.2f);
-                    approaches.Add(low + dir * 1.0f + side * (half + 0.9f));
-                    approaches.Add(low + dir * 1.0f - side * (half + 0.9f));
+                    approaches.Add(low + dir * 1.0f + side * (half + 1.8f));
+                    approaches.Add(low + dir * 1.0f - side * (half + 1.8f));
                 }
             }
             var lastDir = points.Count >= 2 ? (points[points.Count - 1] - points[points.Count - 2]) : Vector3.forward; lastDir.y = 0;
             points.Add(points[points.Count - 1] + lastDir.normalized * 2.0f);
 
-            var start = levels.Levels[level].Arrival.position;
+            var start = floorAhead(levels, level);
             // The reachable approach with the shortest floor path.
             NavMeshPath path = null;
             float best = float.MaxValue;
@@ -1279,6 +1331,42 @@ namespace Vantage.Testing
             var line = $"prompt '{prompt}', refused without key {refused}, key taken {taken}, slot used {used}, gate waits for the level {waits}";
             if (prompt == "Insert the Key" && refused && taken && used && waits) log("PASS key: " + line);
             else fail("key: " + line);
+        }
+
+        /// <summary>
+        /// Level 2 with the stairwell gate shut: every spawn marker the level may use (any seed) can be walked to from
+        /// the arrival, and the stairwell marker behind the gate is excluded (a soldier there made the floor uncleareable).
+        /// </summary>
+        private IEnumerator level2SpawnsReachable(VantageTowerLevels levels)
+        {
+            yield return null;
+            var lv = levels.Levels[1];
+            var gate = VantageDoor.Find("L2_GATE_Stairwell_LOCKED");
+            if (lv.Arrival == null || gate == null || !NavMesh.SamplePosition(floorAhead(levels, 1), out var from, 1f, NavMesh.AllAreas))
+            {
+                fail($"level 2 spawns: arrival {lv.Arrival != null}, gate {gate != null}");
+                yield break;
+            }
+            var path = new NavMeshPath();
+            var unreachable = new List<string>();
+            int usable = 0;
+            foreach (var m in levels.Tower.GetComponentsInChildren<VantageTag>(true))
+            {
+                if (m.MarkerType != "EnemySpawn" || !m.name.StartsWith(lv.Prefix) || levels.BehindExit.Contains(m.name)) continue;
+                if (!NavMesh.SamplePosition(m.transform.position, out var to, 1f, NavMesh.AllAreas) || Mathf.Abs(to.position.y - m.transform.position.y) > 0.5f) continue;
+                usable++;
+                if (!NavMesh.CalculatePath(from.position, to.position, NavMesh.AllAreas, path) || path.status != NavMeshPathStatus.PathComplete)
+                {
+                    var end = path.corners.Length > 0 ? path.corners[path.corners.Length - 1] : from.position;
+                    var near = FindObjectsByType<NavMeshObstacle>(FindObjectsSortMode.None)
+                        .Where(o => o.isActiveAndEnabled && o.carving && Vector3.Distance(o.transform.position, end) < 6f).Select(o => o.name);
+                    unreachable.Add($"{m.name} (path ends at {end:F1}, {path.status}; carving within 6 m: {string.Join("/", near)})");
+                }
+            }
+            var line = $"gate locked {gate.IsLocked}, {usable} usable markers, unreachable [{string.Join(", ", unreachable)}], behind the exit [{string.Join(", ", levels.BehindExit)}]";
+            if (gate.IsLocked && usable > 0 && unreachable.Count == 0 && levels.BehindExit.Contains("L2_MK_Enemy_Stairwell_9"))
+                log("PASS level 2 spawns reachable with the gate shut: " + line);
+            else fail("level 2 spawns reachable: " + line);
         }
 
         /// <summary>After level 2 is cleared the stairwell gate (key already in) unlocks.</summary>
@@ -1735,6 +1823,51 @@ namespace Vantage.Testing
                 log("PASS coin kept after a death: " + coinLine);
             else
                 fail("coin after death: " + coinLine);
+        }
+
+        /// <summary>
+        /// Dying into a level's checkpoint (level 3 by default: its stairs end between two rooms) is safe: the player
+        /// restarts protected with a gun already in hand, no soldier of the level spawned in sight of the arrival, and
+        /// standing there for 4 s (protection off) costs little. Logs every hit by attacker.
+        /// </summary>
+        private IEnumerator respawnIsSafe(int level)
+        {
+            VantageRun.Weapons.Add("Pistol");
+            VantageRun.Weapons.Add("Rifle");
+            VantageRun.IntroPlayed = true;
+            VantageRun.Checkpoint = level;
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(scene.path, new UnityEngine.SceneManagement.LoadSceneParameters(UnityEngine.SceneManagement.LoadSceneMode.Single));
+            yield return null;
+            yield return null;
+            if (!acquire()) yield break;
+            var levels = VantageTowerLevels.Instance;
+            var hits = _motor.gameObject.AddComponent<VantageHitLog>();
+            var t0 = Time.time;
+            var arrival = levels.Levels[level].Arrival.position;
+            var actor = _motor.GetComponent<Actor>();
+            var equipped = _motor.IsEquipped && _motor.Weapon.RightItem != null ? _motor.Weapon.RightItem.name : "nothing";
+            var seen = new List<string>();
+            foreach (var e in levels.Enemies.Where(e => e != null && e.GetComponent<FighterBrain>() != null))
+            {
+                var near = Vector3.Distance(e.transform.position, arrival);
+                // Soldiers see and shoot between the bars of a railing.
+                var eye = VantagePhysics.Eye(e.transform);
+                var view = VantagePhysics.AimPoint(actor) - eye;
+                var block = Physics.RaycastAll(eye, view.normalized, view.magnitude, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
+                                   .Where(h => !h.collider.name.Contains("Rail")).OrderBy(h => h.distance).Select(h => h.collider.name).FirstOrDefault();
+                var blocked = block != null;
+                log($"respawn: {e.name} {near:F1} m from the arrival, sight {(blocked ? "blocked by " + block : "CLEAR")}");
+                if (!blocked && near <= levels.SafeArrivalRadius && !e.name.Contains("Patrol")) seen.Add(e.name);
+            }
+            for (float t = 0; t < 4f; t += Time.deltaTime) yield return null;
+            foreach (var g in hits.Hits.GroupBy(h => h.attacker))
+                log($"respawn: hits from {g.Key}: {g.Count()}, {g.Sum(h => h.damage):F0} damage, first at {g.Min(h => h.time) - t0:F2} s");
+            var damage = hits.Hits.Sum(h => h.damage);
+            Destroy(hits);
+            var line = $"level {levels.Current + 1} (seed {levels.Seed}), protected {_protectedAtAcquire}, in hand {equipped}, soldiers in sight of the arrival {seen.Count} ({string.Join(", ", seen)}), damage in 4 s {damage:F0}";
+            if (levels.Current == level && _protectedAtAcquire && equipped != "nothing" && seen.Count == 0 && damage < 50f) log("PASS respawn is safe: " + line);
+            else fail("respawn: " + line);
         }
 
         // ---------------- performance ----------------

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d67a673e550b61643a618a9d89a1f5d2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 215906
+  packageName: Advanced Helicopter Controller
+  packageVersion: 1.0
+  assetPath: Assets/AdvancedHelicopterController/Scripts/AHC_Settings.cs
+  uploadId: 714896

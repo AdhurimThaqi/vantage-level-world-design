@@ -1,0 +1,21 @@
+VANTAGE playtest  2026-10-22_11-36-51
+Enemy placement seed: 11265
+Session length: -226s (run -141s, deaths 1)  Completed: no   Furthest: Finale (helipad)   Backtracks: 0
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      0s   deaths 0
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      2s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  225.8s] Enemy placement seed 11265
+[    0.0s] Session started

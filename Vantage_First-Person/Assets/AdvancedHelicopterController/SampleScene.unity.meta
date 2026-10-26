@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 83facd56d8e81644eb65e42c5a2bb171
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 215906
+  packageName: Advanced Helicopter Controller
+  packageVersion: 1.0
+  assetPath: Assets/AdvancedHelicopterController/SampleScene.unity
+  uploadId: 714896

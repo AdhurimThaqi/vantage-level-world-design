@@ -72,6 +72,7 @@ namespace Vantage
             VantageEvents.Message += onMessage;
             VantageEvents.CoinCollected += onCoin;
             VantageEvents.GameWon += onWon;
+            VantageIntro.Finished += onIntroFinished;
         }
 
         private void OnDisable()
@@ -81,6 +82,7 @@ namespace Vantage
             VantageEvents.Message -= onMessage;
             VantageEvents.CoinCollected -= onCoin;
             VantageEvents.GameWon -= onWon;
+            VantageIntro.Finished -= onIntroFinished;
             if (_levels != null) _levels.LevelCleared -= onLevelCleared;
         }
 
@@ -128,6 +130,18 @@ namespace Vantage
         {
             var message = _levels.Levels[level].ClearedMessage;
             if (string.IsNullOrEmpty(message)) message = $"LEVEL {level + 1} CLEAR · STAIRS OPEN";
+            banner(message);
+        }
+
+        /// <summary>The intro's last objective once more when the player takes over (unless already armed).</summary>
+        private void onIntroFinished(bool skipped, float at)
+        {
+            if (VantageRun.Weapons.Count == 0) banner("Grab the pistol · Objective · Outside the entrance");
+        }
+
+        /// <summary>Big centre banner: the text up to the first "·" as the title, the rest as the line below.</summary>
+        private void banner(string message)
+        {
             var parts = message.Split('·');
             _bannerTitle.text = VantageUI.Caps(parts[0].Trim());
             _bannerSub.text = parts.Length > 1 ? VantageUI.Caps(string.Join("  ·  ", System.Array.ConvertAll(parts, p => p.Trim()), 1, parts.Length - 1)) : "";

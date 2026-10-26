@@ -101,6 +101,7 @@ namespace Vantage.EditorTools
             alarm(tower, setup);
             securityCamera(tower, setup);
             VantagePlaceholders.Build(false);
+            VantageEnemyModels.Boss();
             var levels = levelManager(tower, setup, flights, start);
             extraction(tower, setup, levels);
             boundary(tower, setup);
@@ -109,6 +110,7 @@ namespace Vantage.EditorTools
             checkDoors(tower);
 
             VantageSetup.BakeNavMesh();
+            markBehindExit(tower, levels, gates);
             covers(tower, group(setup, "Covers"));
             coins(tower, group(setup, "Coins"), levels);
             sentries(tower, setup, levels);
@@ -370,7 +372,14 @@ namespace Vantage.EditorTools
         #region Stairs and gates
 
         /// <summary>One stair flight in tower-local coordinates: foot and head (centre of each end) and width.</summary>
-        public struct Flight { public Vector3 bottom, top; public float width; public string name; }
+        public struct Flight
+        {
+            public Vector3 bottom, top; public float width; public string name;
+            /// <summary>Side (-1/+1 across the flight) of its side steps, 0 when it is entered from the front.</summary>
+            public float entrySide;
+            /// <summary>Distance along the flight where its landing (side steps) ends: the handrail starts there.</summary>
+            public float entryEnd;
+        }
 
         /// <summary>
         /// The template character can't step up, so every flight of the tower's stairs (LVL1_Stairs,
@@ -390,12 +399,13 @@ namespace Vantage.EditorTools
                 var found = findFlights(tower, stairs.transform);
                 foreach (var f in found)
                 {
-                    buildSurface(tower, parent, f, result.Count);
-                    blockForEnemies(tower, parent, f);
-                    result.Add(f);
+                    var built = buildSurface(tower, parent, f, result.Count);
+                    blockForEnemies(tower, parent, built);
+                    result.Add(built);
                 }
                 Debug.Log($"[Vantage] {stairs.name}: {found.Count} flights ({string.Join(", ", found.Select(f => $"{f.bottom.y:F2}->{f.top.y:F2} m, {f.width:F1} m wide"))}).");
             }
+            handrails(tower, parent, result);
             return result;
         }
 
@@ -532,7 +542,7 @@ namespace Vantage.EditorTools
         }
 
         /// <summary>The walking surface over one flight (see smoothStairs).</summary>
-        private static void buildSurface(Transform t, Transform parent, Flight piece, int index)
+        private static Flight buildSurface(Transform t, Transform parent, Flight piece, int index)
         {
             // Up to ~31°: the character slows down above 26° and stops at 60° (CharacterMotor.MinSlope/MaxSlope),
             // but at 35° it stalled near the top now and then. 25.6° made the surface start in mid-air before the
@@ -609,18 +619,21 @@ namespace Vantage.EditorTools
             mesh.RecalculateBounds();
             go.AddComponent<MeshCollider>().sharedMesh = mesh;
             saveMesh(mesh, $"Stair Surface {index}");
-            sideEntry(t, parent, piece, index, dir, side, rise, run, k => heights[lanes.Length / 2, Mathf.Clamp(Mathf.RoundToInt((k + extend) / step), 0, nk - 1)]);
+            var entry = sideSteps(t, parent, piece, index, dir, side, run);
+            if (entry.HasValue) { piece.entrySide = entry.Value.side; piece.entryEnd = entry.Value.end; }
+            return piece;
         }
 
         /// <summary>
-        /// A flight whose foot is against a wall can only be entered from the side, and the template character can't
-        /// step onto the first step from there. Such a flight gets an invisible wedge on its open side: from the room
-        /// floor up to the flight's surface along its low part (no steeper than the flight), so the player can walk
-        /// onto it from the side.
+        /// A flight whose foot is against a wall can only be entered from the side (L2→L3: its foot is against the
+        /// Armory wall). It gets a landing over its lowest steps, up to the first tread LandingHeight above the floor,
+        /// and real side steps from the room up to it, in the steps' own material. The character can't step up, so
+        /// the side steps are walked on an invisible ramp through their nosings (no steeper than ~30°) and the landing
+        /// on its box. Returns the side and where the landing ends along the flight (the handrail starts there).
         /// </summary>
-        private static void sideEntry(Transform t, Transform parent, Flight piece, int index, Vector3 dir, Vector3 side, float rise, float run, System.Func<float, float> surfaceAt)
+        private static (float side, float end)? sideSteps(Transform t, Transform parent, Flight piece, int index, Vector3 dir, Vector3 side, float run)
         {
-            const float radius = 0.3f;
+            const float radius = 0.3f, landingHeight = 0.8f, maxSlope = 0.58f, riser = 0.19f;
             bool free(Vector3 local)
             {
                 var w = t.TransformPoint(local);
@@ -631,9 +644,27 @@ namespace Vantage.EditorTools
             // Find the floor height in front of the foot; skip if the front is open.
             if (Physics.Raycast(t.TransformPoint(foot + Vector3.up * 1.5f), Vector3.down, out var fh, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                 foot.y = t.InverseTransformPoint(fh.point).y;
-            if (free(foot)) return;
+            if (free(foot)) return null;
 
-            var slope = Mathf.Clamp(rise / run, 0.3f, 0.7f);
+            var steps = new HashSet<Collider>(levelModel(t).GetComponentsInChildren<Collider>(true).Where(c => c.name == piece.name));
+            // Height of the real steps on the flight's centre line (its own colliders only).
+            float treadAt(float k)
+            {
+                var y = float.NaN;
+                foreach (var h in Physics.RaycastAll(t.TransformPoint(piece.bottom + dir * k + Vector3.up * 2.5f), Vector3.down, 4f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                    if (steps.Contains(h.collider) && h.normal.y > 0.7f)
+                    {
+                        var ly = t.InverseTransformPoint(h.point).y;
+                        if (float.IsNaN(y) || ly > y) y = ly;
+                    }
+                return y;
+            }
+            // Where the wall at the foot is (the landing reaches it).
+            var wallK = -0.3f;
+            foreach (var h in Physics.RaycastAll(t.TransformPoint(piece.bottom + dir * 0.3f + Vector3.up * 0.6f), t.TransformDirection(-dir), 1.5f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                if (!steps.Contains(h.collider) && !h.collider.transform.IsChildOf(parent))
+                    wallK = Mathf.Max(wallK, 0.3f - h.distance);
+
             foreach (var s in new[] { -1f, 1f })
             {
                 // The floor beside the first step on this side must be open.
@@ -642,45 +673,229 @@ namespace Vantage.EditorTools
                 beside = t.InverseTransformPoint(bh.point);
                 if (beside.y > piece.bottom.y + 0.1f || !free(beside)) continue;
                 var floor = beside.y;
-                var vertices = new List<Vector3>();
-                var triangles = new List<int>();
-                // Strips across: the flight's edge at its surface height, out to the floor.
-                for (float k = -0.4f; k <= run; k += 0.1f)
+
+                // The landing's top: the first tread at least landingHeight above the floor, to the end of that tread.
+                float top = float.NaN, end = float.NaN;
+                for (float k = 0f; k < run; k += 0.03f)
                 {
-                    var top = surfaceAt(k);
-                    var height = top - floor;
-                    if (height > 1.0f) break;
-                    var reach = Mathf.Max(0.05f, height / slope) + 0.2f;
-                    var edge = piece.bottom + dir * k + side * s * (piece.width / 2 - 0.05f);
-                    edge.y = top + 0.01f;
-                    var outer = edge + side * s * reach;
-                    outer.y = floor + 0.01f;
-                    vertices.Add(t.TransformPoint(edge));
-                    vertices.Add(t.TransformPoint(outer));
+                    var y = treadAt(k);
+                    if (float.IsNaN(y)) continue;
+                    if (float.IsNaN(top)) { if (y - floor >= landingHeight - 0.05f) { top = y; end = k; } continue; }
+                    if (Mathf.Abs(y - top) > 0.03f) break;
+                    end = k;
                 }
-                if (vertices.Count < 4) continue;
-                // Every triangle faces up (a mesh collider is one-sided for rays: a face built the wrong way round let
-                // rays through but still stopped the character).
-                void tri(int x, int y, int z)
+                if (float.IsNaN(top)) continue;
+                var height = top - floor;
+                var count = Mathf.Max(2, Mathf.RoundToInt(height / riser));
+                var rise = height / count;
+                var depth = Mathf.Max(0.3f, rise / maxSlope);
+                var edge = s * piece.width / 2f;
+                Vector3 at(float k, float across, float y) { var p = piece.bottom + dir * k + side * across; p.y = y; return t.TransformPoint(p); }
+
+                // The landing over the lowest steps, then the side steps down to the floor (k, across, y ranges).
+                var boxes = new List<(Vector3 min, Vector3 max)> { (new Vector3(wallK, -piece.width / 2f, floor), new Vector3(end, piece.width / 2f, top)) };
+                for (int i = 1; i < count; i++)
                 {
-                    var n = Vector3.Cross(vertices[y] - vertices[x], vertices[z] - vertices[x]);
-                    if (n.y >= 0) triangles.AddRange(new[] { x, y, z }); else triangles.AddRange(new[] { x, z, y });
+                    float c0 = edge + s * (count - 1 - i) * depth, c1 = edge + s * (count - i) * depth;
+                    boxes.Add((new Vector3(wallK, Mathf.Min(c0, c1), floor), new Vector3(end, Mathf.Max(c0, c1), floor + i * rise)));
                 }
-                for (int i = 0; i + 3 < vertices.Count; i += 2)
-                {
-                    tri(i, i + 2, i + 1);
-                    tri(i + 1, i + 2, i + 3);
-                }
-                var go = new GameObject($"Stair Side Entry {piece.name} {piece.bottom.y:F2}");
+                var go = new GameObject($"Stair Side Steps {piece.name} {piece.bottom.y:F2}");
                 go.transform.SetParent(parent, false);
-                var mesh = new Mesh { name = go.name };
-                mesh.SetVertices(vertices.Select(v => go.transform.InverseTransformPoint(v)).ToList());
-                mesh.SetTriangles(triangles, 0);
-                mesh.RecalculateNormals();
+                var shape = new BoxMesh();
+                foreach (var (min, max) in boxes)
+                {
+                    var o = at(min.x, min.y, min.z);
+                    shape.Add(o, at(max.x, min.y, min.z) - o, at(min.x, max.y, min.z) - o, at(min.x, min.y, max.z) - o);
+                }
+                var mesh = shape.Build(go.name, go.transform);
+                saveMesh(mesh, $"Stair Side Steps {index}");
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var look = steps.Select(c => c.GetComponent<Renderer>()).FirstOrDefault(r => r != null);
+                go.AddComponent<MeshRenderer>().sharedMaterial = look != null ? look.sharedMaterials[0] : null;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
+
+                // Walking: the landing's box, and a ramp through the side steps' nosings.
+                var landing = new GameObject("Landing");
+                landing.transform.SetParent(go.transform, false);
+                landing.transform.SetPositionAndRotation(at((wallK + end) / 2f, 0f, (floor + top) / 2f), t.rotation * Quaternion.LookRotation(dir));
+                landing.AddComponent<BoxCollider>().size = new Vector3(piece.width, height, end - wallK);
+                var reach = count * depth;
+                var ramp = new GameObject("Ramp");
+                ramp.transform.SetParent(go.transform, false);
+                var corners = new[] { at(wallK, edge, top + 0.01f), at(end, edge, top + 0.01f), at(wallK, edge + s * reach, floor + 0.01f), at(end, edge + s * reach, floor + 0.01f) };
+                var rampMesh = new Mesh { name = go.name + " Ramp" };
+                rampMesh.SetVertices(corners.Select(ramp.transform.InverseTransformPoint).ToList());
+                // Faces up whichever way the corners turn (a mesh collider is one-sided for rays).
+                var up = Vector3.Cross(corners[1] - corners[0], corners[2] - corners[0]).y >= 0;
+                rampMesh.SetTriangles(up ? new[] { 0, 1, 2, 2, 1, 3 } : new[] { 0, 2, 1, 2, 3, 1 }, 0);
+                rampMesh.RecalculateNormals();
+                rampMesh.RecalculateBounds();
+                saveMesh(rampMesh, $"Stair Side Steps {index} Ramp");
+                ramp.AddComponent<MeshCollider>().sharedMesh = rampMesh;
+                Debug.Log($"[Vantage] {piece.name} {piece.bottom.y:F2}-{piece.top.y:F2}: foot against a wall: landing {height:F2} m high to {end:F2} m along the flight, " +
+                          $"{count - 1} side steps on the {(s > 0 ? "right" : "left")} ({rise:F2} m rise, {depth:F2} m deep, ramp {Mathf.Atan2(height, reach) * Mathf.Rad2Deg:F0}°).");
+                return (s, end);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Handrails on every open side of every flight, from its foot (or the end of its landing) to its head: the
+        /// model's own rails stop part way (the outside stairs to the helipad: a single bar from half way up, no
+        /// posts). Where the model has a railing (rail tops above the steps at that edge, within 0.8 m) nothing is
+        /// added; each gap gets a railing like it: the top rail on the model's line and height (a lone bar becomes its
+        /// top rail), posts at least every 1.1 m, a mid rail, the nearest model rail's material and a thin collider.
+        /// A side counts as open when nothing but a rail is beside it.
+        /// </summary>
+        private static void handrails(Transform t, Transform parent, List<Flight> flights)
+        {
+            const float sample = 0.25f, reachAlong = 0.8f, minGap = 0.6f, postSpacing = 1.1f, bar = 0.05f;
+            var model = levelModel(t);
+            var railSources = model.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh != null && (f.name.Contains("Stairs") || f.name.Contains("Rail"))).ToList();
+            var railPoints = railSources.SelectMany(f => f.sharedMesh.vertices.Select(v => t.InverseTransformPoint(f.transform.TransformPoint(v)))).ToList();
+            var railLooks = model.GetComponentsInChildren<Renderer>(true).Where(r => r.name.Contains("Rail")).ToList();
+            var group = new GameObject("Handrails").transform;
+            group.SetParent(parent, false);
+            // Rail meshes are named by their stretch: last run's go first.
+            foreach (var guid in AssetDatabase.FindAssets("Handrail_ t:Mesh", new[] { "Assets/Vantage/World/Tower" }))
+                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
+            var report = new List<string>();
+            foreach (var f in flights)
+            {
+                var flat = f.top - f.bottom; flat.y = 0;
+                var run = flat.magnitude;
+                var dir = flat.normalized;
+                var side = Vector3.Cross(Vector3.up, dir);
+                float nosing(float k) => f.bottom.y + Mathf.Clamp01(k / run) * (f.top.y - f.bottom.y);
+                foreach (var s in new[] { -1f, 1f })
+                {
+                    // The model's rail at this edge: its points above the steps, as (along, across, height above the steps).
+                    var near = railPoints.Select(p => (p, d: p - f.bottom)).Select(x => (k: Vector3.Dot(x.d, dir), c: Vector3.Dot(x.d, side * s), h: x.p.y - nosing(Vector3.Dot(x.d, dir))))
+                                         .Where(x => x.k > -0.5f && x.k < run + 0.5f && x.c > f.width / 2f - 0.4f && x.c < f.width / 2f + 0.35f && x.h > 0.15f && x.h < 1.6f).ToList();
+                    var tops = near.Where(x => x.h > 0.75f).GroupBy(x => Mathf.RoundToInt(x.k / sample)).Select(g => g.OrderByDescending(x => x.h).First()).ToList();
+                    var height = tops.Count > 0 ? Mathf.Clamp(tops.Select(x => x.h).OrderBy(h => h).ElementAt(tops.Count / 2), 0.85f, 1.15f) : 0.95f;
+                    var across = tops.Count > 0 ? tops.Select(x => x.c).OrderBy(c => c).ElementAt(tops.Count / 2) : f.width / 2f - 0.04f;
+
+                    bool open(float k)
+                    {
+                        if (s == f.entrySide && k < f.entryEnd) return false;
+                        // The model's railing: rail tops (posts, rail ends) within reach. Its posts stand at most 1.5 m
+                        // apart, so a railing covers its whole length; a lone bar only covers its two ends.
+                        if (tops.Any(x => Mathf.Abs(x.k - k) < reachAlong)) return false;
+                        var from = f.bottom + dir * k; from.y = nosing(k) + 0.9f;
+                        foreach (var h in Physics.RaycastAll(t.TransformPoint(from), t.TransformDirection(side * s), f.width / 2f + 0.4f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                            if (!h.collider.transform.IsChildOf(parent) && !h.collider.name.Contains("Rail")) return false;
+                        return true;
+                    }
+                    var count = Mathf.Max(1, Mathf.CeilToInt(run / sample));
+                    var gaps = new bool[count + 1];
+                    for (int i = 0; i <= count; i++) gaps[i] = open(Mathf.Min(i * sample, run));
+                    for (int i = 0; i <= count; i++)
+                    {
+                        if (!gaps[i]) continue;
+                        var j = i;
+                        while (j < count && gaps[j + 1]) j++;
+                        float k0 = i * sample, k1 = Mathf.Min(j * sample, run);
+                        if (k1 - k0 >= minGap)
+                        {
+                            // Up to the neighbouring rail or landing at either end.
+                            var from = i == 0 ? 0f : Mathf.Max(k0 - sample, s == f.entrySide ? f.entryEnd : 0f);
+                            var to = j == count ? run : k1 + sample;
+                            buildRail(t, group, f, dir, side * s, from, to, across, height, nosing, postSpacing, bar, railLooks);
+                            report.Add($"{f.name} {f.bottom.y:F2}-{f.top.y:F2} {(s > 0 ? "right" : "left")} {from:F1}-{to:F1} m");
+                        }
+                        i = j;
+                    }
+                }
+            }
+            Debug.Log($"[Vantage] Handrails: {report.Count} added ({string.Join("; ", report)}).");
+        }
+
+        /// <summary>One handrail along a flight from k0 to k1: posts, a top rail and a mid rail following the steps, and a collider.</summary>
+        private static void buildRail(Transform t, Transform group, Flight f, Vector3 dir, Vector3 outward, float k0, float k1, float across, float height,
+                                      Func<float, float> nosing, float postSpacing, float bar, List<Renderer> looks)
+        {
+            Vector3 at(float k, float above) { var p = f.bottom + dir * k + outward * across; p.y = nosing(k) + above; return t.TransformPoint(p); }
+            var go = new GameObject($"Handrail {f.name} {f.bottom.y:F2} {k0:F1}-{k1:F1}");
+            go.transform.SetParent(group, false);
+            var shape = new BoxMesh();
+            var wDir = t.TransformDirection(dir);
+            var wOut = t.TransformDirection(outward);
+            var posts = Mathf.Max(1, Mathf.CeilToInt((k1 - k0) / postSpacing));
+            for (int i = 0; i <= posts; i++)
+            {
+                var k = Mathf.Lerp(k0, k1, (float)i / posts);
+                var foot = at(k, -0.02f) - (wDir + wOut) * bar / 2f;
+                shape.Add(foot, wDir * bar, wOut * bar, Vector3.up * (height + 0.02f));
+            }
+            foreach (var above in new[] { height, height * 0.5f })
+            {
+                var from = at(k0, above - bar) - wOut * bar / 2f;
+                shape.Add(from, at(k1, above - bar) - at(k0, above - bar), wOut * bar, Vector3.up * bar);
+            }
+            var mesh = shape.Build(go.name, go.transform);
+            saveMesh(mesh, go.name.Replace(" ", "_"));
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var centre = at((k0 + k1) / 2f, height / 2f);
+            var look = looks.OrderBy(r => (r.bounds.ClosestPoint(centre) - centre).sqrMagnitude).FirstOrDefault();
+            go.AddComponent<MeshRenderer>().sharedMaterial = look != null ? look.sharedMaterial : null;
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
+
+            // Collider: a thin slab from the steps up to the rail, along the slope.
+            var block = new GameObject("Collider");
+            block.transform.SetParent(go.transform, false);
+            var along = at(k1, height / 2f) - at(k0, height / 2f);
+            block.transform.SetPositionAndRotation(centre, Quaternion.LookRotation(along, Vector3.up));
+            block.AddComponent<BoxCollider>().size = new Vector3(bar * 1.6f, height, along.magnitude);
+        }
+
+        /// <summary>
+        /// Box meshes with flat faces and UVs in metres (tiling materials keep their scale). A box is a corner and
+        /// its three edges from that corner (world space).
+        /// </summary>
+        private class BoxMesh
+        {
+            private readonly List<Vector3> _vertices = new List<Vector3>(), _normals = new List<Vector3>();
+            private readonly List<Vector2> _uv = new List<Vector2>();
+            private readonly List<int> _triangles = new List<int>();
+
+            public void Add(Vector3 o, Vector3 a, Vector3 b, Vector3 c)
+            {
+                var far = o + a + b + c;
+                var centre = o + (a + b + c) / 2f;
+                face(o, a, b, centre); face(o, b, c, centre); face(o, c, a, centre);
+                face(far, -a, -b, centre); face(far, -b, -c, centre); face(far, -c, -a, centre);
+            }
+
+            private void face(Vector3 start, Vector3 u, Vector3 v, Vector3 centre)
+            {
+                var normal = Vector3.Cross(u, v).normalized;
+                var flip = Vector3.Dot(normal, start + (u + v) / 2f - centre) < 0f;
+                if (flip) normal = -normal;
+                var tu = u.normalized;
+                var tv = Vector3.Cross(normal, tu);
+                var first = _vertices.Count;
+                foreach (var q in new[] { start, start + u, start + u + v, start + v })
+                {
+                    _vertices.Add(q);
+                    _normals.Add(normal);
+                    _uv.Add(new Vector2(Vector3.Dot(q, tu), Vector3.Dot(q, tv)));
+                }
+                _triangles.AddRange(flip ? new[] { first, first + 2, first + 1, first, first + 3, first + 2 }
+                                         : new[] { first, first + 1, first + 2, first, first + 2, first + 3 });
+            }
+
+            /// <summary>The mesh in the space of `owner` (the object that will show it).</summary>
+            public Mesh Build(string name, Transform owner)
+            {
+                var mesh = new Mesh { name = name };
+                mesh.SetVertices(_vertices.Select(owner.InverseTransformPoint).ToList());
+                mesh.SetNormals(_normals.Select(owner.InverseTransformDirection).ToList());
+                mesh.SetUVs(0, _uv);
+                mesh.SetTriangles(_triangles, 0);
                 mesh.RecalculateBounds();
-                go.AddComponent<MeshCollider>().sharedMesh = mesh;
-                saveMesh(mesh, $"Stair Side Entry {index}{(s > 0 ? "R" : "L")}");
-                Debug.Log($"[Vantage] {piece.name} {piece.bottom.y:F2}-{piece.top.y:F2}: foot against a wall, side entry on the {(s > 0 ? "right" : "left")}.");
+                mesh.RecalculateTangents();
+                return mesh;
             }
         }
 
@@ -903,6 +1118,60 @@ namespace Vantage.EditorTools
         #endregion
 
         #region Levels
+
+        /// <summary>
+        /// Enemy spawn markers that a level's arrival only reaches through one of the level's exits: a door that
+        /// opens once the level is clear (ClearLevel) or the level's stair gate. A soldier spawned there can never be
+        /// reached, so the floor can never be cleared (L2: the stairwell marker behind the stairwell gate). The test
+        /// is the NavMesh path from the arrival (doors are left out of the bake, so paths run through doorways):
+        /// a path that passes through an exit marks the marker. (The NavMesh's triangles can't be flood-filled for
+        /// this: tiles don't always share vertices at their borders.)
+        /// </summary>
+        private static void markBehindExit(Transform tower, VantageTowerLevels levels, List<VantageFloorGate> gates)
+        {
+            var exits = new List<(int level, Bounds bounds)>();
+            foreach (var door in tower.GetComponentsInChildren<VantageDoor>(true))
+            {
+                if (door.ClearLevel < 0 || !WorldBounds(door.transform, out var b)) continue;
+                b.Expand(0.4f);
+                exits.Add((door.ClearLevel, b));
+            }
+            foreach (var gate in gates)
+                if (gate.Blocker != null) exits.Add((gate.Level, gate.Blocker.bounds));
+
+            var markers = tower.GetComponentsInChildren<VantageTag>(true).Where(t => t.MarkerType == "EnemySpawn").ToList();
+            var path = new UnityEngine.AI.NavMeshPath();
+            levels.BehindExit = new List<string>();
+            for (int level = 0; level < levels.Levels.Count; level++)
+            {
+                var lv = levels.Levels[level];
+                var cuts = exits.Where(e => e.level == level).Select(e => e.bounds).ToList();
+                if (lv.Arrival == null || cuts.Count == 0) continue;
+                if (!UnityEngine.AI.NavMesh.SamplePosition(lv.Arrival.position, out var from, 1f, UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    Debug.LogWarning($"[Vantage] {lv.Name}: arrival not on the NavMesh; exits not checked.");
+                    continue;
+                }
+                foreach (var m in markers.Where(m => m.name.StartsWith(lv.Prefix, StringComparison.Ordinal)))
+                {
+                    if (!UnityEngine.AI.NavMesh.SamplePosition(m.transform.position, out var to, 1f, UnityEngine.AI.NavMesh.AllAreas)
+                        || !UnityEngine.AI.NavMesh.CalculatePath(from.position, to.position, UnityEngine.AI.NavMesh.AllAreas, path)
+                        || path.status != UnityEngine.AI.NavMeshPathStatus.PathComplete)
+                        continue;
+                    var corners = path.corners;
+                    var through = false;
+                    for (int i = 1; i < corners.Length && !through; i++)
+                    {
+                        var a = corners[i - 1] + Vector3.up * 0.5f; var b = corners[i] + Vector3.up * 0.5f;
+                        foreach (var c in cuts)
+                            if (c.Contains(a) || c.Contains(b) || c.IntersectRay(new Ray(a, b - a), out var d) && d <= Vector3.Distance(a, b)) { through = true; break; }
+                    }
+                    if (through) levels.BehindExit.Add(m.name);
+                }
+            }
+            EditorUtility.SetDirty(levels);
+            Debug.Log($"[Vantage] Spawn markers behind a level's exit (never used): {(levels.BehindExit.Count > 0 ? string.Join(", ", levels.BehindExit) : "none")}.");
+        }
 
         /// <summary>
         /// Doors between levels: the stairwell gate (key) also waits for level 2 to be cleared, and the exit to the
@@ -1200,23 +1469,30 @@ namespace Vantage.EditorTools
                 levels.FinaleArea = f;
             }
 
-            // Restart points: the player start, the top of each level's stairs, outside the exit to the helipad.
+            // Restart points: the player start, the upper part of each level's stairs, outside the exit to the helipad.
             var arrivals = group(parent, "Arrivals");
-            Transform arrival(string name, Vector3 at, Vector3 facing)
+            Transform arrival(string name, Vector3 at, Vector3 facing, float search = 1.5f)
             {
                 var a = new GameObject(name).transform;
                 a.SetParent(arrivals, false);
-                if (Physics.Raycast(at + Vector3.up * 1.5f, Vector3.down, out var hit, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                if (Physics.Raycast(at + Vector3.up * search, Vector3.down, out var hit, search + 1.5f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
                     at = hit.point + Vector3.up * 0.05f;
                 facing.y = 0;
                 a.SetPositionAndRotation(at, Quaternion.LookRotation(facing.sqrMagnitude > 0.01f ? facing : Vector3.forward));
                 return a;
             }
+            // A level's restart point is half way down the last flight below it (at most 3.3 m), not on its floor:
+            // the floor above hides it, so a checkpoint never starts in a soldier's view (the L3 stairs end in the
+            // doorway between Barracks and Comms, in sight of five spawn points, and the Barracks see the upper steps
+            // through the stairwell railing), and the player steps up into the room when ready.
             Transform topOf(string name, string stairs)
             {
                 var f = flights.Where(x => x.name.StartsWith(stairs)).OrderByDescending(x => x.top.y).FirstOrDefault();
-                var dir = tower.TransformDirection((f.top - f.bottom).normalized);
-                return arrival(name, tower.TransformPoint(f.top) + dir * 1.6f, dir);
+                var flat = f.top - f.bottom; flat.y = 0;
+                var back = Mathf.Min(3.3f, flat.magnitude * 0.5f);
+                var at = f.top - flat.normalized * back;
+                at.y = f.top.y - (f.top.y - f.bottom.y) * back / flat.magnitude;
+                return arrival(name, tower.TransformPoint(at), tower.TransformDirection(flat.normalized), 0.8f);
             }
             var startLook = (EntrancePoint(tower) ?? tower.position) - start;
             var exit = Find(tower, "L3_DOOR_Exit_To_Final");
@@ -1232,16 +1508,16 @@ namespace Vantage.EditorTools
             levels.Levels = new List<VantageTowerLevels.Level>
             {
                 new VantageTowerLevels.Level { Name = "Ground floor", Prefix = "MK_", FloorY = h[0], Soldiers = 5, Drones = 0, SoldierWeapon = "Pistol",
-                    SoldierDamage = 8f, SoldierHealth = 0.8f, ClearedMessage = "LOCKDOWN LIFTED  ·  STAIRS OPEN",
+                    SoldierDamage = 6f, SoldierHealth = 0.8f, ClearedMessage = "LOCKDOWN LIFTED  ·  STAIRS OPEN",
                     Arrival = arrival("Arrival Ground floor", start, startLook) },
                 new VantageTowerLevels.Level { Name = "Armory", Prefix = "L2_", FloorY = h[1], Soldiers = 5, Drones = 2, SoldierWeapon = "Pistol",
-                    SoldierDamage = 10f, SoldierHealth = 1f, DroneAccuracy = 0.4f, DroneFireInterval = 1.5f, ClearedMessage = "ARMORY CLEAR",
+                    SoldierDamage = 7f, SoldierHealth = 1f, DroneAccuracy = 0.3f, DroneFireInterval = 1.8f, ClearedMessage = "ARMORY CLEAR",
                     Arrival = topOf("Arrival Armory", "LVL1") },
                 new VantageTowerLevels.Level { Name = "Destroyed floor", Prefix = "L3_", FloorY = h[2], Soldiers = 5, Drones = 0,
-                    SoldierDamage = 12f, SoldierHealth = 1.15f, ClearedMessage = "THE WAY TO THE HELIPAD IS OPEN",
+                    SoldierDamage = 8f, SoldierHealth = 1.15f, ClearedMessage = "THE WAY TO THE HELIPAD IS OPEN",
                     Arrival = topOf("Arrival Destroyed floor", "LVL2") },
                 new VantageTowerLevels.Level { Name = "Helipad", Prefix = "FINAL_", FloorY = h[3], Soldiers = 2, Drones = 0,
-                    SoldierDamage = 12f, SoldierHealth = 1.25f, ClearedMessage = "REACH THE HELIPAD",
+                    SoldierDamage = 8f, SoldierHealth = 1.25f, ClearedMessage = "REACH THE HELIPAD",
                     Arrival = finaleArrival },
             };
             Debug.Log($"[Vantage] Levels: {string.Join(", ", levels.Levels.Select(l => $"{l.Name} y {l.FloorY:F2} arrival {(l.Arrival != null ? l.Arrival.position.ToString("F1") : "none")}"))}; tower area {levels.TowerArea.size:F1}, finale area {levels.FinaleArea.size:F1}.");
@@ -1258,7 +1534,8 @@ namespace Vantage.EditorTools
         /// its guns in CharacterMotor's old Weapons list, but this version of the template's AI arms itself from a
         /// CharacterInventory component, which the prefab never got, so every soldier spawned unarmed and the
         /// fighter brain fell back to running away. The variant gets the inventory, starts with its first gun in
-        /// hand, and carries the aggression tuning.
+        /// hand, and carries the aggression tuning. With the Low Poly Soldiers pack present it wears that body
+        /// (VantageEnemyModels; then it is a plain prefab, not a variant).
         /// </summary>
         private static GameObject soldierPrefab()
         {
@@ -1266,6 +1543,7 @@ namespace Vantage.EditorTools
             var go = (GameObject)PrefabUtility.InstantiatePrefab(template);
             try
             {
+                VantageEnemyModels.SoldierBody(go);
                 var motor = go.GetComponent<CoverShooter.CharacterMotor>();
                 var inventory = go.GetComponent<CoverShooter.CharacterInventory>();
                 if (inventory == null) inventory = go.AddComponent<CoverShooter.CharacterInventory>();

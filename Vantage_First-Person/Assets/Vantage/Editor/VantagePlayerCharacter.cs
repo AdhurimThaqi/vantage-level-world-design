@@ -66,22 +66,11 @@ namespace Vantage.EditorTools
 
         public static bool Apply(string modelPath)
         {
-            var avatar = importAsHumanoid(modelPath);
-            if (avatar == null)
-                return false;
-            extractMaterials(modelPath);
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
-
             var root = PrefabUtility.LoadPrefabContents(VantageEditorUtil.PlayerRigPath);
             try
             {
-                var animator = root.GetComponentsInChildren<Animator>(true).FirstOrDefault(a => a.GetComponent<CoverShooter.CharacterMotor>() != null);
-                if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
-                {
-                    Debug.LogError("[Vantage] Player rig: no CharacterMotor with a humanoid Animator found.");
+                if (!SwapBody(root, modelPath, true))
                     return false;
-                }
-                swap(animator, model, avatar);
                 PrefabUtility.SaveAsPrefabAsset(root, VantageEditorUtil.PlayerRigPath);
             }
             finally
@@ -97,7 +86,32 @@ namespace Vantage.EditorTools
             return true;
         }
 
+        /// <summary>
+        /// The body swap on any template character under 'root' (an Animator with a CharacterMotor): the player rig,
+        /// and the soldier prefab (VantageEnemyModels). 'extract' copies embedded textures and materials out of the
+        /// FBX (Blender exports); models that come with their own material files skip it.
+        /// </summary>
+        public static bool SwapBody(GameObject root, string modelPath, bool extract)
+        {
+            var avatar = importAsHumanoid(modelPath);
+            if (avatar == null)
+                return false;
+            if (extract) extractMaterials(modelPath);
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+            var animator = root.GetComponentsInChildren<Animator>(true).FirstOrDefault(a => a.GetComponent<CoverShooter.CharacterMotor>() != null);
+            if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
+            {
+                Debug.LogError($"[Vantage] {root.name}: no CharacterMotor with a humanoid Animator found.");
+                return false;
+            }
+            swap(animator, model, avatar);
+            return true;
+        }
+
         #region Model import
+
+        /// <summary>Imports the model as Humanoid (no animations, cameras or lights); null if it can't be mapped.</summary>
+        public static Avatar ImportAsHumanoid(string path) => importAsHumanoid(path);
 
         private static Avatar importAsHumanoid(string path)
         {
@@ -344,7 +358,10 @@ namespace Vantage.EditorTools
             var referenced = new HashSet<Transform>(references.Select(r => r.value is GameObject g ? g.transform : ((Component)r.value).transform));
 
             // Attachments: anything on the old skeleton that isn't a bone, plus bones the new model has no match for
-            // but something still uses (template eye/jaw helpers).
+            // but something still uses (template eye/jaw helpers). An unmatched bone with matched bones below it
+            // (the template's Spine2 above the arms, on a body without one) is not taken along: its children are
+            // handled one by one, or the guns would ride on the old, unanimated hands.
+            bool hasMatchedBelow(Transform t) => t.GetComponentsInChildren<Transform>(true).Any(d => d != t && oldBoneSet.Contains(d) && counterpart(d) != null);
             var moved = 0;
             foreach (var bone in oldBones)
             {
@@ -352,7 +369,7 @@ namespace Vantage.EditorTools
                 foreach (var child in bone.Cast<Transform>().ToList())
                 {
                     var isBone = oldBoneSet.Contains(child);
-                    if (isBone && (counterpart(child) != null || !(referenced.Contains(child) || hasAttachment(child, oldBoneSet))))
+                    if (isBone && (counterpart(child) != null || hasMatchedBelow(child) || !(referenced.Contains(child) || hasAttachment(child, oldBoneSet))))
                         continue;
                     // Same muscle pose: the new bone is turned like the old one, but may sit elsewhere (other
                     // proportions, hips placed by human scale). Keep the world rotation and the offset from the bone.

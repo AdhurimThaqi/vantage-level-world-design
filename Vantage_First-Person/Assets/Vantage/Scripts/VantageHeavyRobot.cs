@@ -9,7 +9,8 @@ namespace Vantage
     /// it (pistol hits bounce off with "You need a better gun"). It walks towards the player once it has seen them,
     /// stops to fire telegraphed bursts (the eye charges first, as with the drones), and the boss adds a charge:
     /// a visible wind-up, then a dash at the player that hits hard on contact.
-    /// The look is a model under "Model" (a placeholder until the user's Blender model replaces it).
+    /// The look is a model under "Model" (a placeholder, or a rigged model). A rigged model's Animator gets the
+    /// walking speed ("Speed") and a "Die" trigger; with one, the death is its animation instead of the tip-over.
     /// </summary>
     [RequireComponent(typeof(CharacterHealth))]
     public class VantageHeavyRobot : MonoBehaviour, IVantageEnemy
@@ -41,6 +42,8 @@ namespace Vantage
 
         [Header("Parts")]
         public Transform Model;
+        [Tooltip("Optional: the model's Animator (float Speed, trigger Die).")]
+        public Animator Animator;
         public Transform Muzzle;
         public Renderer Eye;
         public Light EyeLight;
@@ -71,6 +74,7 @@ namespace Vantage
         private Material _eyeMaterial;
         private float _shownCharge = -1f;
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int SpeedParam = Animator.StringToHash("Speed"), DieParam = Animator.StringToHash("Die");
 
         private void Awake()
         {
@@ -100,6 +104,7 @@ namespace Vantage
         {
             if (IsDead) { collapse(); return; }
             if (Tracer != null && Tracer.enabled && Time.time > _tracerOff) Tracer.enabled = false;
+            if (Animator != null) Animator.SetFloat(SpeedParam, _chargeLeft > 0 ? ChargeSpeed : _agent != null && _agent.enabled ? _agent.velocity.magnitude : 0f);
 
             if (Time.time >= _nextThink)
             {
@@ -287,6 +292,7 @@ namespace Vantage
             _diedAt = Time.time;
             _deathFrom = transform.rotation;
             _deathPos = transform.position;
+            if (Animator != null) { Animator.SetFloat(SpeedParam, 0f); Animator.SetTrigger(DieParam); enabled = false; }
             VantageEvents.RaiseEnemyKilled(IsBoss ? "Boss" : "Heavy robot", transform.position);
         }
 

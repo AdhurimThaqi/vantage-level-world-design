@@ -64,7 +64,8 @@ namespace Vantage
         private readonly RaycastHit[] _hits = new RaycastHit[8];
 
         private int _index, _step = 1;
-        private float _nextThink, _lastOrder = -10f, _pauseUntil = -1f, _nextShot, _tracerUntil;
+        private float _nextThink, _lastOrder = -10f, _pauseUntil = -1f, _nextShot, _tracerUntil, _scriptedUntil = -1f;
+        private Vector3 _scriptedAim;
         private bool _remembered, _inCombat, _firing;
 
         /// <summary>Distance on the ground to the route's polyline.</summary>
@@ -102,6 +103,16 @@ namespace Vantage
             _nextThink = Time.time + ThinkInterval;
 
             if (IsDead) { die(); return; }
+
+            // The intro has it: stand and aim where it says.
+            if (Time.time < _scriptedUntil)
+            {
+                stopFiring();
+                _brain.Message("ToStopMoving");
+                _brain.Message("ToTurnAt", _scriptedAim);
+                _brain.Message("ToAimAt", _scriptedAim);
+                return;
+            }
 
             var player = VantageEvents.ActivePlayer();
             var ring = VantageBoundary.Instance;
@@ -174,6 +185,33 @@ namespace Vantage
                 shotEffects(eye, miss, true);
             }
         }
+
+        #region Scripted (the intro)
+
+        /// <summary>Stands and aims at a point for a while instead of patrolling (the intro's deserter).</summary>
+        public void HoldAim(Vector3 at, float seconds)
+        {
+            _scriptedAim = at;
+            _scriptedUntil = Time.time + seconds;
+            _nextThink = 0f;
+        }
+
+        /// <summary>The red glint at the eye, 0..1 (it warns of a shot).</summary>
+        public void Glint(float amount)
+        {
+            if (_glint == null) return;
+            _glint.enabled = amount > 0f;
+            _glint.intensity = 6f * amount;
+        }
+
+        /// <summary>A ring shot's look and sound (tracer, crack, dust when it misses), no damage.</summary>
+        public void ScriptedShot(Vector3 to, bool miss)
+        {
+            Glint(0f);
+            shotEffects(VantagePhysics.Eye(_motor), to, miss);
+        }
+
+        #endregion
 
         private void stopFiring()
         {

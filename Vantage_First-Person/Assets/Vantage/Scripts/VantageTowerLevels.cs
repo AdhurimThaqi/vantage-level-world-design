@@ -74,6 +74,23 @@ namespace Vantage
         [Tooltip("The outside stairs, platform and helipad, world bounds (set by Setup).")]
         public Bounds FinaleArea;
         public List<Level> Levels = new List<Level>();
+        [Tooltip("Spawn markers behind a door that opens only once their level is clear (set by Setup). Never used: " +
+                 "a soldier there could not be reached, so the level could not be cleared.")]
+        public List<string> BehindExit = new List<string>();
+
+        [Header("Soldier fire")]
+        [Tooltip("Pause between a soldier's bursts in seconds (the template's 0.25 s kept a soldier firing 80 % of the time: " +
+                 "one soldier took 100 HP in about 1.3 s at close range).")]
+        public float SoldierBurstWait = 0.7f;
+        [Tooltip("Degrees of aim error a soldier adds to every shot (template 2).")]
+        public float SoldierAimError = 3.5f;
+
+        [Header("Arrival")]
+        [Tooltip("No soldier spawns closer than this to a level's arrival point with a clear line of sight to it: " +
+                 "the player comes up the stairs (or restarts after a death) without being shot at once.")]
+        public float SafeArrivalRadius = 14f;
+        [Tooltip("Seconds without damage after restarting at a checkpoint (the weapon is already drawn).")]
+        public float RespawnProtection = 3f;
 
         [Header("Last enemies")]
         [Tooltip("With this many enemies or fewer left, they stop guarding and come for the player.")]
@@ -345,8 +362,14 @@ namespace Vantage
         {
             var index = Levels.IndexOf(level);
             var pool = _markers.Where(m => m.MarkerType == type && isMarkerOf(m, index) && _ground.ContainsKey(m)
-                                           && (exclude == null || !exclude.Contains(m)))
+                                           && !BehindExit.Contains(m.name) && (exclude == null || !exclude.Contains(m)))
                                .OrderBy(_ => _random.Next()).ToList();
+            // Markers that cover the arrival only fill up a level that would otherwise come up short.
+            var covering = pool.Where(m => !m.Has("patrol") && coversArrival(level, m)).ToList();
+            pool.RemoveAll(covering.Contains);
+            if (covering.Count > 0 && exclude == null)
+                Debug.Log($"[Vantage] {level.Name}: kept out of the arrival's view: {string.Join(", ", covering.Select(m => m.name))}" +
+                          $"{(pool.Count < count ? $" (used anyway: only {pool.Count} other spawn points for {count})" : "")}.");
             var result = new List<VantageTag>();
             if (exclude == null)
                 foreach (var m in pool)
@@ -356,11 +379,49 @@ namespace Vantage
             foreach (var m in pool)
                 if (result.Count < count && !result.Contains(m) && rooms.Add(m.Get("room", m.name)))
                     result.Add(m);
-            foreach (var m in pool)
+            foreach (var m in pool.Concat(covering))
                 if (result.Count < count && !result.Contains(m))
                     result.Add(m);
             return result;
         }
+
+        /// <summary>
+        /// The marker is near the level's arrival and a soldier standing there would see it (eye to eye, over the
+        /// level geometry). Railings and unlocked doors don't block the view: soldiers see and shoot between the bars,
+        /// and doors are open doorways in play (their leaves may not be switched off yet when the level spawns).
+        /// </summary>
+        private bool coversArrival(Level level, VantageTag m)
+        {
+            if (level.Arrival == null || SoldierPrefab == null) return false;
+            var at = standAt(m);
+            var arrival = level.Arrival.position;
+            if ((at - arrival).sqrMagnitude > SafeArrivalRadius * SafeArrivalRadius) return false;
+            var eye = at + Vector3.up * eyeHeight();
+            var view = arrival + Vector3.up * eyeHeight() - eye;
+            var count = Physics.RaycastNonAlloc(eye, view.normalized, _sightHits, view.magnitude, VantagePhysics.Solid, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                var hit = _sightHits[i].collider;
+                if (hit.name.Contains("Rail")) continue;
+                var door = hit.GetComponentInParent<VantageDoor>();
+                if (door == null || door.IsLocked) return false;
+            }
+            return true;
+        }
+        private readonly RaycastHit[] _sightHits = new RaycastHit[16];
+
+        /// <summary>Eye height above the feet of a soldier (0 without a soldier prefab).</summary>
+        public float SoldierEyeHeight => SoldierPrefab != null ? eyeHeight() : 0f;
+
+        /// <summary>Eye height of the soldier prefab, from the top of its capsule (see VantagePhysics.Eye).</summary>
+        private float eyeHeight()
+        {
+            if (_eyeHeight > 0f) return _eyeHeight;
+            var capsule = SoldierPrefab.GetComponent<CapsuleCollider>();
+            _eyeHeight = capsule != null ? (capsule.center.y + capsule.height / 2f) * SoldierPrefab.transform.lossyScale.y - 0.15f : 1.6f;
+            return _eyeHeight;
+        }
+        private float _eyeHeight;
 
         private void spawnSoldier(int index, VantageTag at)
         {
@@ -374,6 +435,15 @@ namespace Vantage
             foreach (var gun in go.GetComponentsInChildren<BaseGun>(true))
                 gun.Damage = level.SoldierDamage;
             arm(go, level.SoldierWeapon);
+            var fire = go.GetComponent<AIFire>();
+            if (fire != null)
+            {
+                var bursts = fire.Bursts;
+                bursts.Wait = SoldierBurstWait;
+                fire.Bursts = bursts;
+            }
+            var aim = go.GetComponent<AIAim>();
+            if (aim != null) aim.AccuracyError = SoldierAimError;
             var health = go.GetComponent<CharacterHealth>();
             if (health != null)
             {
@@ -585,6 +655,8 @@ namespace Vantage
             if (arsenal == null) return;
             foreach (var w in VantageRun.Weapons)
                 arsenal.Unlock(w);
+            // In hand at once, the best gun first (the equip animation took longer than the first shots).
+            arsenal.EquipNow(VantageRun.Weapons.Contains("Rifle") ? "Rifle" : VantageRun.Weapons.First());
         }
 
         /// <summary>
@@ -615,6 +687,8 @@ namespace Vantage
                 if (body != null) { body.position = arrival.position; body.linearVelocity = Vector3.zero; }
                 player.transform.SetPositionAndRotation(arrival.position, arrival.rotation);
             }
+            var rules = player != null ? player.GetComponent<VantageThirdPersonPlayer>() : null;
+            if (rules != null) rules.Protect(RespawnProtection);
             Debug.Log($"[Vantage] Restarting at the checkpoint of {Levels[level].Name}.");
         }
 

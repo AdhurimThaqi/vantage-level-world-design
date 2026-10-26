@@ -1,0 +1,22 @@
+VANTAGE playtest  2026-10-26_11-46-12
+Enemy placement seed: 85468
+Session length: 4s (run 394s, deaths 15)  Completed: no   Furthest: Level 3 (destroyed floor)   Backtracks: 0
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      0s   deaths 0
+  Level 3 (destroyed floor)      2s   deaths 1
+  Finale (helipad)      0s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  370.7s] Enemy placement seed 85468
+[    0.0s] Session started
+[    1.2s] DEATH in Level 3 (destroyed floor) at (3.6, 12.7, -58.7) (health reached zero)

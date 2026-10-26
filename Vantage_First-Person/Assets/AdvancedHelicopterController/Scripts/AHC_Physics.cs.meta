@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 2b33d0054573b3d41bc8ff0a96e4deba
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 215906
+  packageName: Advanced Helicopter Controller
+  packageVersion: 1.0
+  assetPath: Assets/AdvancedHelicopterController/Scripts/AHC_Physics.cs
+  uploadId: 714896

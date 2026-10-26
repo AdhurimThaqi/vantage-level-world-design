@@ -1,0 +1,49 @@
+VANTAGE playtest  2026-10-22_11-09-46
+Enemy placement seed: 11265
+Session length: 0s (run -9s, deaths 0)  Completed: no   Furthest: Level 3 (destroyed floor)   Backtracks: 0
+
+Time per space
+  Military Base      44s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)     46s   deaths 0
+  Level 3 (destroyed floor)     42s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Turret         3
+  Soldier        15
+  Drone          2
+  Heavy robot    1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 11265
+[    0.0s] Session started
+[   13.0s] Intro watched
+[   42.0s] Killed Turret in Level 1 (ground floor)
+[   42.0s] Killed Soldier in Level 1 (ground floor)
+[   42.0s] Killed Soldier in Level 1 (ground floor)
+[   42.0s] Killed Soldier in Level 1 (ground floor)
+[   42.0s] Killed Soldier in Level 1 (ground floor)
+[   42.0s] Killed Soldier in Level 1 (ground floor)
+[   43.6s] Military Base -> Level 2 (armory)
+[   83.6s] Killed Turret in Level 2 (armory)
+[   83.6s] Killed Turret in Level 2 (armory)
+[   83.6s] Killed Drone in Level 2 (armory)
+[   83.6s] Killed Drone in Level 2 (armory)
+[   83.6s] Killed Soldier in Level 2 (armory)
+[   83.6s] Killed Soldier in Level 2 (armory)
+[   83.6s] Killed Soldier in Level 2 (armory)
+[   83.6s] Killed Soldier in Level 2 (armory)
+[   83.6s] Killed Soldier in Level 2 (armory)
+[   89.3s] Level 2 (armory) -> Level 3 (destroyed floor)
+[  129.3s] Killed Heavy robot in Level 3 (destroyed floor)
+[  129.4s] Killed Soldier in Level 3 (destroyed floor)
+[  129.4s] Killed Soldier in Level 3 (destroyed floor)
+[  129.4s] Killed Soldier in Level 3 (destroyed floor)
+[  129.4s] Killed Soldier in Level 3 (destroyed floor)
+[  129.4s] Killed Soldier in Level 3 (destroyed floor)

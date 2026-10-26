@@ -921,9 +921,9 @@ MonoBehaviour:
   HoverHeight: 2.2
   PatrolRadius: 3
   Damage: 6
-  FireInterval: 0.3
+  FireInterval: 0.45
   WindUp: 0.2
-  Accuracy: 0.35
+  Accuracy: 0.3
   Range: 42
   Head: {fileID: 5084430325718271784}
   Muzzle: {fileID: 8031098280382813409}
