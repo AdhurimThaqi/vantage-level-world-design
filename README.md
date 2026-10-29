@@ -51,11 +51,12 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 | **3 · Destroyed floor** | barracks, comms room, hall, the blown-out open area and broken slab outside, SE room, robot room | 5 soldiers, 2 outside patrols, the **heavy robot** | Clearing the barracks, comms and hall opens the robot room, the way through to the destroyed area (a breach in its wall). Entering the destroyed area alerts the two patrols on the broken slab; killing both opens the SE room. **Only the rifle hurts the robot** ("You need a better gun"). | Everyone dead: the exit to the outside stairs unlocks |
 | **Finale · Helipad** | outside stairs, platform, helipad | 2 soldiers, then the **boss** | Clear the platform, step onto the pad: the boss appears, a bigger red-eyed robot that also **charges** after a visible wind-up. | The boss dies: the helicopter lands, *THE TOWER IS SILENT* |
 
-- **Intro.** A new run opens with a 13-second flyover: in over the base onto the tower, up to the sentry on the broken slab, across to the helipad (the way out), then down into your own camera. Any key skips it; it doesn't play again after a death.
+- **Intro and briefing.** A new run opens with a 19-second flyover that is also the mission briefing: in over the base onto the tower; a soldier walks away from the tower, the sentry on the broken slab fires a warning shot in front of him, he runs, and the next shot kills him (*RULE: STAY AT THE TOWER*); up to that sentry (*OBJECTIVE: FIGHT UP THROUGH THREE FLOORS*); across to the helipad (*OBJECTIVE: REACH THE HELIPAD*); down into your own camera (*FIRST: GRAB THE PISTOL AT THE ENTRANCE*, repeated as a banner when you take over). Any key skips it; it doesn't play again after a death.
 - **Sentries and the warning ring.** Two sentries patrol the outside of the top: the rim of the broken slab and the rim of the helipad platform, stopping at each end to scan the ground. Near the tower you are free. Walk more than 15 m past the tower's plot and the HUD warns *SENTRIES ABOVE: GET BACK TO THE TOWER* while they fire warning shots into the dirt at your feet (a red glint gives each one away first); go past 35 m, or stay in the warning band for 5 s, and they shoot to hit until you are back. Up on their level they fight like any soldier. They hold no door shut, and a sentry you kill stays dead for the run. The minimap shows the ring.
 - **Coins.** Five gold coins are hidden off the main route, one or two per level: a dead end on the ground floor, the far end of the office and a corner of the hall on level 2, the broken slab outside on level 3 (patrol ground), the far edge of the helipad. They are counted on the HUD and the end screen.
 - **End screen.** Time, deaths, coins, and three achievements: *All coins*, *No deaths*, *Under 15 minutes*.
-- **Dying** restarts the level you were on after three seconds (a checkpoint per level). Weapons and coins you found stay found; the level's enemies, doors and key are back where they started.
+- **Dying** restarts the level you were on after three seconds (a checkpoint per level), a little way down the stairs below that level (the helipad's restart is outside the exit), with your best gun already drawn and 3 seconds of protection: the floor above hides you, and you step up into the room when you are ready. Soldiers are also never placed within 14 m of a restart point with a view of it, unless the level has no other spawn points left. Weapons and coins you found stay found; the level's enemies, doors and key are back where they started.
+- **Enemy fire.** Soldiers fire in bursts with a pause between them and some aim error, so a soldier in the open takes a few seconds to bring you down, not one; damage rises from level 1 (6 per hit) to level 3 and the finale (8).
 - **HUD.** Kept to what you act on:
   - Top centre: the level, its name, one marker per enemy (it dims when that enemy dies), the goal of the moment (*FIND A WEAPON*, *LOCKDOWN · CLEAR THE FLOOR*, *REACH THE HELIPAD*, *DESTROY THE MACHINE*) and the coins found.
   - Bottom left: health, with a tick where regeneration stops. Bottom right: weapon and ammo.
@@ -68,7 +69,7 @@ A low golden sun shines in from the south-west, and the valley has its own sound
 
 ### The world: the military base
 
-The level is set in a 1 km valley I built in Blender: forested hills and a fenced military training base with headquarters, barracks, garages, vehicle pads, guard towers, roads and a shooting range further out. The whole valley is the playground: you can walk anywhere up to the forest's edge, and from the helipad the base opens up around you.
+The level is set in a 1 km valley I built in Blender: forested hills and a fenced military training base with headquarters, barracks, garages, vehicle pads, guard towers, roads and a shooting range further out. The valley is the backdrop: the sentries' warning ring keeps you near the tower, and from the helipad the base and the forest open up around you.
 
 A **minimap** in the top-left corner shows where you are (north up, the arrow turns with you), the tower (pinned to the edge when it is out of view, so the goal is always on screen), nearby enemies as red dots, the distance to the tower and the space you're in.
 
@@ -88,7 +89,8 @@ It is built by **Vantage → World → Build Military World** (`VantageMilitaryB
 
 - **Soldiers** use the template's cover-shooter AI, tuned to **stand and fight** (`VantageEnemyAggression`): they guard their room, use only cover within 9 m, never retreat, and lock on and fire whenever they see you on their floor. The alarm, an alert trigger or a quiet spell sends them after you; the L3 outside patrols walk their Blender routes until then.
 - **Drones and turrets** (`VantageDrone`) telegraph each shot: their eye **glows brighter just before they fire**. Accuracy drops with distance.
-- **The heavy robot and the boss** (`VantageHeavyRobot`) are slow and armoured: only rifle rounds get through. They fire telegraphed three-shot bursts; the boss also charges after a one-second wind-up. Their look is a placeholder until my Blender models replace it: put the model under the prefab's `Model` child (it may have colliders), and keep the `Eye`, `Eye Light` and `Muzzle` objects beside it.
+- **The heavy robot and the boss** (`VantageHeavyRobot`) are slow and armoured: only rifle rounds get through. They fire telegraphed three-shot bursts; the boss also charges after a one-second wind-up. The boss is the *ISO Mech* from the Asset Store, with its own idle, walk and death animations; the heavy robot is still a placeholder until my Blender model replaces it (put the model under the prefab's `Model` child, it may have colliders, and keep the `Eye`, `Eye Light` and `Muzzle` objects beside it).
+- **Soldier look:** the soldiers wear the *Low Poly Soldiers* body from the Asset Store. Setup swaps it onto the template soldier the same way as the player's avatar, so they keep the template's animations, guns and hit boxes.
 - **Doors on the route stand open**, so the way on reads at a glance and enemies can follow you through the building. Locked doors stay shut until their console, terminal or kill condition opens them. The shutter and the stairwell gate roll up.
 
 ### Weapons and cover
@@ -97,12 +99,12 @@ You start with nothing (`VantageArsenal`). The **pistol** lies just outside the 
 
 ### Procedural enemy placement
 
-`VantageTowerLevels` places each level's soldiers from a **seed** every time you press Play. Each level has more authored spawn markers than soldiers (13 on the ground floor alone); the level draws its soldiers from them **spread over different rooms first**, so the fights are different every play while the counts, difficulty and pacing stay the same. Markers a door depends on (the L3 patrols) are always used. The seed is written to the playtest log; `-vantageSeed N` on the command line replays a layout.
+`VantageTowerLevels` places each level's soldiers from a **seed** every time you press Play. Each level has more authored spawn markers than soldiers (13 on the ground floor alone); the level draws its soldiers from them **spread over different rooms first**, so the fights are different every play while the counts, difficulty and pacing stay the same. Markers a door depends on (the L3 patrols) are always used, and markers that can only be reached through the level's exit (the L2 stairwell, behind the gate that opens when the floor is clear) are never used. The seed is written to the playtest log; `-vantageSeed N` on the command line replays a layout.
 
 ### Automated playtest
 
 **Vantage → Test → Run Autoplay Test** (or batch: `-executeMethod Vantage.EditorTools.VantageAutoplay.RunBatch`, exit code 0 = passed) plays the real level and logs every result with `[Bot]`. It checks, in order:
-- the intro plays on a new run, frames the slab sentry, and a skip gives back control and the player's camera
+- the intro plays on a new run; the deserter is in the warning band, gets a warning shot and is shot dead, in frame with the slab sentry; the camera then frames the sentry; a skip gives back control and the player's camera, and the HUD shows the pistol objective
 - the security camera spots the player and springs the trap; walking through the trigger afterwards doesn't spring it twice
 - the main entrance can be walked through without getting stuck
 - soldiers fire and deal damage
@@ -111,17 +113,18 @@ You start with nothing (`VantageArsenal`). The **pistol** lies just outside the 
 - the key: the slot refuses without it, picking it up works, and the gate waits until level 2 is clear
 - the last enemies come for the player
 - the L3 patrol door opens after both patrols (not one)
-- the robot ignores pistol rounds (one warning, not one per bullet) and dies to the rifle
+- the robot ignores the player's pistol (one warning, not one per bullet) and dies to the drum rifle, with the real guns in hand
 - every stair flight can be climbed without stalling
 - the finale: the boss appears on the pad, its death brings the helicopter and the win
 - dying on level 2 restarts there with the pistol and a collected coin kept
+- dying on level 3 restarts protected with a gun in hand, no soldier in sight of the arrival, and little damage in the first 4 seconds
 - a shot-out camera stays quiet, while the trigger still springs the trap; no intro after a death, the intro again after *play again*
 - the warning ring: the zones, the 5-second grace (reset by stepping back), the HUD warning, no shots in the free zone, warning shots then hits in the warning band, hits in the kill zone, no hits without line of sight, silence during a cutscene
 - the sentries: both spawn on their routes and walk them without straying more than 6 m or changing level, they hold no lock (level 3's exit and the helipad open with both alive), and a killed sentry stays dead after a death
 
-`-vantageOnly cinematic|ring|sentries|intro` runs one group of checks for quick iteration.
+`-vantageOnly cinematic|ring|sentries|intro|spawns|respawn|robot` runs one group of checks for quick iteration.
 
-With `-vantageShots <folder>` it also saves screenshots of the game **with the HUD**: combat, alarm, key prompt, level cleared, boss, end screen, the ring warning (`hud_warning`) and the intro's sentry shot (`intro_shot2`).
+With `-vantageShots <folder>` it also saves screenshots of the game **with the HUD**: combat, alarm, key prompt, level cleared, boss, end screen, the ring warning (`hud_warning`), the intro's deserter shot (`intro_deserter`) and its sentry shot (`intro_shot2`).
 
 ### Playtest logging
 
@@ -134,7 +137,8 @@ Every play session writes a report to `Vantage_First-Person/Playtests/`:
 
 ### Performance
 
-- **Rendering:** the game renders with the PC settings at full resolution (Forward+, 4 shadow cascades, SSAO). The two lowest quality levels use a lighter mobile setup.
+- **Rendering:** the game renders with the PC settings at full resolution (Forward+, 2 shadow cascades, low soft shadows, SSAO at half resolution). The two lowest quality levels use a lighter mobile setup.
+- **The world:** the player never leaves the tower's warning ring, so real trees, props and buildings stand only within 220 m of the tower. Further out, low-poly far conifers and a thinned horizon forest take their place (about 6k trees instead of 26k, and a quarter of the horizon trees).
 - **The tower:** walls, slabs and stairs are occluder and batching static; glass, props and signs only occludee; doors, consoles and the alarm beacons dynamic. Occlusion culling is baked. Marker meshes are switched off once in the editor.
 - **Logic:** only the current level's enemies exist; doors on levels far from the player sleep; doors sense who is near a few times a second; kill-locked doors react to kills instead of polling; the HUD builds its texts only when a value changes. No script looks objects up by name or tag every frame.
 - **Lights:** none of the added lights casts shadows (alarm, key, coins, camera cone).
@@ -175,9 +179,9 @@ Level_World_Design_/
 The tower models stay as exported from Blender; their import script (`VANTAGE_Tower/Scripts/Editor/VantageTowerPostprocessor.cs`) turns the Blender custom properties into doors, triggers, consoles and pickups. **Vantage → Tower → Set Up Tower** (`VantageTower`) adds everything the game needs around it, under *VANTAGE Tower Setup*, and is safe to run again:
 - places the tower (where the old tower stood, entrance flush with the ground) and hides the marker meshes
 - static flags, doors out of the NavMesh (locked ones block it with obstacles), the level rules of the stairwell gate and the helipad exit
-- **smooth stair surfaces** over every flight, found from the real steps, as wide as the flight and flush with the floor at its foot (about 31°, a side entry where a wall blocks the foot), with NavMesh blockers so enemies stay on their floor, and the red shutter on the ground-floor stairs
+- **smooth stair surfaces** over every flight, found from the real steps, as wide as the flight and flush with the floor at its foot (about 31°; where a wall blocks the foot, a landing over the lowest steps with real side steps up to it), handrails along every open side where the model's rail stops (posts, top and mid rail, the model's own rail material), with NavMesh blockers so enemies stay on their floor, and the red shutter on the ground-floor stairs
 - cover on the props, the pistol and the rifle, the key and key slot, the alarm (beacons, lights, siren), the security camera, the extraction
-- **our soldier prefab** and the placeholder robot, boss and helicopter (built only when missing, so a real model put into them stays)
+- **our soldier prefab** (with the Low Poly Soldiers body), the placeholder robot and helicopter (built only when missing, so a real model put into them stays) and the boss with the ISO Mech
 - the level manager with the four levels, their restart points and difficulty
 - a NavMesh bake, then the five coins on walkable floor
 
@@ -207,7 +211,9 @@ Bought-in and provided assets build the bricks. The level layout, floor plans, e
 | *Stylized Coin Pack* (`Assets/PolyKebap`) | PolyKebap | The collectible coins (check the pack's licence before a commercial release) |
 | *Military Training Environment* (`Assets/Blender_Asset/MilitaryEnvUnity`) | My own work, built in Blender | The whole world: terrain, forest, the military base, props |
 | *Player character* (`Assets/Blender_Asset/AdhurimCharacter`) | My own avatar, made with Avaturn and exported from Blender | The player's body, animated by the template through Unity's humanoid retargeting (Vantage → Player → Use Character Model). Check Avaturn's terms before a commercial release. |
-| Robot, boss, helicopter | Placeholders built from boxes by `VantagePlaceholders` | Until my Blender models replace them | The placeholders will be replaced with real models which will be modeled in blender
+| *Low Poly Soldiers* (demo) (`Assets/LowPolySoldiers_demo`) | Unity Asset Store | The enemy soldiers' body (check the licence before a commercial release) |
+| *ISO Mech* (`Assets/RSG_UnderWater_Pack`) | Unity Asset Store | The final boss, with its animations (check the licence before a commercial release) |
+| Heavy robot, helicopter | Placeholders built from boxes by `VantagePlaceholders` | Until my Blender models replace them |
 | *TextMesh Pro* (Unity, Essential Resources) | Unity Technologies | Text rendering for the HUD and minimap |
 
 <!-- TODO before hand-in: check the publisher names against the Asset Store pages and add the store links. -->
@@ -219,4 +225,4 @@ Unused files (including the earlier six-storey command tower) were moved out of 
 - **Unity 6000.0.58f2** with URP. Active input handling is set to *Both*, because the template uses the old Input Manager.
 - **Git LFS** is required: run `git lfs install` before cloning. Textures, models, audio and terrain data are stored in LFS.
 - If the game might be sold later: check that the licences of the course template (*Third Person Cover Shooter*), *Pistol Animset Pro*, the *Stylized Coin Pack* and Avaturn cover commercial use.
-- The new tower has not had a peer-playtest round yet. Enemy counts and damage per level are the first things to tune (Inspector: *VANTAGE Tower Setup → Tower Levels*).
+- The new tower has not had a peer-playtest round yet. Enemy counts and damage per level are the first things to tune (Inspector: *VANTAGE Tower Setup → Tower Levels*: per level *Soldier Damage*; for all soldiers *Soldier Burst Wait*, *Soldier Aim Error*, *Safe Arrival Radius*, *Respawn Protection*).
