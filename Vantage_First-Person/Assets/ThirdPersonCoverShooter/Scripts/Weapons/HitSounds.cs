@@ -32,7 +32,7 @@ namespace CoverShooter
 
             var clip = clips[UnityEngine.Random.Range(0, clips.Length)];
 
-            AudioSource.PlayClipAtPoint(clip, hit.Position);
+            Vantage.VantageAudio.PlayClip(clip, hit.Position, "SFX");   // VANTAGE change: through the mixer (volume settings)
         }
     }
 }

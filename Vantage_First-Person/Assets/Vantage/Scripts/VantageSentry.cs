@@ -148,14 +148,15 @@ namespace Vantage
                 if (!_warnedThisScene)
                 {
                     _warnedThisScene = true;
-                    play(_voice, WarningCall != null ? WarningCall : VantageProceduralAudio.Create(VantageProceduralAudio.Kind.RadioStatic, 7), 0.9f);
+                    if (VantageAudio.Play(VantageSounds.SentryWarningCall, transform.position) == null)
+                        play(_voice, WarningCall != null ? WarningCall : VantageProceduralAudio.Create(VantageProceduralAudio.Kind.RadioStatic, 7), 0.9f);
                 }
             }
             _brain.Message("ToTurnAt", player.transform.position);
             _brain.Message("ToAimAt", VantagePhysics.AimPoint(player));
 
             var glint = Mathf.Clamp01(1f - (_nextShot - Time.time) / GlintTime);
-            if (_glint != null) { _glint.enabled = glint > 0f; _glint.intensity = 6f * glint; }
+            setGlint(glint);
             if (Time.time < _nextShot) return;
             _nextShot = Time.time + ShotInterval;
             if (_glint != null) _glint.enabled = false;
@@ -199,10 +200,20 @@ namespace Vantage
         /// <summary>The red glint at the eye, 0..1 (it warns of a shot).</summary>
         public void Glint(float amount)
         {
+            setGlint(amount);
+        }
+
+        /// <summary>The glint light; its warning tick plays as it comes on.</summary>
+        private void setGlint(float amount)
+        {
+            if (amount > 0f && !_glintOn) VantageAudio.Play2D(VantageSounds.SentryGlint);
+            _glintOn = amount > 0f;
             if (_glint == null) return;
-            _glint.enabled = amount > 0f;
+            _glint.enabled = _glintOn;
             _glint.intensity = 6f * amount;
         }
+
+        private bool _glintOn;
 
         /// <summary>A ring shot's look and sound (tracer, crack, dust when it misses), no damage.</summary>
         public void ScriptedShot(Vector3 to, bool miss)
@@ -235,7 +246,7 @@ namespace Vantage
                 _dust.transform.position = to;
                 _dust.Emit(14);
             }
-            play(_voice, ShotCrack != null ? ShotCrack : crack(), 1f);
+            if (VantageAudio.Play(VantageSounds.SentryCrack, from) == null) play(_voice, ShotCrack != null ? ShotCrack : crack(), 1f);
         }
 
         #endregion

@@ -74,7 +74,8 @@ namespace Vantage
         public void Collect()
         {
             if (!gameObject.activeSelf || !VantageRun.Coins.Add(Id)) return;
-            AudioSource.PlayClipAtPoint(PickupSound != null ? PickupSound : chime(), transform.position, 0.8f);
+            if (VantageAudio.Play(VantageSounds.CoinCollect, transform.position) == null)
+                AudioSource.PlayClipAtPoint(PickupSound != null ? PickupSound : chime(), transform.position, 0.8f);
             VantageEvents.RaiseCoinCollected(VantageRun.Coins.Count, Total);
             gameObject.SetActive(false);
         }

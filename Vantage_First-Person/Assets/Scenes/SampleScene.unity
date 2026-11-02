@@ -119996,6 +119996,114 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &747965137
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 747965139}
+  - component: {fileID: 747965138}
+  - component: {fileID: 747965140}
+  - component: {fileID: 747965141}
+  m_Layer: 0
+  m_Name: VANTAGE Audio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &747965138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747965137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c54fef13a8c04a4cbaea339d093ceaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Bank: {fileID: 11400000, guid: 70b528c22576e5b4c98510ceb33618e2, type: 2}
+  Mixer: {fileID: 0}
+  PoolSize: 16
+--- !u!4 &747965139
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747965137}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &747965140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747965137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c69daa558dc30645aaace0f118a44dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Zones:
+  - Name: Outside
+    Bed: AMB_Exterior_Dusk
+    Room: -3000
+    Decay: 0.6
+    Wet: -20
+  - Name: Level 1
+    Bed: AMB_L1_Interior
+    Room: -1200
+    Decay: 0.8
+    Wet: -10
+  - Name: Level 2
+    Bed: AMB_L2_Armory
+    Room: -800
+    Decay: 1.8
+    Wet: -6
+  - Name: Level 3
+    Bed: AMB_L3_Destroyed
+    Room: -1500
+    Decay: 1.1
+    Wet: -12
+  - Name: Helipad
+    Bed: AMB_Helipad
+    Room: -6000
+    Decay: 0.3
+    Wet: -30
+  Fade: 2
+  Poll: 0.25
+  Settle: 0.75
+  DebrisEvery: {x: 6, y: 14}
+--- !u!114 &747965141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747965137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a21f41e793f62d45bf172140429a32c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CombatFade: 2.5
+  CombatHold: 6
+  StingerDip: -8
+  SnapshotBlend: 1.5
+  EndingFade: 4
 --- !u!1 &748258806
 GameObject:
   m_ObjectHideFlags: 0
@@ -182624,3 +182732,4 @@ SceneRoots:
   - {fileID: 799869224}
   - {fileID: 422534401}
   - {fileID: 34235434}
+  - {fileID: 747965139}

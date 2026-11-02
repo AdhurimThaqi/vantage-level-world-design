@@ -138,7 +138,7 @@ namespace CoverShooter
             var clip = clips[UnityEngine.Random.Range(0, clips.Length)];
 
             if (delay < float.Epsilon)
-                AudioSource.PlayClipAtPoint(clip, position);
+                Vantage.VantageAudio.PlayClip(clip, position, "Voice");   // VANTAGE change: through the mixer (volume settings)
             else
                 StartCoroutine(delayedClip(clip, position, delay));
         }
@@ -146,7 +146,7 @@ namespace CoverShooter
         private IEnumerator delayedClip(AudioClip clip, Vector3 position, float delay)
         {
             yield return new WaitForSeconds(delay);
-            AudioSource.PlayClipAtPoint(clip, position);
+            Vantage.VantageAudio.PlayClip(clip, position, "Voice");   // VANTAGE change: through the mixer (volume settings)
         }
     }
 }

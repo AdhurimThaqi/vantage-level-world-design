@@ -13,8 +13,8 @@ namespace Vantage
     /// and the slab show), with the golden horizon behind the menu, while the extraction helicopter circles the base
     /// with a searchlight. Left: the title and Play / Settings /
     /// Credits / Quit (mouse, or W/S and Enter; Esc goes back). Play hands the camera, where it is, to VantageIntro.
-    /// Settings (master volume, mouse sensitivity, graphics quality, fullscreen) are kept in PlayerPrefs and applied
-    /// on every scene load.
+    /// Settings (master, music and effects volume, mouse sensitivity, graphics quality, fullscreen) are kept in
+    /// PlayerPrefs and applied on every scene load (the volumes by VantageAudio, through the mixer).
     /// </summary>
     public class VantageMainMenu : MonoBehaviour
     {
@@ -33,7 +33,7 @@ namespace Vantage
         /// <summary>The menu is up (the intro waits for Play).</summary>
         public bool Showing { get; private set; }
 
-        private const string VolumeKey = "vantage.volume", SensitivityKey = "vantage.sensitivity", QualityKey = "vantage.quality";
+        private const string SensitivityKey = "vantage.sensitivity", QualityKey = "vantage.quality";
         private const float SwayDegrees = 8f, SwaySpeed = 0.11f, Distance = 38f, Height = 1.8f, Turn = 20f;
 
         private enum Page { Main, Settings, Credits }
@@ -50,6 +50,7 @@ namespace Vantage
         private RectTransform _mainPanel, _settingsPanel, _creditsPanel;
         private readonly List<Behaviour> _mouseLocks = new List<Behaviour>();
         private GameObject _helicopter;
+        private AudioSource _rotor;
         private Transform _mainRotor, _tailRotor;
         private float _heliAngle;
 
@@ -58,6 +59,7 @@ namespace Vantage
             public RectTransform Rect;
             public Image Frame, Fill, Bar;
             public TMP_Text Label, Value;
+            public string Name;
             public System.Action<int> Act;   // 0 choose, -1 / +1 change a setting
         }
 
@@ -75,10 +77,10 @@ namespace Vantage
             if (_helicopter != null) Destroy(_helicopter);
         }
 
-        /// <summary>Volume, mouse sensitivity and quality from PlayerPrefs (every scene load; the menu or not).</summary>
+        /// <summary>Volumes, mouse sensitivity and quality from PlayerPrefs (every scene load; the menu or not).</summary>
         public static void ApplySettings()
         {
-            AudioListener.volume = PlayerPrefs.GetFloat(VolumeKey, 1f);
+            VantageAudio.ApplyVolumes();
             if (PlayerPrefs.HasKey(QualityKey))
                 QualitySettings.SetQualityLevel(Mathf.Clamp(PlayerPrefs.GetInt(QualityKey), 0, QualitySettings.names.Length - 1), true);
             var sensitivity = PlayerPrefs.GetFloat(SensitivityKey, 1f);
@@ -110,13 +112,18 @@ namespace Vantage
             Showing = false;
             Destroy(_canvas.gameObject);
             if (_helicopter != null) Destroy(_helicopter);
+            VantageAudio.Stop(_rotor, 1f);
             foreach (var m in _mouseLocks) if (m != null) m.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
 
         /// <summary>Starts the game (also used by the playtest bot).</summary>
-        public void Play() => _play = true;
+        public void Play()
+        {
+            VantageAudio.Play2D(VantageSounds.UiSelect);
+            _play = true;
+        }
 
         public void OpenSettings() => show(Page.Settings);
         public void OpenCredits() => show(Page.Credits);
@@ -136,8 +143,8 @@ namespace Vantage
                 if (Input.anyKeyDown) Back();
                 return;
             }
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) select((_selected + rows.Count - 1) % rows.Count);
-            if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) select((_selected + 1) % rows.Count);
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) MoveSelection(-1);
+            if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) MoveSelection(+1);
             if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) rows[_selected].Act(-1);
             if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) rows[_selected].Act(+1);
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space)) rows[_selected].Act(0);
@@ -183,6 +190,7 @@ namespace Vantage
             if (extraction == null || extraction.HelicopterPrefab == null) return;
             _helicopter = Instantiate(extraction.HelicopterPrefab);
             _helicopter.name = "Menu Helicopter";
+            _rotor = VantageAudio.PlayLoop(VantageSounds.HeliRotor, _helicopter.transform);
             foreach (var c in _helicopter.GetComponentsInChildren<Collider>()) c.enabled = false;
             foreach (var t in _helicopter.GetComponentsInChildren<Transform>())
             {
@@ -247,12 +255,14 @@ namespace Vantage
             _main.Add(row(_mainPanel, _main.Count, "Credits", null, _ => OpenCredits()));
             _main.Add(row(_mainPanel, _main.Count, "Quit", null, _ => quit()));
 
-            _settingsPanel = VantageUI.Rect("Settings", _canvas, new Vector2(0, 0.5f), new Vector2(100, -90), new Vector2(760, 420));
-            _settings.Add(row(_settingsPanel, 0, "Volume", "", d => change(VolumeKey, d, 0f, 1f, 0.1f, 1f)));
-            _settings.Add(row(_settingsPanel, 1, "Mouse sensitivity", "", d => change(SensitivityKey, d, 0.4f, 2f, 0.1f, 1f)));
-            _settings.Add(row(_settingsPanel, 2, "Graphics", "", d => quality(d)));
-            _settings.Add(row(_settingsPanel, 3, "Fullscreen", "", _ => { Screen.fullScreen = !Screen.fullScreen; refresh(); }));
-            _settings.Add(row(_settingsPanel, 4, "Back", null, _ => Back()));
+            _settingsPanel = VantageUI.Rect("Settings", _canvas, new Vector2(0, 0.5f), new Vector2(100, -160), new Vector2(760, 530));
+            _settings.Add(row(_settingsPanel, 0, "Master", "", d => volume(VantageAudio.MasterKey, d)));
+            _settings.Add(row(_settingsPanel, 1, "Music", "", d => volume(VantageAudio.MusicKey, d)));
+            _settings.Add(row(_settingsPanel, 2, "Effects", "", d => volume(VantageAudio.EffectsKey, d)));
+            _settings.Add(row(_settingsPanel, 3, "Mouse sensitivity", "", d => change(SensitivityKey, d, 0.4f, 2f, 0.1f, 1f)));
+            _settings.Add(row(_settingsPanel, 4, "Graphics", "", d => quality(d)));
+            _settings.Add(row(_settingsPanel, 5, "Fullscreen", "", _ => { Screen.fullScreen = !Screen.fullScreen; refresh(); }));
+            _settings.Add(row(_settingsPanel, 6, "Back", null, _ => Back()));
 
             _creditsPanel = VantageUI.Rect("Credits", _canvas, new Vector2(0, 0.5f), new Vector2(110, -90), new Vector2(900, 420));
             var credits = VantageUI.Text(_creditsPanel, "Text", 26, TextAlignmentOptions.TopLeft, new Vector2(0, 1), Vector2.zero, new Vector2(900, 420));
@@ -265,7 +275,7 @@ namespace Vantage
 
         private Row row(RectTransform panel, int index, string label, string value, System.Action<int> act)
         {
-            var r = new Row { Act = act };
+            var r = new Row { Name = label, Act = act };
             r.Rect = VantageUI.Rect(label, panel, new Vector2(0, 1), new Vector2(0, -index * 78), new Vector2(panel.sizeDelta.x, 60));
             r.Fill = VantageUI.Image(VantageUI.Stretch("Fill", r.Rect), new Color(VantageUI.Danger.r, VantageUI.Danger.g, VantageUI.Danger.b, 0.16f), VantageUI.Pixel);
             r.Frame = VantageUI.Image(VantageUI.Stretch("Frame", r.Rect), VantageUI.Danger, frameSprite());
@@ -298,6 +308,7 @@ namespace Vantage
 
         private void show(Page page)
         {
+            if (_mainPanel != null && page != _page) VantageAudio.Play2D(VantageSounds.UiSelect);
             _page = page;
             _mainPanel.gameObject.SetActive(page == Page.Main);
             _settingsPanel.gameObject.SetActive(page == Page.Settings);
@@ -306,8 +317,37 @@ namespace Vantage
             refresh();
         }
 
+        /// <summary>The settings page's row names, top to bottom.</summary>
+        public IEnumerable<string> SettingNames
+        {
+            get { foreach (var r in _settings) yield return r.Name; }
+        }
+
+        /// <summary>Acts on a settings row: -1 / +1 change it, 0 chooses it (A/D, Enter, the mouse; also the bot).</summary>
+        public void ChangeSetting(int index, int step)
+        {
+            if (index >= 0 && index < _settings.Count) _settings[index].Act(step);
+        }
+
+        /// <summary>A volume row: 0–1 in tenths, applied at once (the old single volume seeds Master).</summary>
+        private void volume(string key, int step)
+        {
+            if (!PlayerPrefs.HasKey(key)) PlayerPrefs.SetFloat(key, VantageAudio.Setting(key));
+            change(key, step, 0f, 1f, 0.1f, 1f);
+            VantageAudio.ApplyVolumes();
+        }
+
+        /// <summary>Moves the highlight up (-1) or down (+1) the current page, wrapping (W/S; also the bot).</summary>
+        public void MoveSelection(int step)
+        {
+            var rows = _page == Page.Main ? _main : _page == Page.Settings ? _settings : null;
+            var count = rows != null ? rows.Count : 0;
+            if (count > 0) select(((_selected + step) % count + count) % count);
+        }
+
         private void select(int index)
         {
+            if (index != _selected && Showing) VantageAudio.Play2D(VantageSounds.UiMove);
             _selected = index;
             var rows = _page == Page.Main ? _main : _settings;
             for (int i = 0; i < rows.Count; i++)
@@ -320,11 +360,13 @@ namespace Vantage
 
         private void refresh()
         {
-            if (_settings.Count < 4) return;
-            _settings[0].Value.text = $"< {Mathf.RoundToInt(PlayerPrefs.GetFloat(VolumeKey, 1f) * 100)} % >";
-            _settings[1].Value.text = $"< {PlayerPrefs.GetFloat(SensitivityKey, 1f):0.0}x >";
-            _settings[2].Value.text = $"< {VantageUI.Caps(QualitySettings.names[QualitySettings.GetQualityLevel()])} >";
-            _settings[3].Value.text = Screen.fullScreen ? "< ON >" : "< OFF >";
+            if (_settings.Count < 6) return;
+            _settings[0].Value.text = $"< {Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.MasterKey) * 100)} % >";
+            _settings[1].Value.text = $"< {Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.MusicKey) * 100)} % >";
+            _settings[2].Value.text = $"< {Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.EffectsKey) * 100)} % >";
+            _settings[3].Value.text = $"< {PlayerPrefs.GetFloat(SensitivityKey, 1f):0.0}x >";
+            _settings[4].Value.text = $"< {VantageUI.Caps(QualitySettings.names[QualitySettings.GetQualityLevel()])} >";
+            _settings[5].Value.text = Screen.fullScreen ? "< ON >" : "< OFF >";
         }
 
         private void change(string key, int step, float min, float max, float by, float fallback)
@@ -334,7 +376,6 @@ namespace Vantage
             if (step == 0 && Mathf.Approximately(before, max)) value = min;   // Enter cycles round
             PlayerPrefs.SetFloat(key, value);
             PlayerPrefs.Save();
-            if (key == VolumeKey) AudioListener.volume = value;
             if (key == SensitivityKey)
                 foreach (var input in FindObjectsByType<ThirdPersonInput>(FindObjectsSortMode.None))
                 {

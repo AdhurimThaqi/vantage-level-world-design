@@ -3671,6 +3671,7 @@ GameObject:
   - component: {fileID: 5658211278233600690}
   - component: {fileID: 4917319467557275133}
   - component: {fileID: 5813221752387338839}
+  - component: {fileID: 2620089820629959809}
   m_Layer: 10
   m_Name: Adhurim_Avatar
   m_TagString: Untagged
@@ -4247,6 +4248,18 @@ MonoBehaviour:
     PreventClimbing: 0
     PreventArmLowering: 0
     Aiming: 0
+--- !u!114 &2620089820629959809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5061944244249645730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d54ccca5b3f561a4192b77ce30c33066, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5170350806629150898
 GameObject:
   m_ObjectHideFlags: 0

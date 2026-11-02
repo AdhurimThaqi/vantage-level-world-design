@@ -14,7 +14,7 @@ namespace Vantage.Testing
     /// the real scene and logs measurable answers to "do soldiers shoot back", "do the gates open", "do the stairs
     /// work", then quits. Every line it writes starts with "[Bot]".
     /// </summary>
-    public class VantageAutoplayBot : MonoBehaviour
+    public partial class VantageAutoplayBot : MonoBehaviour
     {
         // Play mode reloads the scripting domain, so the request and the result travel in SessionState.
         public const string RequestKey = "Vantage.Autoplay", ResultKey = "Vantage.Autoplay.Result";
@@ -256,6 +256,9 @@ namespace Vantage.Testing
                 case "handback":
                     yield return introHandback(levels);
                     break;
+                case "audio":
+                    yield return audioChecks(levels);
+                    break;
                 case "robot":
                     yield return clearLevel(levels, 0);
                     yield return clearLevel(levels, 1);
@@ -288,14 +291,30 @@ namespace Vantage.Testing
             yield return hudSnapshot("menu_main");
             menu.OpenSettings();
             yield return hudSnapshot("menu_settings");
+            // The volume settings: six rows and Back; lowering Master once from full gives 0.9 (restored after).
+            var names = string.Join("/", menu.SettingNames);
+            var hadMaster = PlayerPrefs.HasKey(VantageAudio.MasterKey);
+            var masterBefore = PlayerPrefs.GetFloat(VantageAudio.MasterKey, 1f);
+            PlayerPrefs.SetFloat(VantageAudio.MasterKey, 1f);
+            menu.ChangeSetting(0, -1);
+            var lowered = PlayerPrefs.GetFloat(VantageAudio.MasterKey, -1f);
+            var listener = AudioListener.volume;
+            if (hadMaster) PlayerPrefs.SetFloat(VantageAudio.MasterKey, masterBefore); else PlayerPrefs.DeleteKey(VantageAudio.MasterKey);
+            VantageAudio.ApplyVolumes();
+            var noMixer = VantageAudio.Instance == null || VantageAudio.Instance.Mixer == null;
+            var settingsOk = names == "Master/Music/Effects/Mouse sensitivity/Graphics/Fullscreen/Back" && Mathf.Approximately(lowered, 0.9f)
+                             && (!noMixer || Mathf.Approximately(listener, 0.9f));
             menu.OpenCredits();
             yield return hudSnapshot("menu_credits");
             menu.Back();
+            menu.MoveSelection(+1);
+            menu.MoveSelection(-1);
             var held = VantageCinematic.Active && VantageIntro.Instance != null && !VantageIntro.Instance.Playing;
             menu.Play();
             for (float t = 0; t < 2f && (menu.Showing || !VantageIntro.Instance.Playing); t += Time.deltaTime) yield return null;
-            var line = $"camera held {held}, after Play: menu showing {menu.Showing}, intro playing {VantageIntro.Instance.Playing}";
-            if (held && !menu.Showing && VantageIntro.Instance.Playing) log("PASS title screen, then Play starts the intro: " + line);
+            var line = $"camera held {held}, after Play: menu showing {menu.Showing}, intro playing {VantageIntro.Instance.Playing}; " +
+                       $"settings {names}, master lowered to {lowered:0.0} (listener {listener:0.0}, mixer {!noMixer})";
+            if (held && !menu.Showing && VantageIntro.Instance.Playing && settingsOk) log("PASS title screen, then Play starts the intro: " + line);
             else fail("title screen: " + line);
         }
 
@@ -885,8 +904,12 @@ namespace Vantage.Testing
             for (; wait < 15f && !_won; wait += Time.deltaTime) yield return null;
             VantageEvents.GameWon -= onWon;
             var heli = FindFirstObjectByType<VantageExtraction>();
-            var line = $"waiting for the pad {waiting}, boss spawned {levels.BossSpawned} ({(boss != null ? "found" : "missing")}), boss dead {levels.BossDead}, helicopter landed {(heli != null && heli.Landed)}, won {_won} after {wait:F1} s";
-            if (waiting && boss != null && levels.BossDead && heli != null && heli.Landed && _won) log("PASS finale: " + line);
+            // The music marks the end: the extraction stinger once, then the drone fades out for good (a silent end screen).
+            for (float t = 0; t < 5f; t += Time.deltaTime) yield return null;
+            var music = FindAnyObjectByType<VantageMusic>();
+            var silentEnd = music != null && music.Ended && VantageAudio.Plays(VantageSounds.StgExtraction) == 1;
+            var line = $"waiting for the pad {waiting}, boss spawned {levels.BossSpawned} ({(boss != null ? "found" : "missing")}), boss dead {levels.BossDead}, helicopter landed {(heli != null && heli.Landed)}, won {_won} after {wait:F1} s, extraction stingers {VantageAudio.Plays(VantageSounds.StgExtraction)}, music ended {(music != null && music.Ended)}";
+            if (waiting && boss != null && levels.BossDead && heli != null && heli.Landed && _won && silentEnd) log("PASS finale: " + line);
             else fail("finale: " + line);
             yield return hudSnapshot("hud_end_screen");
         }
@@ -1915,9 +1938,10 @@ namespace Vantage.Testing
             var gateOpen = FindObjectsByType<VantageFloorGate>(FindObjectsSortMode.None).Where(g => g.Level == 0).All(g => g.IsOpen);
             var shutter = VantageDoor.Find("SHUTTER_Maintenance");
             var pistol = VantageRun.Weapons.Contains("Pistol");
+            var rolls = VantageAudio.Plays(VantageSounds.ShutterRoll);
             var line = $"current level {levels.Current + 1}, player at arrival {near}, L1 gate open {gateOpen}, shutter closed {(shutter != null && shutter.ShutterClosed)}, " +
-                       $"{levels.Remaining} enemies, pistol kept {pistol}, deaths {deaths}";
-            if (levels.Current == 1 && near && gateOpen && shutter != null && !shutter.ShutterClosed && levels.Remaining > 0 && pistol && deaths >= 1)
+                       $"{levels.Remaining} enemies, pistol kept {pistol}, deaths {deaths}, shutter rolls heard {rolls}";
+            if (levels.Current == 1 && near && gateOpen && shutter != null && !shutter.ShutterClosed && levels.Remaining > 0 && pistol && deaths >= 1 && rolls == 0)
                 log("PASS checkpoint restore: " + line);
             else
                 fail("checkpoint restore: " + line);
@@ -1971,8 +1995,8 @@ namespace Vantage.Testing
                 log($"respawn: hits from {g.Key}: {g.Count()}, {g.Sum(h => h.damage):F0} damage, first at {g.Min(h => h.time) - t0:F2} s");
             var damage = hits.Hits.Sum(h => h.damage);
             Destroy(hits);
-            var line = $"level {levels.Current + 1} (seed {levels.Seed}), protected {_protectedAtAcquire}, in hand {equipped}, soldiers in sight of the arrival {seen.Count} ({string.Join(", ", seen)}), damage in 4 s {damage:F0}";
-            if (levels.Current == level && _protectedAtAcquire && equipped != "nothing" && seen.Count == 0 && damage < 50f) log("PASS respawn is safe: " + line);
+            var line = $"level {levels.Current + 1} (seed {levels.Seed}), protected {_protectedAtAcquire}, in hand {equipped}, soldiers in sight of the arrival {seen.Count} ({string.Join(", ", seen)}), damage in 4 s {damage:F0}, shutter rolls heard {VantageAudio.Plays(VantageSounds.ShutterRoll)}";
+            if (levels.Current == level && _protectedAtAcquire && equipped != "nothing" && seen.Count == 0 && damage < 50f && VantageAudio.Plays(VantageSounds.ShutterRoll) == 0) log("PASS respawn is safe: " + line);
             else fail("respawn: " + line);
         }
 

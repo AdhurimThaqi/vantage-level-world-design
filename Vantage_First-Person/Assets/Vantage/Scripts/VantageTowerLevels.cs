@@ -11,6 +11,8 @@ namespace Vantage
     public interface IVantageEnemy
     {
         bool IsDead { get; }
+        /// <summary>Alive and has the player in sight right now (what it checks before it fires; the music's combat state).</summary>
+        bool Engaging { get; }
     }
 
     /// <summary>
@@ -666,7 +668,7 @@ namespace Vantage
         private void restoreCheckpoint(int level)
         {
             foreach (var gate in _gates)
-                if (gate.Level < level) gate.Open();
+                if (gate.Level < level) gate.Open(instant: true);
             foreach (var door in VantageDoor.All)
                 if (levelAt(door.transform.position, 0.3f) < level || door.ClearLevel >= 0 && door.ClearLevel < level)
                     door.ForceOpen();

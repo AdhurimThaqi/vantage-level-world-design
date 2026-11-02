@@ -33,11 +33,13 @@ namespace Vantage
             tint(Locked);
         }
 
-        public void Open()
+        /// <summary>Rolls the shutter up; instant (a checkpoint load) puts it up at once, without a sound.</summary>
+        public void Open(bool instant = false)
         {
             if (IsOpen) return;
             IsOpen = true;
-            _openedAt = Time.time;
+            _openedAt = instant ? Time.time - 10f : Time.time;
+            if (!instant) VantageAudio.Play(VantageSounds.ShutterRoll, transform.position);
             if (Blocker != null) Blocker.enabled = false;
             if (Obstacle != null) Obstacle.enabled = false;
             tint(Unlocked);

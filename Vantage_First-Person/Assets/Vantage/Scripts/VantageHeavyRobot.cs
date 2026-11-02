@@ -76,6 +76,22 @@ namespace Vantage
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         private static readonly int SpeedParam = Animator.StringToHash("Speed"), DieParam = Animator.StringToHash("Die");
 
+        public bool Engaging => !IsDead && _canSee;
+
+        private AudioSource _servo;
+
+        /// <summary>The servo loop while it walks (the boss lower and slower).</summary>
+        private void servo()
+        {
+            var moving = _chargeLeft > 0 || (_agent != null && _agent.enabled && _agent.velocity.sqrMagnitude > 0.04f);
+            if (moving && _servo == null)
+            {
+                _servo = VantageAudio.PlayLoop(VantageSounds.RobotServo, transform);
+                if (_servo != null && IsBoss) _servo.pitch *= 0.7f;
+            }
+            else if (!moving && _servo != null) { VantageAudio.Stop(_servo, 0.3f); _servo = null; }
+        }
+
         private void Awake()
         {
             _health = GetComponent<CharacterHealth>();
@@ -110,6 +126,7 @@ namespace Vantage
             {
                 _nextThink = Time.time + ThinkInterval;
                 think();
+                servo();
             }
             if (_target == null) return;
 
@@ -154,7 +171,7 @@ namespace Vantage
                 return;
             }
             if (!_canSee || Time.time < _nextBurst) { _windUpStart = -1f; setEye(0f); return; }
-            if (_windUpStart < 0) _windUpStart = Time.time;
+            if (_windUpStart < 0) { _windUpStart = Time.time; VantageAudio.Play(VantageSounds.RobotTelegraph, transform.position); }
             var charge = (Time.time - _windUpStart) / Mathf.Max(0.01f, WindUp);
             setEye(charge);
             if (charge < 1f) return;
@@ -267,6 +284,7 @@ namespace Vantage
             }
             if (RifleOnly && pistolRound(hit, attacker))
             {
+                VantageAudio.Play(VantageSounds.RobotDeflect, hit.Position);
                 if (Time.time >= _nextMessage)
                 {
                     _nextMessage = Time.time + 2f;
@@ -295,6 +313,8 @@ namespace Vantage
         private void die()
         {
             IsDead = true;
+            VantageAudio.Stop(_servo, 0.3f);
+            _servo = null;
             setEye(0f);
             if (_eyeMaterial != null) _eyeMaterial.SetColor(EmissionColor, Color.black);
             if (EyeLight != null) EyeLight.enabled = false;

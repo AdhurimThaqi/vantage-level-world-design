@@ -166,7 +166,13 @@ namespace Vantage
         }
 
         public void CloseShutter() { shutterTarget = 0f; updateObstacle(); }
-        public void OpenShutter() { shutterTarget = 1f; updateObstacle(); }
+        public void OpenShutter()
+        {
+            // VANTAGE change: the roll-up sound
+            if (shutterTarget < 1f) VantageAudio.Play(VantageSounds.ShutterRoll, transform.position);
+            shutterTarget = 1f;
+            updateObstacle();
+        }
         public bool ShutterClosed => shutterT <= 0.001f;
 
         /// <summary>Re-checks every door's KILL list (called by the level brain when an enemy dies or a level starts).</summary>

@@ -29,6 +29,7 @@ namespace Vantage
         public int Raised { get; private set; }
 
         private MaterialPropertyBlock _block;
+        private AudioSource _siren;
 
         private void Awake()
         {
@@ -61,8 +62,10 @@ namespace Vantage
             Active = true;
             Raised++;
             var door = VantageDoor.Find(Shutter);
-            if (door != null) door.CloseShutter();
-            if (Siren != null) Siren.SetActive(true);
+            if (door != null) { door.CloseShutter(); VantageAudio.Play(VantageSounds.ShutterSlam, door.transform.position); }
+            var anchor = Siren != null ? Siren.transform : Beacons != null && Beacons.Length > 0 && Beacons[0] != null ? Beacons[0].transform : transform;
+            _siren = VantageAudio.PlayLoop(VantageSounds.AlarmSiren, anchor);
+            if (_siren == null && Siren != null) Siren.SetActive(true);
             if (levels != null) levels.StartHunt();
             VantageEvents.RaiseMessage(source == "camera" ? "Spotted! Lockdown" : "Lockdown");
             Debug.Log($"[Vantage] Alarm raised by the {source}.");
@@ -72,6 +75,8 @@ namespace Vantage
         {
             if (!Active) return;
             Active = false;
+            VantageAudio.Stop(_siren, 1.5f);
+            _siren = null;
             if (Siren != null) Siren.SetActive(false);
             setLights(0f);
         }

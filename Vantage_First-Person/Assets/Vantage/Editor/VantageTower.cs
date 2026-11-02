@@ -1560,6 +1560,7 @@ namespace Vantage.EditorTools
                     animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 if (go.GetComponent<VantageEnemyAggression>() == null) go.AddComponent<VantageEnemyAggression>();
                 if (go.GetComponent<VantageKillReporter>() == null) go.AddComponent<VantageKillReporter>().EnemyName = "Soldier";
+                if (go.GetComponent<VantageFootsteps>() == null) go.AddComponent<VantageFootsteps>();   // on the prefab: the motor collects listeners in Awake
                 var saved = PrefabUtility.SaveAsPrefabAsset(go, SoldierPrefabPath);
                 Debug.Log($"[Vantage] Soldier prefab: {inventory.Weapons.Length} weapons ({string.Join(", ", inventory.Weapons.Select(w => w.RightItem.name))}).");
                 return saved;

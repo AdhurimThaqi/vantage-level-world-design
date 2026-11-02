@@ -34,6 +34,7 @@ namespace Vantage
             if (_flyStart >= 0 || _pickup == null || item != _pickup.item) return;
             _flyStart = Time.time;
             _flyFrom = transform.position;
+            VantageAudio.Play(VantageSounds.KeyPickup, transform.position);
             if (_light != null) _light.enabled = false;
             VantageEvents.RaiseMessage(item + " acquired");
         }

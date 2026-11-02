@@ -89,6 +89,9 @@ namespace Vantage
         private static readonly RaycastHit[] _hits = new RaycastHit[16];
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
+        private bool _engaging;
+        public bool Engaging => !IsDead && _engaging;
+
         private void Awake()
         {
             _health = GetComponent<CharacterHealth>();
@@ -112,6 +115,16 @@ namespace Vantage
             _cornerCount = 0;
         }
 
+        private void Start()
+        {
+            // The produced hum (when the bank has it) replaces the synthesised one.
+            _hum = VantageAudio.PlayLoop(VantageSounds.DroneHum, transform);
+            var synth = GetComponentInChildren<VantageProceduralAudio>();
+            if (_hum != null && synth != null) synth.gameObject.SetActive(false);
+        }
+
+        private AudioSource _hum;
+
         private void OnEnable() => All.Add(this);
         private void OnDisable() => All.Remove(this);
 
@@ -134,6 +147,7 @@ namespace Vantage
             // last enemies of the level → come to the player; otherwise guard the post.
             _target = VantageEvents.ActivePlayer();
             var canSee = _target != null && inSightRange(_target) && canSeeTarget(out _);
+            _engaging = canSee;
             if (canSee)
             {
                 _alerted = true;
@@ -462,6 +476,8 @@ namespace Vantage
             var hum = GetComponentInChildren<VantageProceduralAudio>();
             if (hum != null)
                 hum.GetComponent<AudioSource>().Stop();
+            VantageAudio.Stop(_hum, 0.3f);
+            _hum = null;
 
             if (DeathExplosion != null)
                 Destroy(Instantiate(DeathExplosion, transform.position, Quaternion.identity), 5f);

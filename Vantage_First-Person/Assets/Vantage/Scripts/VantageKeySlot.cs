@@ -43,6 +43,7 @@ namespace Vantage
                 _keyStart = _key.localRotation;
             }
             _turnStart = Time.time;
+            VantageAudio.Play(VantageSounds.KeySlotTurn, transform.position);
             var levels = VantageTowerLevels.Instance;
             if (levels != null && !levels.IsCleared(GateLevel))
                 VantageEvents.RaiseMessage("Key in. Clear the floor to open the gate");

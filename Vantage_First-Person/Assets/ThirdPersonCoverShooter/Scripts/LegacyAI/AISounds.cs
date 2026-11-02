@@ -111,7 +111,7 @@ namespace CoverShooter
                 return;
 
             var clip = clips[UnityEngine.Random.Range(0, clips.Length)];
-            AudioSource.PlayClipAtPoint(clip, transform.position);
+            Vantage.VantageAudio.PlayClip(clip, transform.position, "Voice");   // VANTAGE change: through the mixer (volume settings)
         }
     }
 }

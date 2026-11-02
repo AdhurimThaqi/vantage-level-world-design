@@ -52,7 +52,7 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 | **3 · Destroyed floor** | barracks, comms room, hall, the blown-out open area and broken slab outside, SE room, robot room | 5 soldiers, 2 outside patrols, the **heavy robot** | Clearing the barracks, comms and hall opens the robot room, the way through to the destroyed area (a breach in its wall). Entering the destroyed area alerts the two patrols on the broken slab; killing both opens the SE room. **Only the rifle hurts the robot** ("You need a better gun"). | Everyone dead: the exit to the outside stairs unlocks |
 | **Finale · Helipad** | outside stairs, platform, helipad | 2 soldiers, then the **boss** | Clear the platform, step onto the pad: the boss appears, a bigger red-eyed robot that also **charges** after a visible wind-up. | The boss dies: the helicopter lands, *THE TOWER IS SILENT* |
 
-- **Title screen at dusk.** The game opens on its own title screen inside the level: the camera drifts in front of the tower at dusk, its red warning lights blinking, the extraction helicopter circling the base with a searchlight. Play game flies straight into the intro; Settings has volume, mouse sensitivity, graphics quality and fullscreen (kept between sessions); Credits lists who and what made the game. The whole level plays at dusk: a low warm sun, long shadows, the base's lamps and floodlights on.
+- **Title screen at dusk.** The game opens on its own title screen inside the level: the camera drifts in front of the tower at dusk, its red warning lights blinking, the extraction helicopter circling the base with a searchlight. Play game flies straight into the intro; Settings has master, music and effects volume, mouse sensitivity, graphics quality and fullscreen (kept between sessions); Credits lists who and what made the game. The whole level plays at dusk: a low warm sun, long shadows, the base's lamps and floodlights on.
 - **Intro and briefing.** A new run opens with a 23-second flyover that is also the mission briefing: in over the base onto the tower; a soldier walks away from the tower, the sentry on the broken slab fires a warning shot in front of him, he runs, and the next shot kills him (*RULE: STAY AT THE TOWER*); then the camera climbs around the outside of the tower and stops at each level with its task (*A TRAP LOCKS YOU IN: CLEAR THE FLOOR*, *FIND THE RIFLE AND THE KEY*, *ONLY THE RIFLE HURTS THE MACHINE*, and over the helipad *KILL THE BOSS: THE HELICOPTER IS YOUR WAY OUT*); it ends on the pistol on the ground (*FIRST: GRAB THE PISTOL*, repeated as a banner when you take over). Any key skips it; it doesn't play again after a death.
 - **A quiet approach.** The tower is silent until you go in: soldiers that haven't fought yet don't notice you outside or during a cutscene. Entering the tower, the alarm, or shooting one of them wakes them.
 - **Sentries and the warning ring.** Two sentries patrol the outside of the top: the rim of the broken slab and the rim of the helipad platform, stopping at each end to scan the ground. Near the tower you are free. Walk more than 15 m past the tower's plot and the HUD warns *SENTRIES ABOVE: GET BACK TO THE TOWER* while they fire warning shots into the dirt at your feet (a red glint gives each one away first); go past 35 m, or stay in the warning band for 5 s, and they shoot to hit until you are back. Up on their level they fight like any soldier. They hold no door shut, and a sentry you kill stays dead for the run. The minimap shows the ring.
@@ -69,6 +69,10 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 ### Mood
 
 A low golden sun shines in from the south-west, and the valley has its own soundscape: wind in the forest, running generators and humming floodlights. Inside, the alarm turns the ground floor red: flashing beacons, red lights and a siren until the floor is clear.
+
+### Sound
+
+The sound is my SOUNDCREA project, produced in REAPER (the guide is `Audio_Production/README.md`). Every space has its own ambience and reverb: the dusk exterior, the ground floor's ventilation, the Armory's big hall, the wind through the destroyed floor and the open helipad. Moving between them crossfades the ambience. Footsteps change with the surface (dirt, concrete, metal). The level's moments have their own sounds: the trap's shutter slam and siren, the key and its slot, the sentries' warning tick and distant crack, a soldier's "Contact!" when it spots you (one at a time), the robot's servos and the pistol rounds bouncing off it, the helicopter's rotor. The music is a low drone with a percussion layer that comes in while you fight and leaves a few seconds after, plus stingers for the lockdown, a cleared level and the extraction; after the boss the tower goes silent. Until a sound is recorded its event plays the old synthesised placeholder or nothing. Guns, hits and grunts are the template's.
 
 ### The world: the military base
 
@@ -155,11 +159,13 @@ Level_World_Design_/
 ├─ README.md                                   this file
 ├─ CLAUDE.md                                   technical guide for development and AI agents
 ├─ WORKLOG.md                                  every change request and what was done
-├─ docs/superpowers/                           design spec and build plan of the 3-level tower
+├─ docs/superpowers/                           design specs and build plans (the 3-level tower, the sound system)
+├─ Audio_Production/                           REAPER projects and the audio production guide (README.md)
 ├─ .claude/agents/                             project agents (e.g. vantage-watchdog, a QA and level-design reviewer)
 └─ Vantage_First-Person/                       Unity project
    ├─ Assets/
    │  ├─ Scenes/SampleScene.unity              the level
+   │  ├─ Audio/                                my rendered sounds, the sound bank (and the mixer)
    │  ├─ VANTAGE_Tower/                        my Blender tower: level and gameplay models, textures, import scripts
    │  ├─ Vantage/                              all project-specific work
    │  │  ├─ Scripts/                           gameplay (levels, alarm, camera, key, robot, coins, extraction, HUD, …)

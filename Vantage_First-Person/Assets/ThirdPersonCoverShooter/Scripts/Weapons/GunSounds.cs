@@ -93,7 +93,7 @@ namespace CoverShooter
         private void play(AudioClip clip)
         {
             if (clip != null)
-                AudioSource.PlayClipAtPoint(clip, transform.position);
+                Vantage.VantageAudio.PlayClip(clip, transform.position, "SFX");   // VANTAGE change: through the mixer (volume settings)
         }
 
         private void play(AudioClip[] clips)

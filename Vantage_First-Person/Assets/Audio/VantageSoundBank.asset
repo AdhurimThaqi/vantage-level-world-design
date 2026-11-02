@@ -1,0 +1,303 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc278a8cd11061b48a0f621f0f47a8a8, type: 3}
+  m_Name: VantageSoundBank
+  m_EditorClassIdentifier: 
+  Events:
+  - Name: AMB_Exterior_Dusk
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Ambience
+  - Name: AMB_L1_Interior
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Ambience
+  - Name: AMB_L2_Armory
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Ambience
+  - Name: AMB_L3_Destroyed
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Ambience
+  - Name: AMB_Helipad
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Ambience
+  - Name: AMB_Debris
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 30
+    Loop: 0
+    Group: Ambience
+  - Name: FS_Concrete
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 20
+    Loop: 0
+    Group: SFX
+  - Name: FS_Metal
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 20
+    Loop: 0
+    Group: SFX
+  - Name: FS_Dirt
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 20
+    Loop: 0
+    Group: SFX
+  - Name: ALARM_Siren
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 6
+    MaxDistance: 70
+    Loop: 1
+    Group: SFX
+  - Name: SHUTTER_Slam
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 4
+    MaxDistance: 45
+    Loop: 0
+    Group: SFX
+  - Name: SHUTTER_Roll
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 35
+    Loop: 0
+    Group: SFX
+  - Name: KEY_Pickup
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 15
+    Loop: 0
+    Group: SFX
+  - Name: KEYSLOT_Turn
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 15
+    Loop: 0
+    Group: SFX
+  - Name: SENTRY_Glint
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: SFX
+  - Name: SENTRY_Crack
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 20
+    MaxDistance: 300
+    Loop: 0
+    Group: SFX
+  - Name: SENTRY_WarningCall
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 15
+    MaxDistance: 200
+    Loop: 0
+    Group: Voice
+  - Name: VO_Contact
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 40
+    Loop: 0
+    Group: Voice
+  - Name: ROBOT_Deflect
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 40
+    Loop: 0
+    Group: SFX
+  - Name: ROBOT_Servo
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 35
+    Loop: 1
+    Group: SFX
+  - Name: ROBOT_Telegraph
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 4
+    MaxDistance: 45
+    Loop: 0
+    Group: SFX
+  - Name: DRONE_Hum
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 25
+    Loop: 1
+    Group: SFX
+  - Name: HELI_Rotor
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 15
+    MaxDistance: 250
+    Loop: 1
+    Group: SFX
+  - Name: UI_Move
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: UI
+  - Name: UI_Select
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: UI
+  - Name: COIN_Collect
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 15
+    Loop: 0
+    Group: SFX
+  - Name: PICKUP_Weapon
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 15
+    Loop: 0
+    Group: SFX
+  - Name: MUS_Explore
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Music
+  - Name: MUS_Combat
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Music
+  - Name: STG_Lockdown
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: Music
+  - Name: STG_Cleared
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: Music
+  - Name: STG_Extraction
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: Music

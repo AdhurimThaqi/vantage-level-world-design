@@ -27,6 +27,8 @@ namespace Vantage
         public float FloorTolerance = 2.6f;
         [Tooltip("Seconds between decisions.")]
         public float ThinkInterval = 0.5f;
+        /// <summary>At most one bark this often, across all soldiers.</summary>
+        private const float BarkGap = 3f;
 
         [Tooltip("Set by the level brain: this soldier comes for the player (alarm, alert trigger).")]
         public bool Alerted;
@@ -85,7 +87,7 @@ namespace Vantage
                 return;
 
             var levels = VantageTowerLevels.Instance;
-            if (!_engaged && _brain.Threat != null) _engaged = true;   // the template found a fight on its own (a friend was hit)
+            if (!_engaged && _brain.Threat != null) wake();   // the template found a fight on its own (a friend was hit)
             var quiet = !_engaged && (VantageCinematic.Active || (levels != null && !levels.PlayerOnCurrentLevel && !Alerted));
             setSenses(!quiet);
             if (quiet)
@@ -121,9 +123,24 @@ namespace Vantage
         /// <summary>Shot: awake for good (the template's brain turns to the attacker itself).</summary>
         private void OnHit(Hit hit)
         {
-            _engaged = true;
+            if (!enabled) return;   // SendMessage reaches disabled scripts too (the intro's deserter)
+            if (!_engaged) wake();
             setSenses(true);
         }
+
+        private static float _nextBark;
+
+        /// <summary>Awake for good, with a bark ("Contact!") unless another soldier just barked.</summary>
+        private void wake()
+        {
+            _engaged = true;
+            if (Time.time < _nextBark) return;
+            _nextBark = Time.time + BarkGap;
+            VantageAudio.Play(VantageSounds.VoContact, VantagePhysics.Eye(_actor));
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void clearOnPlay() => _nextBark = 0f;
 
         /// <summary>The template's own sight and hearing, which lock on without asking this component.</summary>
         private void setSenses(bool on)
@@ -152,7 +169,7 @@ namespace Vantage
             if (engaged && Time.time - _lastOrder < ReorderInterval)
                 return;
             _lastOrder = Time.time;
-            _engaged = true;
+            if (!_engaged) wake();
             _brain.ToAttack(player);
             _brain.ToOpenFire();
         }

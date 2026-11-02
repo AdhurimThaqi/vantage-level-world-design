@@ -67,6 +67,7 @@ namespace Vantage
             if (HelicopterPrefab != null)
             {
                 _heli = Instantiate(HelicopterPrefab, _start, Quaternion.LookRotation(-away)).transform;
+                VantageAudio.PlayLoop(VantageSounds.HeliRotor, _heli);
                 _mainRotor = findChild(_heli, "Main Rotor");
                 _tailRotor = findChild(_heli, "Tail Rotor");
             }
