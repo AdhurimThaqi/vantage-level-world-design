@@ -11,12 +11,14 @@ namespace Vantage
     ///   1. high over the base in on the tower ("VANTAGE");
     ///   2. a deserter walks out past the tower plot; the slab sentry fires a warning shot, he runs, the next shot
     ///      kills him (the warning ring shown, not told: "Rule: stay at the tower");
-    ///   3. up to the sentry on the broken slab ("Objective: fight up through three floors");
-    ///   4. across to the helipad ("Objective: reach the helipad, your way out");
-    ///   5. down into the player's own camera ("First: grab the pistol at the entrance"); the HUD then shows that
-    ///      objective once more as a banner.
-    /// Every position comes from the scene (the entrance, the tower's area, the ring's plot, the sentries, the
-    /// helipad), so a re-export moves the shots with the tower. Any key or mouse button skips it after half a second.
+    ///   3. the climb: the camera circles up the outside of the tower, one stop per level at its floor height with
+    ///      that level's task (level 3 with the slab sentry in frame), and ends on the helipad (the boss, the way out);
+    ///   4. down to the pistol on the ground ("First: grab the pistol"), then into the player's own camera; the HUD
+    ///      then shows that objective once more as a banner.
+    /// From the climb on the camera moves around the tower, never through it (angle, radius and height eased
+    /// separately, the radius kept outside the tower's footprint). Every position comes from the scene (the entrance,
+    /// the tower's area and floor heights, the ring's plot, the sentries, the helipad, the pistol), so a re-export
+    /// moves the shots with the tower. Any key or mouse button skips it after half a second.
     /// Letterbox bars and captions; the HUD and minimap hide while VantageCinematic has the camera.
     /// </summary>
     public class VantageIntro : MonoBehaviour
@@ -39,16 +41,24 @@ namespace Vantage
         /// <summary>Raised when it ends: skipped or not, and at which second.</summary>
         public static event Action<bool, float> Finished;
 
-        // Shot ends (seconds) and the deserter's beats.
-        public const float Shot1 = 3.5f, ShotDeserter = 9.5f, ShotSentry = 12.5f, ShotHelipad = 15.5f, Length = 19f;
+        // Shot ends (seconds) and the deserter's beats. The climb has one beat per stop (three floors, the helipad).
+        public const float Shot1 = 3.5f, ShotDeserter = 9.5f, Beat = 2.6f;
+        public const float ShotClimb = ShotDeserter + 4 * Beat, ShotPistol = ShotClimb + 2.6f, Length = ShotPistol + 1.4f;
         public const float WalkAt = 2.5f, AimAt = 5.4f, WarnAt = 6f, KillAt = 8f;
+        /// <summary>When the camera holds at climb stop i (0-2 the floors, 3 the helipad).</summary>
+        public static float StopAt(int i) => ShotDeserter + i * Beat + 1.7f;
         private const float SkipAfter = 0.5f, GlintTime = 0.4f;
         private const string SlabSentry = "SENTRY_Slab";
-        private static readonly string[] Kickers = { "Military training base", "Rule", "Objective", "Objective", "First" };
+        private static readonly string[] Kickers =
+        {
+            "Military training base", "Rule", "Level 1: Ground floor", "Level 2: Armory", "Level 3: Destroyed floor",
+            "Finale: Helipad", "First",
+        };
         private static readonly string[] Captions =
         {
-            "VANTAGE", "Stay at the tower: the sentries shoot deserters", "Fight up through three floors",
-            "Reach the helipad: your way out", "Grab the pistol at the entrance",
+            "VANTAGE", "Stay at the tower: the sentries shoot deserters", "A trap locks you in: clear the floor",
+            "Find the rifle and the key", "Only the rifle hurts the machine", "Kill the boss: the helicopter is your way out",
+            "Grab the pistol",
         };
 
         private Camera _camera;
@@ -57,6 +67,11 @@ namespace Vantage
         private float _startTime, _endedAt;
         private Vector3 _towerCentre, _p0, _p1;
         private Vector3 _heading, _across, _fallen;
+        private float _safeRadius;
+        private bool _fromMenu;
+        private const float Margin = 4f;
+        private Transform _pistol;
+        private Vector3 _pad;
         private bool _walking, _killed;
         private RectTransform _canvas, _top, _bottom;
         private Image _cover;
@@ -78,9 +93,14 @@ namespace Vantage
             VantageRun.Begin();
             if (VantageRun.Checkpoint != 0 || VantageRun.IntroPlayed) yield break;
             VantageRun.IntroPlayed = true;
-            Playing = true;
-            _startTime = Time.time;
-            buildOverlay();   // black at first: covers the one frame the gameplay camera shows
+            // The title screen comes first, once per session; it covers the first frame itself.
+            var menu = VantageRun.MenuShown ? null : GetComponent<VantageMainMenu>();
+            if (menu == null)
+            {
+                Playing = true;
+                _startTime = Time.time;
+                buildOverlay();   // black at first: covers the one frame the gameplay camera shows
+            }
 
             // The player's own camera places itself in its first LateUpdate: that pose is where the intro ends.
             // (One frame, not WaitForEndOfFrame: that never resumes when nothing renders, e.g. in batch mode.)
@@ -97,6 +117,28 @@ namespace Vantage
             facing = facing.sqrMagnitude > 0.01f ? facing.normalized : Vector3.back;
             _p0 = EntrancePoint + facing * 110f + Vector3.up * 40f;
             _p1 = EntrancePoint + facing * 55f + Vector3.up * 25f;
+            if (menu != null)
+            {
+                VantageRun.MenuShown = true;
+                yield return menu.Run(_camera, _towerCentre, levels != null ? levels.TowerArea : new Bounds(_towerCentre, Vector3.one * 20f), facing);
+                _p0 = _camera.transform.position;   // the first shot flies on from where the menu left the camera
+                VantageRun.StartTime = Time.realtimeSinceStartup;   // the run's clock starts at Play
+                Playing = true;
+                _startTime = Time.time;
+                buildOverlay();
+                _cover.color = Color.clear;
+                _fromMenu = true;
+            }
+            // Outside every wall: the far corner of the tower's footprint, plus room.
+            var area = levels != null ? levels.TowerArea : new Bounds(_towerCentre, Vector3.one * 20f);
+            _safeRadius = 0f;
+            foreach (var x in new[] { area.min.x, area.max.x })
+                foreach (var z in new[] { area.min.z, area.max.z })
+                    _safeRadius = Mathf.Max(_safeRadius, new Vector2(x - _towerCentre.x, z - _towerCentre.z).magnitude);
+            _safeRadius += Margin;
+            foreach (var pickup in FindObjectsByType<WeaponPickup>(FindObjectsSortMode.None))
+                if (pickup.WeaponName == "Pistol") _pistol = pickup.transform;
+            _pad = padTop();
             placeDeserter();
             playMusic();
         }
@@ -122,40 +164,130 @@ namespace Vantage
         private void pose(float t, out Vector3 position, out Quaternion rotation)
         {
             var sentry = sentryPoint(SlabSentry, 0);
-            var pad = Helipad != null ? Helipad.position : _towerCentre;
             var sentryAt = framing(sentry, 9f, 3f);
-            var padAt = framing(pad, 16f, 8f);
             deserterView(sentry, sentryAt, out var watchAt, out var watch);
             if (t < Shot1)
             {
                 position = Vector3.Lerp(_p0, _p1, Mathf.SmoothStep(0, 1, t / Shot1));
                 rotation = Quaternion.LookRotation(_towerCentre - position);
+                return;
             }
-            else if (t < ShotDeserter)
+            if (t < ShotDeserter)
             {
                 var k = Mathf.SmoothStep(0, 1, (t - Shot1) / 1.6f);
                 position = Vector3.Lerp(_p1, watchAt, k);
                 rotation = Quaternion.Slerp(Quaternion.LookRotation(_towerCentre - _p1), Quaternion.LookRotation(watch - watchAt), k);
+                return;
             }
-            else if (t < ShotSentry)
+            if (t >= ShotPistol)
             {
-                var k = Mathf.SmoothStep(0, 1, (t - ShotDeserter) / (ShotSentry - ShotDeserter));
-                position = Vector3.Lerp(watchAt, sentryAt, k);
-                rotation = Quaternion.Slerp(Quaternion.LookRotation(watch - watchAt), Quaternion.LookRotation(sentry - position), Mathf.SmoothStep(0, 1, k * 1.4f));
+                // From the pistol into the player's own camera (both in front of the entrance).
+                pistolView(out var from, out var at);
+                var k = Mathf.SmoothStep(0, 1, (t - ShotPistol) / (Length - ShotPistol));
+                position = Vector3.Lerp(from, _endPosition, k);
+                rotation = Quaternion.Slerp(Quaternion.LookRotation(at - from), _endRotation, k);
+                return;
             }
-            else if (t < ShotHelipad)
-            {
-                var k = Mathf.SmoothStep(0, 1, (t - ShotSentry) / (ShotHelipad - ShotSentry));
-                position = Vector3.Lerp(sentryAt, padAt, k);
-                rotation = Quaternion.Slerp(Quaternion.LookRotation(sentry - sentryAt), Quaternion.LookRotation(pad - position), k);
-            }
-            else
-            {
-                var k = Mathf.SmoothStep(0, 1, (t - ShotHelipad) / (Length - ShotHelipad));
-                position = Vector3.Lerp(padAt, _endPosition, k);
-                rotation = Quaternion.Slerp(Quaternion.LookRotation(pad - padAt), _endRotation, k);
-            }
+
+            // The climb and the pistol: eased from stop to stop around the tower.
+            var stops = climbStops(sentry, watchAt, watch);
+            var i = 0;
+            while (i < stops.Length - 2 && t >= stops[i + 1].time) i++;
+            var a = stops[i];
+            var b = stops[i + 1];
+            var s = Mathf.SmoothStep(0, 1, Mathf.Clamp01((t - a.time) / (b.time - a.time)));
+            position = around(a.position, b.position, s);
+            rotation = Quaternion.LookRotation(Vector3.Lerp(a.look, b.look, s) - position);
         }
+
+        /// <summary>
+        /// Where the camera holds, in order: the end of the deserter shot, each floor from outside at its own height
+        /// (level 1 on the entrance side, level 3 on the slab sentry's side with the sentry in frame, level 2 between),
+        /// the helipad from above, and the pistol.
+        /// </summary>
+        private (float time, Vector3 position, Vector3 look)[] climbStops(Vector3 sentry, Vector3 watchAt, Vector3 watch)
+        {
+            var levels = VantageTowerLevels.Instance;
+            var pad = _pad;
+            float floor(int n) => levels != null && levels.Levels.Count > n ? levels.Levels[n].FloorY : _towerCentre.y + 4f * n;
+            var entrance = angleOf(_towerCentre + EntranceFacing);
+            var slab = angleOf(sentry);
+            var middle = Mathf.LerpAngle(entrance, slab, 0.5f);
+            var padRadius = Mathf.Max(_safeRadius, flat(pad - _towerCentre).magnitude + 10f);
+            var centre = new Vector3(_towerCentre.x, 0, _towerCentre.z);
+            pistolView(out var pistolFrom, out var pistolAt);
+            return new[]
+            {
+                (ShotDeserter, watchAt, watch),
+                (StopAt(0), clear(entrance, _safeRadius, floor(0) + 2.2f), centre + Vector3.up * (floor(0) + 1.6f)),
+                (StopAt(1), clear(middle, _safeRadius, floor(1) + 2.2f), centre + Vector3.up * (floor(1) + 1.6f)),
+                (StopAt(2), clear(slab, _safeRadius, floor(2) + 2.8f), Vector3.Lerp(centre + Vector3.up * (floor(2) + 1.6f), sentry, 0.5f)),
+                (StopAt(3), clear(angleOf(pad), padRadius, pad.y + 7f), pad),
+                (ShotClimb + 1.8f, pistolFrom, pistolAt),
+                (ShotPistol, pistolFrom, pistolAt),
+            };
+        }
+
+        /// <summary>The pistol from just outside it, looking back past it at the entrance (the entrance if it is gone).</summary>
+        private void pistolView(out Vector3 from, out Vector3 at)
+        {
+            var p = _pistol != null && _pistol.gameObject.activeInHierarchy ? _pistol.position : EntrancePoint;
+            var outward = flat(p - _towerCentre);
+            outward = outward.sqrMagnitude > 0.01f ? outward.normalized : EntranceFacing;
+            from = p + outward * 4.5f + Vector3.up * 2.4f;
+            at = p + Vector3.up * 0.3f;
+        }
+
+        /// <summary>
+        /// From a to b around the tower: angle, radius and height eased separately, and the radius pushed out to the
+        /// safe radius in between when an end is closer in (the pistol), so the camera never passes through the tower.
+        /// </summary>
+        private Vector3 around(Vector3 a, Vector3 b, float s)
+        {
+            var ra = flat(a - _towerCentre).magnitude;
+            var rb = flat(b - _towerCentre).magnitude;
+            var radius = Mathf.Lerp(ra, rb, s) + Mathf.Max(0f, _safeRadius - Mathf.Min(ra, rb)) * Mathf.Sin(Mathf.PI * s);
+            return orbit(Mathf.LerpAngle(angleOf(a), angleOf(b), s), radius, Mathf.Lerp(a.y, b.y, s));
+        }
+
+        /// <summary>
+        /// A stop around the tower, pulled in toward it when something stands between (the base fence, a pole):
+        /// searched outward from just past the tower's corners, so the camera always ends up outside the tower.
+        /// </summary>
+        private Vector3 clear(float angle, float radius, float height)
+        {
+            var near = orbit(angle, _safeRadius - Margin + 1f, height);
+            var far = orbit(angle, radius, height);
+            var to = far - near;
+            if (Physics.SphereCast(near, 0.4f, to.normalized, out var hit, to.magnitude, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                return near + to.normalized * Mathf.Max(0f, hit.distance - 0.6f);
+            return far;
+        }
+
+        /// <summary>The middle of the helipad's top surface (its pivot is not on the pad).</summary>
+        private Vector3 padTop()
+        {
+            if (Helipad == null) return _towerCentre + Vector3.up * 12f;
+            var renderers = Helipad.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) return Helipad.position;
+            var b = renderers[0].bounds;
+            foreach (var r in renderers) b.Encapsulate(r.bounds);
+            return new Vector3(b.center.x, b.max.y, b.center.z);
+        }
+
+        private Vector3 orbit(float angle, float radius, float height)
+        {
+            var dir = Quaternion.Euler(0, angle, 0) * Vector3.forward;
+            return new Vector3(_towerCentre.x, height, _towerCentre.z) + dir * radius;
+        }
+
+        private float angleOf(Vector3 point)
+        {
+            var d = flat(point - _towerCentre);
+            return Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg;
+        }
+
+        private static Vector3 flat(Vector3 v) { v.y = 0; return v; }
 
         /// <summary>Jumps to the player's camera and ends the intro (no-op when it isn't playing).</summary>
         public void Skip()
@@ -334,9 +466,8 @@ namespace Vantage
         {
             0 => (0f, Shot1),
             1 => (Shot1 + 1.2f, ShotDeserter),
-            2 => (ShotDeserter, ShotSentry),
-            3 => (ShotSentry, ShotHelipad),
-            _ => (ShotHelipad, Length - 0.3f),
+            6 => (ShotClimb, Length - 0.3f),
+            _ => (ShotDeserter + (shot - 2) * Beat + 0.5f, ShotDeserter + (shot - 1) * Beat + 0.5f),   // a climb stop, as the camera arrives
         };
 
         private void updateOverlay(float t)
@@ -347,7 +478,7 @@ namespace Vantage
             var h = 130f * bars;
             _top.sizeDelta = new Vector2(4000, h);
             _bottom.sizeDelta = new Vector2(4000, h);
-            _cover.color = new Color(0, 0, 0, 1f - Mathf.Clamp01(t / 0.8f));
+            _cover.color = _fromMenu ? Color.clear : new Color(0, 0, 0, 1f - Mathf.Clamp01(t / 0.8f));
 
             var shot = -1;
             for (int i = 0; i < Captions.Length; i++)

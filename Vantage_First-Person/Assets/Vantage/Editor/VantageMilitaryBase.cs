@@ -464,6 +464,7 @@ namespace Vantage.EditorTools
             Debug.Log($"[Vantage] {opened.Count} fence pieces switched off to connect the tower with the base.");
 
             bakeMinimap(ground);
+            VantageDusk.Lights();   // after the minimap (a top-down render without the lamps' pools)
             EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
             return ground;
         }
@@ -1096,37 +1097,8 @@ namespace Vantage.EditorTools
             wall("Edge West", new Vector3(-half, 0, 0), new Vector3(thick, height, half * 2));
         }
 
-        /// <summary>
-        /// Golden-hour haze: the sun and skybox stay as the level sets them; distance fog blends the
-        /// 1 km world into the sky and keeps the far forest cheap to look at.
-        /// </summary>
-        private static void atmosphere()
-        {
-            RenderSettings.fog = true;
-            RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogDensity = 0.0012f;
-            RenderSettings.fogColor = new Color(0.78f, 0.71f, 0.62f);
-
-            // Our own procedural sky (the old one came from the industrial pack). Warm, slightly hazy, and a
-            // forest-coloured ground half, so gaps below the horizon read as distant land instead of a blue band.
-            var path = OutFolder + "/Sky_GoldenHour.mat";
-            var sky = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (sky == null)
-            {
-                sky = new Material(Shader.Find("Skybox/Procedural"));
-                AssetDatabase.CreateAsset(sky, path);
-            }
-            sky.SetFloat("_SunDisk", 2f);
-            sky.SetFloat("_SunSize", 0.045f);
-            sky.SetFloat("_SunSizeConvergence", 6f);
-            sky.SetFloat("_AtmosphereThickness", 1.25f);
-            sky.SetColor("_SkyTint", new Color(0.55f, 0.58f, 0.66f));
-            sky.SetColor("_GroundColor", new Color(0.24f, 0.26f, 0.2f));
-            sky.SetFloat("_Exposure", 1.15f);
-            EditorUtility.SetDirty(sky);
-            RenderSettings.skybox = sky;
-            RenderSettings.ambientMode = AmbientMode.Skybox;
-        }
+        /// <summary>The time of day (dusk: sun, sky, ambient, haze) is VantageDusk's.</summary>
+        private static void atmosphere() => VantageDusk.Atmosphere();
 
         // ---------------- helpers ----------------
 

@@ -1,0 +1,51 @@
+VANTAGE playtest  2026-11-02_10-43-52
+Enemy placement seed: 61562
+Session length: 114s (run 0s, deaths 0)  Completed: yes   Furthest: Finale (helipad)   Backtracks: 7
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      0s   deaths 0
+  Level 3 (destroyed floor)     39s   deaths 0
+  Finale (helipad)     75s   deaths 0
+
+Kills
+  Soldier        2
+  SENTRY_Helipad 1
+  Boss           1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Session started
+[    0.0s] Enemy placement seed 61562
+[    0.8s] Finale (helipad) -> Level 3 (destroyed floor)
+[    0.8s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[    7.8s] Level 3 (destroyed floor) -> Finale (helipad)
+[   12.5s] Killed Soldier in Finale (helipad)
+[   15.2s] Finale (helipad) -> Level 3 (destroyed floor)
+[   15.2s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   17.2s] Level 3 (destroyed floor) -> Finale (helipad)
+[   18.1s] Killed Soldier in Finale (helipad)
+[   19.2s] Finale (helipad) -> Level 3 (destroyed floor)
+[   19.2s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   20.1s] Level 3 (destroyed floor) -> Finale (helipad)
+[   28.8s] Killed SENTRY_Helipad in Finale (helipad)
+[   34.1s] Coin 3/5
+[   44.5s] Finale (helipad) -> Level 3 (destroyed floor)
+[   44.5s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   59.9s] Level 3 (destroyed floor) -> Finale (helipad)
+[   78.1s] Finale (helipad) -> Level 3 (destroyed floor)
+[   78.1s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   86.2s] Level 3 (destroyed floor) -> Finale (helipad)
+[   89.1s] Finale (helipad) -> Level 3 (destroyed floor)
+[   89.1s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   90.8s] Level 3 (destroyed floor) -> Finale (helipad)
+[   92.8s] Finale (helipad) -> Level 3 (destroyed floor)
+[   92.8s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   96.7s] Level 3 (destroyed floor) -> Finale (helipad)
+[   97.3s] Killed Boss in Finale (helipad)
+[  105.5s] LEVEL COMPLETE

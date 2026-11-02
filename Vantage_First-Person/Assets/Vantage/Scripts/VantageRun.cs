@@ -17,6 +17,8 @@ namespace Vantage
         /// <summary>Sentries killed this run (VantageSentries doesn't spawn them again after a death).</summary>
         public static readonly HashSet<string> DeadSentries = new HashSet<string>();
         public static int Deaths;
+        /// <summary>The title screen has been shown this play session (only once: not after a death or a new run).</summary>
+        public static bool MenuShown;
         /// <summary>The intro has played this run (it doesn't replay after a death).</summary>
         public static bool IntroPlayed;
         public static float StartTime;
@@ -63,6 +65,7 @@ namespace Vantage
         private static void clearOnPlay()
         {
             Started = false;
+            MenuShown = false;
             VantageEvents.ResetPrompt();
         }
     }

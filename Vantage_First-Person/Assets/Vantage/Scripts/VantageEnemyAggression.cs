@@ -11,6 +11,9 @@ namespace Vantage
     ///   patrol route    → walk it back and forth (the L3 outside patrols);
     ///   otherwise       → keep guarding.
     /// It also turns down the template's urge to retreat, so soldiers hold their floor instead of running off.
+    /// Until it has fought, a soldier doesn't notice a player outside the tower or anyone during a cutscene (its own
+    /// and the template's senses off): the tower is quiet on the approach, and nobody walks out of the open entrance
+    /// to shoot a player who has just been handed control after the intro. A hit wakes it at once.
     /// </summary>
     [RequireComponent(typeof(FighterBrain))]
     public class VantageEnemyAggression : MonoBehaviour
@@ -36,6 +39,9 @@ namespace Vantage
 
         private FighterBrain _brain;
         private BaseActor _actor;
+        private AISight _sight;
+        private AIListener _listener;
+        private bool _engaged, _sensesOn = true;
         private float _nextThink;
         private float _lastOrder = -10f;
 
@@ -43,6 +49,9 @@ namespace Vantage
         {
             _brain = GetComponent<FighterBrain>();
             _actor = GetComponent<BaseActor>();
+            _sight = GetComponent<AISight>();
+            _listener = GetComponent<AIListener>();
+            setSenses(false);   // until the first decision: the template's sight would lock on in the first frame
 
             // Guard the spawn room instead of wandering ("searchAround" is the template's default).
             var start = _brain.Start;
@@ -75,10 +84,16 @@ namespace Vantage
             if (player == null)
                 return;
 
+            var levels = VantageTowerLevels.Instance;
+            if (!_engaged && _brain.Threat != null) _engaged = true;   // the template found a fight on its own (a friend was hit)
+            var quiet = !_engaged && (VantageCinematic.Active || (levels != null && !levels.PlayerOnCurrentLevel && !Alerted));
+            setSenses(!quiet);
+            if (quiet)
+                return;
+
             if (canSee(player))
                 attack(player);
-            else if (VantageTowerLevels.Instance != null && VantageTowerLevels.Instance.PlayerOnCurrentLevel
-                     && (Alerted || VantageTowerLevels.Instance.Hunting))
+            else if (levels != null && levels.PlayerOnCurrentLevel && (Alerted || levels.Hunting))
                 hunt(player);
             else if (PatrolPoints != null && PatrolPoints.Count > 1)
                 patrol();
@@ -103,6 +118,22 @@ namespace Vantage
             _brain.Message("ToFaceWalkDirection");
         }
 
+        /// <summary>Shot: awake for good (the template's brain turns to the attacker itself).</summary>
+        private void OnHit(Hit hit)
+        {
+            _engaged = true;
+            setSenses(true);
+        }
+
+        /// <summary>The template's own sight and hearing, which lock on without asking this component.</summary>
+        private void setSenses(bool on)
+        {
+            if (on == _sensesOn) return;
+            _sensesOn = on;
+            if (_sight != null) _sight.enabled = on;
+            if (_listener != null) _listener.enabled = on;
+        }
+
         private bool canSee(BaseActor player)
         {
             var to = player.transform.position - transform.position;
@@ -121,6 +152,7 @@ namespace Vantage
             if (engaged && Time.time - _lastOrder < ReorderInterval)
                 return;
             _lastOrder = Time.time;
+            _engaged = true;
             _brain.ToAttack(player);
             _brain.ToOpenFire();
         }

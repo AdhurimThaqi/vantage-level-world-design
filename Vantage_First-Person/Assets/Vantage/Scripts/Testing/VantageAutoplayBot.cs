@@ -44,6 +44,7 @@ namespace Vantage.Testing
             var levels = VantageTowerLevels.Instance;
             VantageRun.Reset();
             log($"level {levels.Current + 1} '{levels.CurrentName}', {levels.Remaining} enemies, seed {levels.Seed}");
+            yield return titleScreen();
 
             if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageDiagFall") >= 0)
             {
@@ -182,7 +183,8 @@ namespace Vantage.Testing
             var onlyArg = System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-vantageOnly");
             if (onlyArg >= 0 && onlyArg + 1 < System.Environment.GetCommandLineArgs().Length)
             {
-                if (System.Environment.GetCommandLineArgs()[onlyArg + 1] != "intro") yield return skipIntro();
+                    var group = System.Environment.GetCommandLineArgs()[onlyArg + 1];
+                if (group != "intro" && group != "handback") yield return skipIntro();
                 yield return runGroup(System.Environment.GetCommandLineArgs()[onlyArg + 1], levels);
                 yield return finish();
                 yield break;
@@ -251,6 +253,9 @@ namespace Vantage.Testing
                 case "intro":
                     yield return introChecks();
                     break;
+                case "handback":
+                    yield return introHandback(levels);
+                    break;
                 case "robot":
                     yield return clearLevel(levels, 0);
                     yield return clearLevel(levels, 1);
@@ -271,6 +276,29 @@ namespace Vantage.Testing
 
         // ---------------- cinematics ----------------
 
+        /// <summary>
+        /// The title screen is up at the start of the session with the camera taken over, its pages open and close
+        /// (screenshots menu_main, menu_settings, menu_credits), and Play starts the intro.
+        /// </summary>
+        private IEnumerator titleScreen()
+        {
+            var menu = VantageMainMenu.Instance;
+            if (menu == null || !menu.Showing) { fail($"title screen: {(menu == null ? "no VantageMainMenu" : "not showing")}"); yield break; }
+            yield return new WaitForSeconds(2f);   // past its fade-in
+            yield return hudSnapshot("menu_main");
+            menu.OpenSettings();
+            yield return hudSnapshot("menu_settings");
+            menu.OpenCredits();
+            yield return hudSnapshot("menu_credits");
+            menu.Back();
+            var held = VantageCinematic.Active && VantageIntro.Instance != null && !VantageIntro.Instance.Playing;
+            menu.Play();
+            for (float t = 0; t < 2f && (menu.Showing || !VantageIntro.Instance.Playing); t += Time.deltaTime) yield return null;
+            var line = $"camera held {held}, after Play: menu showing {menu.Showing}, intro playing {VantageIntro.Instance.Playing}";
+            if (held && !menu.Showing && VantageIntro.Instance.Playing) log("PASS title screen, then Play starts the intro: " + line);
+            else fail("title screen: " + line);
+        }
+
         /// <summary>Ends the intro if it is playing and gives the player back to the bot (no keyboard input).</summary>
         private IEnumerator skipIntro()
         {
@@ -286,8 +314,9 @@ namespace Vantage.Testing
         }
 
         /// <summary>
-        /// The intro on a new run: it is playing with the camera taken over and the HUD hidden; at 5 s the slab
-        /// sentry is in frame (screenshot intro_shot2); a skip ends it at once and gives back control and the
+        /// The intro on a new run: it is playing with the camera taken over and the HUD hidden; the deserter is shot
+        /// in frame with the slab sentry; the climb stays outside the tower and frames the sentry at level 3 and the
+        /// helipad at the end (intro_level1..3, intro_helipad); a skip ends it at once and gives back control and the
         /// follow camera near the player; skipping again or ending the cinematic again changes nothing.
         /// </summary>
         private IEnumerator introChecks()
@@ -321,12 +350,28 @@ namespace Vantage.Testing
             else
                 fail($"intro deserter: before the shot {beat}; dead after it {shot}");
 
-            while (intro.Playing && intro.Elapsed < VantageIntro.ShotSentry - 0.3f) yield return null;
-            var view = cam != null && slab != null ? cam.WorldToViewportPoint(slab.transform.position + Vector3.up) : Vector3.zero;
-            var framed = view.z > 0 && view.x > 0.05f && view.x < 0.95f && view.y > 0.05f && view.y < 0.95f;
-            yield return hudSnapshot("intro_shot2");
-            if (framed) log($"PASS intro frames the slab sentry (viewport {view:F2})");
-            else fail($"intro sentry shot: slab sentry {(slab == null ? "missing" : $"at viewport {view:F2}")}");
+            // The climb: one stop per level and the helipad, the camera always outside the tower; the slab sentry in
+            // frame at level 3, the pad at the last stop.
+            var area = VantageTowerLevels.Instance.TowerArea;
+            area.Expand(-1f);
+            int frames = 0, inside = 0;
+            string sentryView = "-", padView = "-";
+            var pad = GameObject.Find("FINAL_Helipad");
+            for (int stop = 0; stop < 4; stop++)
+            {
+                while (intro.Playing && intro.Elapsed < VantageIntro.StopAt(stop))
+                {
+                    frames++;
+                    if (cam != null && area.Contains(cam.transform.position)) inside++;
+                    yield return null;
+                }
+                if (stop == 2) sentryView = slab == null ? "missing" : inView(slab.transform.position + Vector3.up) ? "in frame" : $"out at {cam.WorldToViewportPoint(slab.transform.position + Vector3.up):F2}";
+                if (stop == 3) padView = pad == null ? "missing" : inView(pad.transform.position) ? "in frame" : $"out at {cam.WorldToViewportPoint(pad.transform.position):F2}";
+                yield return hudSnapshot(stop < 3 ? $"intro_level{stop + 1}" : "intro_helipad");
+            }
+            var climb = $"camera inside the tower in {inside} of {frames} frames, slab sentry at level 3 {sentryView}, helipad {padView}";
+            if (frames > 0 && inside == 0 && sentryView == "in frame" && padView == "in frame") log("PASS intro climb: " + climb);
+            else fail("intro climb: " + climb);
 
             var follow = cam != null ? cam.GetComponent<ThirdPersonCamera>() : null;
             var input = _motor.GetComponent<ThirdPersonInput>();
@@ -348,6 +393,43 @@ namespace Vantage.Testing
             if (objective.Contains("PISTOL")) log($"PASS objective banner after the intro: '{objective}'");
             else fail($"objective banner after the intro: '{objective}'");
             yield return skipIntro();
+        }
+
+        /// <summary>
+        /// The intro watched to the end (not skipped), with a picture of every shot (intro_NN.Ns), then the player
+        /// stands still where control comes back for 8 s: nobody may fire at a player who has not moved yet. Logs
+        /// every hit by attacker and every soldier that locked on.
+        /// </summary>
+        private IEnumerator introHandback(VantageTowerLevels levels)
+        {
+            var intro = VantageIntro.Instance;
+            if (intro == null || !intro.Playing) { fail("handback: the intro is not playing"); yield break; }
+            foreach (var at in new[] { 1.5f, 3f, 5f, 7f, 8.5f, 10.5f, 12f, 14f, 16.5f, 18.5f, 20.5f, 22.5f, 24.5f })
+            {
+                while (intro.Playing && intro.Elapsed < at) yield return null;
+                if (!intro.Playing) break;
+                yield return hudSnapshot($"intro_{at:00.0}s");
+            }
+            while (intro.Playing) yield return null;
+            var watched = intro.Elapsed;
+            yield return skipIntro();   // the bot's own input off again
+            yield return hudSnapshot("intro_handback");
+            var hits = _motor.gameObject.AddComponent<VantageHitLog>();
+            var actor = _motor.GetComponent<Actor>();
+            var locked = new HashSet<string>();
+            var t0 = Time.time;
+            for (float t = 0; t < 8f; t += Time.deltaTime)
+            {
+                foreach (var brain in FindObjectsByType<FighterBrain>(FindObjectsSortMode.None))
+                    if (brain.Threat == actor) locked.Add($"{brain.name} at {Vector3.Distance(brain.transform.position, _motor.transform.position):F0} m");
+                yield return null;
+            }
+            foreach (var g in hits.Hits.GroupBy(h => h.attacker))
+                log($"handback: hits from {g.Key}: {g.Count()}, {g.Sum(h => h.damage):F0} damage, first at {g.Min(h => h.time) - t0:F2} s");
+            var line = $"intro ran {watched:F1} s, hits in 8 s {hits.Hits.Count}, locked on {locked.Count} ({string.Join(", ", locked)}), alarm raised {(VantageAlarm.Instance != null ? VantageAlarm.Instance.Raised : 0)}";
+            Destroy(hits);
+            if (hits.Hits.Count == 0 && locked.Count == 0) log("PASS quiet hand-back after the intro: " + line);
+            else fail("hand-back after the intro: " + line);
         }
 
         /// <summary>
@@ -1075,6 +1157,11 @@ namespace Vantage.Testing
             part.transform.localPosition = Vector3.up * 1.5f;
             part.AddComponent<BoxCollider>();
             robot.ForwardChildHits();   // what the robot does at start for its model's colliders
+            // The robot judges a player's round by the gun in hand: hold the drum rifle (a pistol in hand bounces off
+            // and starts the 2 s message cooldown the next check counts on).
+            var arsenal = _motor.GetComponent<VantageArsenal>();
+            arsenal.Unlock("Rifle");
+            arsenal.EquipNow("Rifle");
             yield return null;
             var before = robot.Health;
             part.SendMessage("OnHit", new Hit(part.transform.position, Vector3.up, 40f, _motor.gameObject, part, HitType.Rifle, 0), SendMessageOptions.DontRequireReceiver);

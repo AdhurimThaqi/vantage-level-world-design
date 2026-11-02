@@ -1686,7 +1686,7 @@ namespace Vantage.EditorTools
             Debug.Log($"[Vantage] Sentry route {name}: {points.Count} points, {length:F1} m (area {area:F0} m²): {string.Join(" ", points.Select(p => p.ToString("F1")))}.");
         }
 
-        /// <summary>The intro cutscene: where the entrance is and which way it faces, and the helipad it ends on.</summary>
+        /// <summary>The title screen and the intro cutscene: where the entrance is and which way it faces, and the helipad.</summary>
         private static void intro(Transform tower, Transform parent)
         {
             var go = new GameObject("Intro");
@@ -1695,6 +1695,7 @@ namespace Vantage.EditorTools
             intro.EntrancePoint = EntrancePoint(tower) ?? tower.position;
             intro.EntranceFacing = EntranceFacing(tower);
             intro.Helipad = Find(tower, "FINAL_Helipad");
+            go.AddComponent<VantageMainMenu>();   // the title screen before the intro (and the saved settings)
             Debug.Log($"[Vantage] Intro: entrance {intro.EntrancePoint:F1} facing {intro.EntranceFacing:F0}, helipad {(intro.Helipad != null ? "found" : "missing")}.");
         }
 
