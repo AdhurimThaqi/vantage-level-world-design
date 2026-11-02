@@ -1,0 +1,13 @@
+SW05 CK42 - Practical Assignment: Lighting
+Adhurim Thaqi - I.BA_LWD HS26
+Files: Before.png (default lighting), After.png (my lighting), Lighting_Improved.unitypackage (scene + Volume profile)
+
+
+Scene concept
+
+The scene is a small, windswept hill island on a grey coast just before a storm. Rolling grass mounds, a few low-poly trees and a wooden lookout tower frame a pale, sandy hollow in the middle, and in that hollow stands a Tower of Hanoi puzzle. The space is built as a quiet place of discovery: the player arrives over the dunes, sees the tower on the ridge as a landmark, and is drawn down into the sheltered hollow to solve the puzzle while the weather closes in over the sea. The mounds hide the hollow until you are close, so the puzzle is found rather than shown, and the tower is the thing you orient by. The intended mood is "a calm, warm pocket of light on a cold island, the last quiet moment before the storm".
+
+
+Environment design and lighting choices
+
+The before shot uses the default lighting: a neutral white sun, a flat grey ambient and no colour grading. It reads as noon with no direction. Hard black tree shadows cover the foreground, the hollow is a bright white patch that competes with the sky, the tower and the trees look flat, and nothing tells the eye where to go. For the after shot I set a warm key light (sun at 4300 K, 2.4 intensity, about 32 degrees high, soft shadows at 0.85 strength) against a cool blue fill from the opposite side (0.35, no shadows) and a trilight ambient (blue sky, grey horizon, brown ground). The warm/cool split gives every form a lit and an unlit side: the crests of the mounds and the tree crowns catch the warm light, the hollows and the shadow sides fall into a cool blue, and the transitions between them follow the shape of the terrain instead of hard black patches. The sun now throws the tree shadows across the sandy hollow, so the puzzle sits in a dappled, warmer pool of light that is the clear focal point. A spot light (5200 K, 110 degrees, range 16 m) lifts the lookout tower so the landmark stays readable against the dark storm clouds. Exponential fog in the colour of the sky pushes the sea and the far hills back and adds depth. The Volume profile finishes the mood: ACES tonemapping, slight bloom (0.35) on the bright sand, a little more contrast and saturation, a warmer white balance and a vignette (0.28) that darkens the edges and keeps the eye on the centre, where the puzzle is. The result is a warm, inviting island under a cold, threatening sky: the light leads the player from the tower down into the hollow and supports the "last quiet moment before the storm" concept.
