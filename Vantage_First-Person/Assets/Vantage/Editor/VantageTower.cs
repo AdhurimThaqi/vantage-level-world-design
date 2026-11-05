@@ -102,6 +102,7 @@ namespace Vantage.EditorTools
             securityCamera(tower, setup);
             VantagePlaceholders.Build(false);
             VantageEnemyModels.Boss();
+            VantageMachineModels.All();
             var levels = levelManager(tower, setup, flights, start);
             extraction(tower, setup, levels);
             boundary(tower, setup);

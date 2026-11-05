@@ -97,6 +97,7 @@ It is built by **Vantage → World → Build Military World** (`VantageMilitaryB
 - **Soldiers** use the template's cover-shooter AI, tuned to **stand and fight** (`VantageEnemyAggression`): they guard their room, use only cover within 9 m, never retreat, and lock on and fire whenever they see you on their floor. The alarm, an alert trigger or a quiet spell sends them after you; the L3 outside patrols walk their Blender routes until then.
 - **Drones and turrets** (`VantageDrone`) telegraph each shot: their eye **glows brighter just before they fire**. Accuracy drops with distance.
 - **The heavy robot and the boss** (`VantageHeavyRobot`) are slow and armoured: only rifle rounds get through. They fire telegraphed three-shot bursts; the boss also charges after a one-second wind-up. The boss is the *ISO Mech* from the Asset Store, with its own idle, walk and death animations; the heavy robot is still a placeholder until my Blender model replaces it (put the model under the prefab's `Model` child, it may have colliders, and keep the `Eye`, `Eye Light` and `Muzzle` objects beside it).
+- **Machine looks:** the turrets are the *Sci-fi turrets* twin cannon (its barrels kick back on every shot), the drones the *Sci-fi Drone* (its glowing panels are the eye that flares before a shot), the extraction helicopter the *MSH N2* in woodland camo. Setup puts them into our prefabs and keeps all their gameplay values.
 - **Soldier look:** the soldiers wear the *Low Poly Soldiers* body from the Asset Store. Setup swaps it onto the template soldier the same way as the player's avatar, so they keep the template's animations, guns and hit boxes.
 - **Doors on the route stand open**, so the way on reads at a glance and enemies can follow you through the building. Locked doors stay shut until their console, terminal or kill condition opens them. The shutter and the stairwell gate roll up.
 
@@ -190,7 +191,7 @@ The tower models stay as exported from Blender; their import script (`VANTAGE_To
 - static flags, doors out of the NavMesh (locked ones block it with obstacles), the level rules of the stairwell gate and the helipad exit
 - **smooth stair surfaces** over every flight, found from the real steps, as wide as the flight and flush with the floor at its foot (about 31°; where a wall blocks the foot, a landing over the lowest steps with real side steps up to it), handrails along every open side where the model's rail stops (posts, top and mid rail, the model's own rail material), with NavMesh blockers so enemies stay on their floor, and the red shutter on the ground-floor stairs
 - cover on the props, the pistol and the rifle, the key and key slot, the alarm (beacons, lights, siren), the security camera, the extraction
-- **our soldier prefab** (with the Low Poly Soldiers body), the placeholder robot and helicopter (built only when missing, so a real model put into them stays) and the boss with the ISO Mech
+- **our soldier prefab** (with the Low Poly Soldiers body), the placeholder robot (built only when missing, so a real model put into it stays), the boss with the ISO Mech, and the Asset Store models on the drones, turrets and helicopter
 - the level manager with the four levels, their restart points and difficulty
 - a NavMesh bake, then the five coins on walkable floor
 
@@ -222,6 +223,9 @@ Bought-in and provided assets build the bricks. The level layout, floor plans, e
 | *Player character* (`Assets/Blender_Asset/AdhurimCharacter`) | My own avatar, made with Avaturn and exported from Blender | The player's body, animated by the template through Unity's humanoid retargeting (Vantage → Player → Use Character Model). Check Avaturn's terms before a commercial release. |
 | *Low Poly Soldiers* (demo) (`Assets/LowPolySoldiers_demo`) | Unity Asset Store | The enemy soldiers' body (check the licence before a commercial release) |
 | *ISO Mech* (`Assets/RSG_UnderWater_Pack`) | Unity Asset Store | The final boss, with its animations (check the licence before a commercial release) |
+| *Sci-fi turrets* (`Assets/Sci-fi turrets`) | Unity Asset Store | The turrets (check the licence before a commercial release) |
+| *Sci-fi Drone* by VoodooPlay (`Assets/VoodooPlay`) | Unity Asset Store (free) | The drones (check the licence before a commercial release) |
+| *RTS: Helicopter Low Poly* (MSH N2) by Raptor3D (`Assets/Raptor3D`) | Unity Asset Store | The extraction and title-screen helicopter (check the licence before a commercial release) |
 | Heavy robot, helicopter | Placeholders built from boxes by `VantagePlaceholders` | Until my Blender models replace them |
 | *TextMesh Pro* (Unity, Essential Resources) | Unity Technologies | Text rendering for the HUD and minimap |
 

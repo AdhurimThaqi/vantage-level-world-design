@@ -36,6 +36,9 @@ namespace Vantage
         public Transform Head;
         public Transform Muzzle;
         public Transform[] Rotors;
+        [Tooltip("Barrels that kick back along the aim on each shot (turret model).")]
+        public Transform[] Recoil;
+        public float RecoilDistance = 0.08f;
         public Renderer Eye;
         public Light EyeLight;
         public LineRenderer Tracer;
@@ -104,6 +107,27 @@ namespace Vantage
             // One material instance per drone, made once (Renderer.material copies on first access).
             if (Eye != null && Eye.material.HasProperty(EmissionColor))
                 _eyeMaterial = Eye.material;
+            if (Recoil != null)
+            {
+                _recoilRest = new Vector3[Recoil.Length];
+                for (int i = 0; i < Recoil.Length; i++)
+                    if (Recoil[i] != null) _recoilRest[i] = Recoil[i].localPosition;
+            }
+        }
+
+        private Vector3[] _recoilRest;
+        private float _recoil;
+
+        /// <summary>Barrels back by RecoilDistance at a shot, easing forward again over ~0.15 s.</summary>
+        private void applyRecoil()
+        {
+            if (_recoilRest == null || _recoil <= 0f)
+                return;
+            _recoil = Mathf.Max(0f, _recoil - Time.deltaTime / 0.15f);
+            var back = -(Head != null ? Head : transform).forward * (RecoilDistance * _recoil * _recoil);
+            for (int i = 0; i < Recoil.Length; i++)
+                if (Recoil[i] != null)
+                    Recoil[i].localPosition = _recoilRest[i] + Recoil[i].parent.InverseTransformVector(back);
         }
 
         /// <summary>Moves the drone and makes that spot its new post (used when it has left its level).</summary>
@@ -140,6 +164,7 @@ namespace Vantage
             }
 
             spinRotors();
+            applyRecoil();
             if (Tracer != null && Tracer.enabled && Time.time > _tracerOff)
                 Tracer.enabled = false;
 
@@ -406,6 +431,7 @@ namespace Vantage
                 _tracerOff = Time.time + 0.06f;
             }
 
+            _recoil = 1f;
             if (MuzzleFlash != null && Muzzle != null)
                 Destroy(Instantiate(MuzzleFlash, Muzzle.position, Muzzle.rotation, Muzzle), 1.5f);
 
