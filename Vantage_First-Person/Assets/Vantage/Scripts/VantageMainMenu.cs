@@ -32,6 +32,10 @@ namespace Vantage
         public static VantageMainMenu Instance { get; private set; }
         /// <summary>The menu is up (the intro waits for Play).</summary>
         public bool Showing { get; private set; }
+        /// <summary>Showing, or about to show on this load (the level music waits for it: VantageMusic).</summary>
+        public bool Holding => Showing || _pending;
+        [Tooltip("Fade-out of the title-screen music (MUS_Menu) after Play, in seconds.")]
+        public float MusicFade = 1.5f;
 
         private const string SensitivityKey = "vantage.sensitivity", QualityKey = "vantage.quality";
         private const float SwayDegrees = 8f, SwaySpeed = 0.11f, Distance = 38f, Height = 1.8f, Turn = 20f;
@@ -51,6 +55,8 @@ namespace Vantage
         private readonly List<Behaviour> _mouseLocks = new List<Behaviour>();
         private GameObject _helicopter;
         private AudioSource _rotor;
+        private AudioSource _music;
+        private bool _pending;
         private Transform _mainRotor, _tailRotor;
         private float _heliAngle;
 
@@ -68,6 +74,8 @@ namespace Vantage
             Instance = this;
             ApplySettings();
             if (!VantageRun.MenuShown) build();   // black from the first frame, until the intro hands over the camera
+            // The intro runs the menu on a session's first run (VantageIntro.Start: checkpoint 0, intro not played).
+            _pending = !VantageRun.MenuShown && (!VantageRun.Started || (VantageRun.Checkpoint == 0 && !VantageRun.IntroPlayed));
         }
 
         private void OnDestroy()
@@ -106,10 +114,13 @@ namespace Vantage
             if (_canvas == null) build();
             spawnHelicopter();
             Showing = true;
+            _pending = false;
             _shownAt = Time.time;
+            _music = VantageAudio.PlayLoop(VantageSounds.MusMenu, null);
             while (!_play) yield return null;
 
             Showing = false;
+            VantageAudio.Stop(_music, MusicFade);
             Destroy(_canvas.gameObject);
             if (_helicopter != null) Destroy(_helicopter);
             VantageAudio.Stop(_rotor, 1f);

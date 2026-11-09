@@ -59,7 +59,17 @@ namespace Vantage.EditorTools
                 { VantageSounds.StgLockdown, ("Music", 0, false, 1, 50) },
                 { VantageSounds.StgCleared, ("Music", 0, false, 1, 50) },
                 { VantageSounds.StgExtraction, ("Music", 0, false, 1, 50) },
+                { VantageSounds.MusMenu, ("Music", 0, true, 1, 50) },
+                { VantageSounds.GuidePa, ("SFX", 1, true, 2, 30) },
+                { VantageSounds.GuideStairs, ("SFX", 1, true, 2, 30) },
+                { VantageSounds.GuideRadio, ("SFX", 1, true, 2, 30) },
+                { VantageSounds.GuidePhone, ("SFX", 1, true, 2, 30) },
+                { VantageSounds.KeySlotBeep, ("SFX", 1, true, 2, 30) },
+                { VantageSounds.GuideWind, ("Ambience", 1, true, 2, 30) },
+                { VantageSounds.GuideHeliRadio, ("SFX", 1, true, 2, 30) },
             };
+
+        private static bool isGuide(string name) => name.StartsWith("GUIDE_") || name == VantageSounds.KeySlotBeep;
 
         [MenuItem("Vantage/Audio/Refresh Sound Bank", priority = 60)]
         public static void Refresh()
@@ -109,7 +119,8 @@ namespace Vantage.EditorTools
                 if (bank.Events.Any(e => e.Name == name)) continue;
                 var d = Defaults.TryGetValue(name, out var v) ? v : ("SFX", 1f, false, 2f, 40f);
                 bank.Events.Add(new SoundEvent { Name = name, Group = d.Item1, Spatial = d.Item2, Loop = d.Item3, MinDistance = d.Item4, MaxDistance = d.Item5,
-                    Pitch = d.Item1 == "Music" || d.Item1 == "Ambience" ? Vector2.one : new Vector2(0.95f, 1.05f) });
+                    Pitch = d.Item1 == "Music" || d.Item1 == "Ambience" || isGuide(name) ? Vector2.one : new Vector2(0.95f, 1.05f),
+                    Volume = isGuide(name) ? 0.8f : 1f });
             }
 
             // EVENT.wav or EVENT_NN.wav, anywhere under Assets/Audio.

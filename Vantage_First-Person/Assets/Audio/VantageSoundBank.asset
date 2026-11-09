@@ -301,3 +301,75 @@ MonoBehaviour:
     MaxDistance: 50
     Loop: 0
     Group: Music
+  - Name: MUS_Menu
+    Clips: []
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Music
+  - Name: GUIDE_PA
+    Clips: []
+    Volume: 0.8
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 1
+    Group: SFX
+  - Name: GUIDE_Stairs
+    Clips: []
+    Volume: 0.8
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 1
+    Group: SFX
+  - Name: GUIDE_Radio
+    Clips: []
+    Volume: 0.8
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 1
+    Group: SFX
+  - Name: GUIDE_Phone
+    Clips: []
+    Volume: 0.8
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 1
+    Group: SFX
+  - Name: KEYSLOT_Beep
+    Clips: []
+    Volume: 0.8
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 1
+    Group: SFX
+  - Name: GUIDE_Wind
+    Clips: []
+    Volume: 0.8
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 1
+    Group: Ambience
+  - Name: GUIDE_HeliRadio
+    Clips: []
+    Volume: 0.8
+    Pitch: {x: 1, y: 1}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 1
+    Group: SFX

@@ -52,7 +52,7 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 | **3 · Destroyed floor** | barracks, comms room, hall, the blown-out open area and broken slab outside, SE room, robot room | 5 soldiers, 2 outside patrols, the **heavy robot** | Clearing the barracks, comms and hall opens the robot room, the way through to the destroyed area (a breach in its wall). Entering the destroyed area alerts the two patrols on the broken slab; killing both opens the SE room. **Only the rifle hurts the robot** ("You need a better gun"). | Everyone dead: the exit to the outside stairs unlocks |
 | **Finale · Helipad** | outside stairs, platform, helipad | 2 soldiers, then the **boss** | Clear the platform, step onto the pad: the boss appears, a bigger red-eyed robot that also **charges** after a visible wind-up. | The boss dies: the helicopter lands, *THE TOWER IS SILENT* |
 
-- **Title screen at dusk.** The game opens on its own title screen inside the level: the camera drifts in front of the tower at dusk, its red warning lights blinking, the extraction helicopter circling the base with a searchlight. Play game flies straight into the intro; Settings has master, music and effects volume, mouse sensitivity, graphics quality and fullscreen (kept between sessions); Credits lists who and what made the game. The whole level plays at dusk: a low warm sun, long shadows, the base's lamps and floodlights on.
+- **Title screen at dusk.** The game opens on its own title screen inside the level: the camera drifts in front of the tower at dusk, the extraction helicopter circling the base with a searchlight. Play game flies straight into the intro; Settings has master, music and effects volume, mouse sensitivity, graphics quality and fullscreen (kept between sessions); Credits lists who and what made the game. The whole level plays at dusk: a low warm sun, long shadows, the base's lamps and floodlights on.
 - **Intro and briefing.** A new run opens with a 23-second flyover that is also the mission briefing: in over the base onto the tower; a soldier walks away from the tower, the sentry on the broken slab fires a warning shot in front of him, he runs, and the next shot kills him (*RULE: STAY AT THE TOWER*); then the camera climbs around the outside of the tower and stops at each level with its task (*A TRAP LOCKS YOU IN: CLEAR THE FLOOR*, *FIND THE RIFLE AND THE KEY*, *ONLY THE RIFLE HURTS THE MACHINE*, and over the helipad *KILL THE BOSS: THE HELICOPTER IS YOUR WAY OUT*); it ends on the pistol on the ground (*FIRST: GRAB THE PISTOL*, repeated as a banner when you take over). Any key skips it; it doesn't play again after a death.
 - **A quiet approach.** The tower is silent until you go in: soldiers that haven't fought yet don't notice you outside or during a cutscene. Entering the tower, the alarm, or shooting one of them wakes them.
 - **Sentries and the warning ring.** Two sentries patrol the outside of the top: the rim of the broken slab and the rim of the helipad platform, stopping at each end to scan the ground. Near the tower you are free. Walk more than 15 m past the tower's plot and the HUD warns *SENTRIES ABOVE: GET BACK TO THE TOWER* while they fire warning shots into the dirt at your feet (a red glint gives each one away first); go past 35 m, or stay in the warning band for 5 s, and they shoot to hit until you are back. Up on their level they fight like any soldier. They hold no door shut, and a sentry you kill stays dead for the run. The minimap shows the ring.
@@ -72,7 +72,11 @@ A low golden sun shines in from the south-west, and the valley has its own sound
 
 ### Sound
 
-The sound is my SOUNDCREA project, produced in REAPER (the guide is `Audio_Production/README.md`). Every space has its own ambience and reverb: the dusk exterior, the ground floor's ventilation, the Armory's big hall, the wind through the destroyed floor and the open helipad. Moving between them crossfades the ambience. Footsteps change with the surface (dirt, concrete, metal). The level's moments have their own sounds: the trap's shutter slam and siren, the key and its slot, the sentries' warning tick and distant crack, a soldier's "Contact!" when it spots you (one at a time), the robot's servos and the pistol rounds bouncing off it, the helicopter's rotor. The music is a low drone with a percussion layer that comes in while you fight and leaves a few seconds after, plus stingers for the lockdown, a cleared level and the extraction; after the boss the tower goes silent. Until a sound is recorded its event plays the old synthesised placeholder or nothing. Guns, hits and grunts are the template's.
+The sound is my SOUNDCREA project, produced in REAPER (the guide is `Audio_Production/README.md`). Every space has its own ambience and reverb: the dusk exterior, the ground floor's ventilation, the Armory's big hall, the wind through the destroyed floor and the open helipad. Moving between them crossfades the ambience. Footsteps change with the surface (dirt, concrete, metal). The level's moments have their own sounds: the trap's shutter slam and siren, the key and its slot, the sentries' warning tick and distant crack, a soldier's "Contact!" when it spots you (one at a time), the robot's servos and the pistol rounds bouncing off it, the helicopter's rotor. The music is a low drone with a percussion layer that comes in while you fight and leaves a few seconds after, plus stingers for the lockdown, a cleared level and the extraction; after the boss the tower goes silent. The title screen has its own theme, which fades out when you press Play.
+
+**Sound as wayfinding.** After my lecturer's feedback that each floor should *sound* like where you need to go, one sound in the world always plays from your next goal: during the lockdown a PA speaker crackles at the end of the route; on level 2 a field radio murmurs by the rifle, then the phone on the office desk rings where the key lies, then the key slot beeps by the stairwell gate; on level 3 the wind howls through the breach in the robot room; on the helipad the helicopter's radio calls from the pad; and whenever a floor is cleared, the stairwell up hums and draws you to it. Only one plays at a time and only on its own floor; in a fight there is none, the enemies lead you. Until my recordings are in, a soft two-tone pulse marks the goal.
+
+Until a sound is recorded its event plays the old synthesised placeholder or nothing. Guns, hits and grunts are the template's.
 
 ### The world: the military base
 
@@ -96,7 +100,7 @@ It is built by **Vantage → World → Build Military World** (`VantageMilitaryB
 
 - **Soldiers** use the template's cover-shooter AI, tuned to **stand and fight** (`VantageEnemyAggression`): they guard their room, use only cover within 9 m, never retreat, and lock on and fire whenever they see you on their floor. The alarm, an alert trigger or a quiet spell sends them after you; the L3 outside patrols walk their Blender routes until then.
 - **Drones and turrets** (`VantageDrone`) telegraph each shot: their eye **glows brighter just before they fire**. Accuracy drops with distance.
-- **The heavy robot and the boss** (`VantageHeavyRobot`) are slow and armoured: only rifle rounds get through. They fire telegraphed three-shot bursts; the boss also charges after a one-second wind-up. The boss is the *ISO Mech* from the Asset Store, with its own idle, walk and death animations; the heavy robot is still a placeholder until my Blender model replaces it (put the model under the prefab's `Model` child, it may have colliders, and keep the `Eye`, `Eye Light` and `Muzzle` objects beside it).
+- **The heavy robot and the boss** (`VantageHeavyRobot`) are slow and armoured: only rifle rounds get through. They fire telegraphed three-shot bursts; the boss also charges after a one-second wind-up. The boss is the *ISO Mech* from the Asset Store, with its own idle, walk and death animations; the heavy robot on level 3 is the *Sci-Fi Warrior* from the Asset Store, 2.4 m tall, aiming its rifle as it walks, with its own death animation (Setup puts it in; its muzzle sits on the rifle's barrel).
 - **Machine looks:** the turrets are the *Sci-fi turrets* twin cannon (its barrels kick back on every shot), the drones the *Sci-fi Drone* (its glowing panels are the eye that flares before a shot), the extraction helicopter the *MSH N2* in woodland camo. Setup puts them into our prefabs and keeps all their gameplay values.
 - **Soldier look:** the soldiers wear the *Low Poly Soldiers* body from the Asset Store. Setup swaps it onto the template soldier the same way as the player's avatar, so they keep the template's animations, guns and hit boxes.
 - **Doors on the route stand open**, so the way on reads at a glance and enemies can follow you through the building. Locked doors stay shut until their console, terminal or kill condition opens them. The shutter and the stairwell gate roll up.
@@ -130,7 +134,7 @@ You start with nothing (`VantageArsenal`). The **pistol** lies just outside the 
 - the warning ring: the zones, the 5-second grace (reset by stepping back), the HUD warning, no shots in the free zone, warning shots then hits in the warning band, hits in the kill zone, no hits without line of sight, silence during a cutscene
 - the sentries: both spawn on their routes and walk them without straying more than 6 m or changing level, they hold no lock (level 3's exit and the helipad open with both alive), and a killed sentry stays dead after a death
 
-`-vantageOnly cinematic|ring|sentries|intro|handback|spawns|respawn|robot` runs one group of checks for quick iteration (`handback` watches the whole intro and checks that nobody fires at the player in the 8 s after it).
+`-vantageOnly cinematic|ring|sentries|intro|handback|spawns|respawn|robot|audio|guide` runs one group of checks for quick iteration (`handback` watches the whole intro and checks that nobody fires at the player in the 8 s after it; `guide` walks the goal-sound ladder from the alarm to the helipad, checks one sound at a time at its goal, silence off its floor and in cutscenes, no flapping on the stairs and the state after a death).
 
 With `-vantageShots <folder>` it also saves screenshots of the game **with the HUD**: combat, alarm, key prompt, level cleared, boss, end screen, the ring warning (`hud_warning`), the intro's deserter shot (`intro_deserter`) and the climb's stops (`intro_level1`–`intro_level3`, `intro_helipad`).
 
@@ -173,8 +177,8 @@ Level_World_Design_/
    │  │  │  └─ Testing/                        the automated playtest bot (editor only)
    │  │  ├─ Editor/                            Vantage menu: tower setup, world builder, placeholders, autoplay test
    │  │  ├─ Prefabs/                           Soldier (generated), Drone, Turret, HeavyRobot, Boss, Helicopter, Third Person Rig
-   │  │  ├─ World/                             generated: terrain data, stair surfaces, placeholder meshes, sky, minimap
-   │  │  ├─ Materials/  Volumes/               surfaces and post-processing profiles
+   │  │  ├─ World/                             generated: terrain data, stair surfaces, sky, glow materials, minimap
+   │  │  ├─ Materials/                         gate, alarm, camera and key slot materials
    │  ├─ PolyKebap/Stylized Coin Pack/         the coins
    │  ├─ ThirdPersonCoverShooter/              character, AI, weapons (course template)
    │  ├─ PistolAnimsetPro/                     character animations
@@ -191,9 +195,10 @@ The tower models stay as exported from Blender; their import script (`VANTAGE_To
 - static flags, doors out of the NavMesh (locked ones block it with obstacles), the level rules of the stairwell gate and the helipad exit
 - **smooth stair surfaces** over every flight, found from the real steps, as wide as the flight and flush with the floor at its foot (about 31°; where a wall blocks the foot, a landing over the lowest steps with real side steps up to it), handrails along every open side where the model's rail stops (posts, top and mid rail, the model's own rail material), with NavMesh blockers so enemies stay on their floor, and the red shutter on the ground-floor stairs
 - cover on the props, the pistol and the rifle, the key and key slot, the alarm (beacons, lights, siren), the security camera, the extraction
-- **our soldier prefab** (with the Low Poly Soldiers body), the placeholder robot (built only when missing, so a real model put into it stays), the boss with the ISO Mech, and the Asset Store models on the drones, turrets and helicopter
+- **our soldier prefab** (with the Low Poly Soldiers body), the Sci-Fi Warrior on the level 3 robot, the ISO Mech on the boss, and the Asset Store models on the drones, turrets and helicopter
 - the level manager with the four levels, their restart points and difficulty
 - a NavMesh bake, then the five coins on walkable floor
+- the guide sound's goal points (one per step, from the Blender names)
 
 **Vantage → World → Build Military World** also runs it after fitting the world around the tower. (The tower package's own *VANTAGE ▸ Add Tower To Open Scene* is not needed here.)
 
@@ -204,7 +209,7 @@ The tower models stay as exported from Blender; their import script (`VANTAGE_To
 - **Everything generated comes from tools, not hand edits.** Change the tool code and re-run:
   - **Vantage → Tower → Set Up Tower**: stairs, gates, doors, soldiers, levels, pickups, coins, NavMesh.
   - **Vantage → World → Build Military World**: the world, then the tower setup.
-  - **Vantage → Enemies → Rebuild Placeholder Models**: the robot, boss and helicopter placeholders (overwrites them).
+  - **Vantage → Enemies → Use Asset Store Model(s)**: the robot, boss, drone, turret and helicopter looks (Setup runs them too).
 - **After every gameplay change**, run **Vantage → Test → Run Autoplay Test** and check the `[Bot]` lines in the Console.
 - **Package edits:** `CharacterMotor.AlwaysUpdateIK` in the template, and the runtime scripts of `Assets/VANTAGE_Tower` (doors, triggers, consoles, pickups, level-manager bridge), are marked "VANTAGE change". Re-apply them if either package is ever re-imported.
 
@@ -226,12 +231,12 @@ Bought-in and provided assets build the bricks. The level layout, floor plans, e
 | *Sci-fi turrets* (`Assets/Sci-fi turrets`) | Unity Asset Store | The turrets (check the licence before a commercial release) |
 | *Sci-fi Drone* by VoodooPlay (`Assets/VoodooPlay`) | Unity Asset Store (free) | The drones (check the licence before a commercial release) |
 | *RTS: Helicopter Low Poly* (MSH N2) by Raptor3D (`Assets/Raptor3D`) | Unity Asset Store | The extraction and title-screen helicopter (check the licence before a commercial release) |
-| Heavy robot, helicopter | Placeholders built from boxes by `VantagePlaceholders` | Until my Blender models replace them |
+| *Robot Hero: PBR HP Polyart* (Sci-Fi Warrior, `Assets/SciFiWarriorPBRHPPolyart`) | Unity Asset Store | The level 3 heavy robot, with its animations (check the licence before a commercial release) |
 | *TextMesh Pro* (Unity, Essential Resources) | Unity Technologies | Text rendering for the HUD and minimap |
 
 <!-- TODO before hand-in: check the publisher names against the Asset Store pages and add the store links. -->
 
-Unused files (including the earlier six-storey command tower) were moved out of the project to keep the repository small. They are kept locally in `_UnusedAssets/`, which is not committed.
+Unused files (including the earlier six-storey command tower and the never-used helicopter flight controller) were removed from the project before hand-in; they are in the git history.
 
 ## Requirements and notes
 

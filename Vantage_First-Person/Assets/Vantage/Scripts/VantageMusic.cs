@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using CoverShooter;
 using UnityEngine;
@@ -48,10 +49,14 @@ namespace Vantage
             if (levels != null) { levels.LevelCleared -= onCleared; levels.BossDefeated -= onBoss; }
         }
 
-        private void Start()
+        private IEnumerator Start()
         {
             var levels = VantageTowerLevels.Instance;
             if (levels != null) { levels.LevelCleared += onCleared; levels.BossDefeated += onBoss; }
+            // The title screen has its own music (MUS_Menu): the layers start after Play. The menu shows a frame after
+            // the load; if it hasn't within 30 frames, don't wait for it (frames: the first one after a load is long).
+            var menu = VantageMainMenu.Instance;
+            for (int frame = 0; menu != null && (menu.Showing || (menu.Holding && frame < 30)); frame++) yield return null;
             _explore = VantageAudio.PlayLoop(VantageSounds.MusExplore, null);
             _combat = VantageAudio.PlayLoop(VantageSounds.MusCombat, null);
             // Restart both on one DSP time, so the layers stay sample-locked for the whole game.

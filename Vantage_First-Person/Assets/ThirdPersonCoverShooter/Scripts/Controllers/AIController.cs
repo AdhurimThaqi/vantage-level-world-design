@@ -19,9 +19,7 @@ namespace CoverShooter
         /// State of each AI layer.
         /// </summary>
         [HideInInspector]
-#if UNITY_EDITOR
-        [NonSerialized]
-#endif
+        [NonSerialized] // VANTAGE change: was inside #if UNITY_EDITOR, so the player build serialized a field the editor never saved ("script class layout is incompatible" build error). Runtime state only.
         public State State = new State();
 
         /// <summary>

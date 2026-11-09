@@ -46,6 +46,16 @@ Put each file in its folder: `Ambience/`, `SFX/`, `Voice/`, `Music/`, `UI/` unde
 | `SENTRY_WarningCall` | 2 | "Back to the tower!" in the warning band | Voice | 3D | 2 |
 | `AMB_Debris` | 3 | random crumbles around you on level 3 | Ambience | 3D | 2 |
 | `DRONE_Hum`, `COIN_Collect`, `PICKUP_Weapon`, `ROBOT_Telegraph` | 1 each | replace the synthesised placeholders | SFX | 3D | 2 |
+| `MUS_Menu` | 1 loop | the title screen's theme (fades out on Play; the level music starts after it) | Music | 2D | 1 |
+| `GUIDE_PA` | 1 loop | L1 lockdown: a PA speaker crackling a looped lockdown announcement at the end of the route (turret hallway) | SFX | 3D | 1 |
+| `GUIDE_Stairs` | 1 loop | the way up: a draft and a low hum from the open stairwell (used three times) | SFX | 3D | 1 |
+| `GUIDE_Radio` | 1 loop | L2: a field radio murmuring next to the rifle in the Armory | SFX | 3D | 1 |
+| `GUIDE_Phone` | 1 loop | L2: a desk phone ringing in the office where the key lies (ring, pause, ring) | SFX | 3D | 1 |
+| `KEYSLOT_Beep` | 1 loop | L2: the key slot by the stairwell gate beeping, waiting for the key | SFX | 3D | 1 |
+| `GUIDE_Wind` | 1 loop | L3: wind howling through the breach in the robot room's wall | Ambience | 3D | 1 |
+| `GUIDE_HeliRadio` | 1 loop | finale: the helicopter's radio calling from the pad ("...on approach, clear the pad...") | SFX | 3D | 1 |
+
+**The guide sounds** (`GUIDE_*`, `KEYSLOT_Beep`) are the level's wayfinding: only one plays at a time, from the player's next goal, and only on that floor (`VantageGoalSound`). Make each a seamless loop of 4–10 s with a clear rhythm or voice that is easy to locate, a little brighter than the ambience bed; it is heard from about 30 m and should be clearly audible across a room at the default volume 0.8. Until a guide file exists a soft two-tone pulse plays in its place.
 
 Any event without files keeps its placeholder (the synthesised siren, drone hum, wind, coin chime) or stays silent. Guns, hits and grunts are the template's own sounds and stay as they are.
 
@@ -54,7 +64,7 @@ Any event without files keeps its placeholder (the synthesised siren, drone hum,
 1. Save the WAVs into `Assets/Audio/<folder>/` with the right names.
 2. In Unity: **Vantage → Audio → Refresh Sound Bank.** It fills every event from the files and sets 3D/2D, loop and group. Its log line tells you which events are still empty.
 3. Fine-tune an event in `Assets/Audio/VantageSoundBank.asset` (volume, pitch range, min/max distance). The refresh keeps your values; it only replaces the clip list.
-4. Press Play. The Console prints `[Vantage] Sound bank: n / 32 events filled (missing: …)`.
+4. Press Play. The Console prints `[Vantage] Sound bank: n / 40 events filled (missing: …)`.
 
 ## 5. Build the mixer (your part)
 
@@ -107,4 +117,5 @@ Fix the balance on the group faders, not in the files.
 - Sentry: glint tick before the shot, crack from far away.
 - Pistol on the robot: deflect sound each hit.
 - Music: percussion comes in with a fight and leaves about 6 s after; stingers duck the layers; after the boss the music fades out.
-- Title screen: rotor circling, UI clicks; the three volume sliders work (Music and Effects need the mixer).
+- Title screen: rotor circling, UI clicks, the menu theme; it fades when you press Play and the level music starts after it; the three volume sliders work (Music and Effects need the mixer).
+- Guide sounds: on each floor, close your eyes and turn: can you point at the goal? Is it audible over the combat music, but not tiring? Stand on the stairs between two floors: the guide of the floor you leave fades, nothing is heard through a floor.

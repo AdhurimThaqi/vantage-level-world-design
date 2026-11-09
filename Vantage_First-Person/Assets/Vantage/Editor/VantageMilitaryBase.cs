@@ -555,14 +555,6 @@ namespace Vantage.EditorTools
             Debug.Log($"[Vantage] Tower plot fitted to the command tower at {ground.TowerSite} (footprint {b.size.x:F0} x {b.size.z:F0} m).");
         }
 
-        private static float sampleOriginal(Ground ground, float x, float z)
-        {
-            int res = ground.Res;
-            int c = Mathf.Clamp(Mathf.RoundToInt((x - ground.Offset.x + ground.Size / 2) / ground.Size * (res - 1)), 0, res - 1);
-            int r = Mathf.Clamp(Mathf.RoundToInt((z - ground.Offset.z + ground.Size / 2) / ground.Size * (res - 1)), 0, res - 1);
-            return ground.Original[r, c] + ground.Offset.y;
-        }
-
         /// <summary>
         /// The plot becomes level ground at the plot height; around it the terrain is relaxed into the smoothest
         /// surface joining the plot to the untouched hills (a Laplace membrane), so there are no ledges for the

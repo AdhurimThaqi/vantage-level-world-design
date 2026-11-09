@@ -10,6 +10,7 @@ namespace Vantage
     {
         public string action;     // close:DOOR | alert:a,b | ending:C
         bool fired;
+        public bool Fired => fired;   // VANTAGE change: read by VantageGoalSound (the L3 open area entered)
         float nextStay;
 
         void OnTriggerEnter(Collider other)

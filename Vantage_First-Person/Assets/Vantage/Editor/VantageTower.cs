@@ -102,6 +102,7 @@ namespace Vantage.EditorTools
             securityCamera(tower, setup);
             VantagePlaceholders.Build(false);
             VantageEnemyModels.Boss();
+            VantageEnemyModels.HeavyRobot();
             VantageMachineModels.All();
             var levels = levelManager(tower, setup, flights, start);
             extraction(tower, setup, levels);
@@ -115,6 +116,7 @@ namespace Vantage.EditorTools
             covers(tower, group(setup, "Covers"));
             coins(tower, group(setup, "Coins"), levels);
             sentries(tower, setup, levels);
+            guideSound(tower, group(setup, "Guide Sound Anchors"), gates);
             EditorSceneManager.MarkSceneDirty(tower.gameObject.scene);
             Debug.Log($"[Vantage] Tower set up: {flights.Count} stair flights, {gates.Count} gates, {levels.Levels.Count} levels.");
         }
@@ -914,6 +916,44 @@ namespace Vantage.EditorTools
         /// Level 1 → 2 has no door in the model, so the flight that leaves the ground floor gets our red shutter
         /// (VantageFloorGate, level 0). Level 2 → 3 and 3 → finale are the Blender doors (key gate, exit door).
         /// </summary>
+        /// <summary>
+        /// The guide sound's anchors (VantageGoalSound on "VANTAGE Audio"): one empty per step at its object, so a
+        /// pickup that is hidden or flies away doesn't move or end the sound. The helipad's sits on top of the pad.
+        /// </summary>
+        private static void guideSound(Transform tower, Transform parent, List<VantageFloorGate> gates)
+        {
+            var audio = GameObject.Find(VantageAudioSetup.ObjectName);
+            if (audio == null) { Debug.Log("[Vantage] Guide sound: FAIL no 'VANTAGE Audio' object (run Audio → Refresh Sound Bank)."); return; }
+            var guide = audio.GetComponent<VantageGoalSound>();
+            if (guide == null) guide = Undo.AddComponent<VantageGoalSound>(audio);
+            var l1Gate = gates.FirstOrDefault(g => g.Level == 0);
+            var where = new (int step, string name, Transform t, bool top)[]
+            {
+                (VantageGoalSound.L1Lockdown, "MK_Turret_Hallway", null, false),
+                (VantageGoalSound.L1Cleared, "L1 gate", l1Gate != null ? l1Gate.transform : null, false),
+                (VantageGoalSound.FindRifle, "L2_PICKUP_Gun", null, false),
+                (VantageGoalSound.FindKey, "L2_PICKUP_Key", null, false),
+                (VantageGoalSound.UseKey, "L2_KEYSLOT_InsertKey", null, false),
+                (VantageGoalSound.L2GateOpen, "L2_GATE_Stairwell_LOCKED", null, false),
+                (VantageGoalSound.RobotRoomOpen, "LVL3_BreachEdges", null, false),
+                (VantageGoalSound.L3Cleared, "L3_DOOR_Exit_To_Final", null, false),
+                (VantageGoalSound.ReachPad, "FINAL_Helipad", null, true),
+            };
+            var missing = new List<string>();
+            foreach (var (step, name, given, top) in where)
+            {
+                var t = given != null ? given : Find(tower, name);
+                if (t == null) { missing.Add(name); guide.Steps[step].Anchor = null; Debug.Log($"[Vantage] Guide sound: FAIL no '{name}' for '{guide.Steps[step].Name}'."); continue; }
+                var at = WorldBounds(t, out var b) ? (top ? new Vector3(b.center.x, b.max.y + 1f, b.center.z) : b.center) : t.position;
+                var anchor = new GameObject("Guide " + guide.Steps[step].Name).transform;
+                anchor.SetParent(parent, false);
+                anchor.position = at;
+                guide.Steps[step].Anchor = anchor;
+            }
+            EditorUtility.SetDirty(guide);
+            Debug.Log($"[Vantage] Guide sound: {where.Length - missing.Count} / {where.Length} anchors" + (missing.Count > 0 ? $" (missing: {string.Join(", ", missing)})." : "."));
+        }
+
         private static List<VantageFloorGate> buildGates(Transform tower, Transform parent, List<Flight> flights)
         {
             var gates = new List<VantageFloorGate>();

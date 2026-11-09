@@ -9,7 +9,7 @@ namespace Vantage
     [RequireComponent(typeof(AudioSource))]
     public class VantageProceduralAudio : MonoBehaviour
     {
-        public enum Kind { Wind, DroneHum, RadioStatic, Sea, Generator, Buzz, Siren }
+        public enum Kind { Wind = 0, DroneHum = 1, RadioStatic = 2, Siren = 6, GuidePulse = 7 }   // values are serialized
 
         public Kind Sound = Kind.Wind;
         [Range(0, 1)] public float Volume = 0.6f;
@@ -72,11 +72,9 @@ namespace Vantage
             switch (kind)
             {
                 case Kind.DroneHum: return hum(seed);
-                case Kind.Sea: return sea(seed);
-                case Kind.Generator: return generator(seed);
-                case Kind.Buzz: return buzz(seed);
                 case Kind.Siren: return siren();
                 case Kind.RadioStatic: return radio(seed);
+                case Kind.GuidePulse: return guidePulse();
                 default: return wind(seed);
             }
         }
@@ -126,6 +124,22 @@ namespace Vantage
             return finish("Drone Hum", data);
         }
 
+        /// <summary>The guide sound's placeholder: a soft two-tone pulse (high, then low) every 1.2 s.</summary>
+        private static AudioClip guidePulse()
+        {
+            const float seconds = 1.2f;
+            var count = (int)(Rate * seconds);
+            var data = new float[count];
+            for (int i = 0; i < count; i++)
+            {
+                var t = i / (float)Rate;
+                var tone = t < 0.15f ? Mathf.Sin(t * Mathf.PI * 2f * 880f) * Mathf.Sin(t / 0.15f * Mathf.PI)
+                         : t >= 0.2f && t < 0.35f ? Mathf.Sin(t * Mathf.PI * 2f * 660f) * Mathf.Sin((t - 0.2f) / 0.15f * Mathf.PI) : 0f;
+                data[i] = tone * 0.35f;
+            }
+            return finish("Guide Pulse", data);
+        }
+
         private static AudioClip radio(int seed)
         {
             const float seconds = 6f;
@@ -144,70 +158,6 @@ namespace Vantage
             }
 
             return finish("Radio Static", data);
-        }
-
-        private static AudioClip sea(int seed)
-        {
-            const float seconds = 12f;
-            var count = (int)(Rate * seconds);
-            var data = new float[count];
-            var rng = new System.Random(seed);
-            float low = 0, lower = 0;
-
-            for (int i = 0; i < count; i++)
-            {
-                var t = i / (float)Rate;
-                var white = (float)(rng.NextDouble() * 2 - 1);
-                low += (white - low) * 0.08f;
-                lower += (low - lower) * 0.05f;
-                // Two waves per loop: a slow rise, a crash, a long hiss back out.
-                var phase = (t % (seconds / 2)) / (seconds / 2);
-                var swell = phase < 0.55f ? Mathf.SmoothStep(0.15f, 1f, phase / 0.55f) : Mathf.Lerp(1f, 0.15f, (phase - 0.55f) / 0.45f);
-                data[i] = (lower * 1.6f + low * 0.5f * swell) * swell;
-            }
-
-            return finish("Sea", data);
-        }
-
-        private static AudioClip generator(int seed)
-        {
-            const float seconds = 2f;
-            var count = (int)(Rate * seconds);
-            var data = new float[count];
-            var rng = new System.Random(seed);
-            float noise = 0;
-
-            for (int i = 0; i < count; i++)
-            {
-                var t = i / (float)Rate;
-                noise += ((float)(rng.NextDouble() * 2 - 1) - noise) * 0.2f;
-                // Diesel putter: 24 firing pulses per second over a 48 Hz body.
-                var pulse = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(t * Mathf.PI * 2f * 24f)), 6f);
-                var body = Mathf.Sin(t * Mathf.PI * 2f * 48f) * 0.4f + Mathf.Sin(t * Mathf.PI * 2f * 96f) * 0.15f;
-                data[i] = body * (0.5f + pulse * 0.5f) + noise * pulse * 0.6f;
-            }
-
-            return finish("Generator", data);
-        }
-
-        private static AudioClip buzz(int seed)
-        {
-            const float seconds = 1f;
-            var count = (int)(Rate * seconds);
-            var data = new float[count];
-            var rng = new System.Random(seed);
-
-            for (int i = 0; i < count; i++)
-            {
-                var t = i / (float)Rate;
-                // Mains hum of an old floodlight ballast.
-                data[i] = Mathf.Sin(t * Mathf.PI * 2f * 100f) * 0.5f
-                        + Mathf.Sin(t * Mathf.PI * 2f * 200f) * 0.25f
-                        + Mathf.Sin(t * Mathf.PI * 2f * 300f) * 0.12f
-                        + (float)(rng.NextDouble() * 2 - 1) * 0.04f;
-            }
-
-            return finish("Buzz", data);
         }
 
         private static AudioClip siren()

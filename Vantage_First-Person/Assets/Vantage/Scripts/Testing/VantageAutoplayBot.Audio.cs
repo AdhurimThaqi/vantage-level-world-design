@@ -299,6 +299,19 @@ namespace Vantage.Testing
             var line = $"events missing from the bank {missing.Count} ({string.Join(", ", missing)}), filled plays {plays}/5 source {(filled != null)}, empty event source {(empty != null)}, fallback loop playing {looping}, stinger kept under {VantageAudio.PoolSize * 2} gunshots {stingerKept}, errors {errors}";
             if (missing.Count == 0 && plays == 5 && filled != null && empty == null && looping && stingerKept && errors == 0) log("PASS audio bank: " + line);
             else fail("audio bank: " + line);
+
+            // The guide sounds and the menu music (2026-11-09): 3D loops (the wind in Ambience) and a 2D music loop.
+            var guides = new[] { "GUIDE_PA", "GUIDE_Stairs", "GUIDE_Radio", "GUIDE_Phone", "KEYSLOT_Beep", "GUIDE_Wind", "GUIDE_HeliRadio" };
+            var wrong = guides.Where(n =>
+            {
+                var e = audio.Bank.Find(n);
+                return e == null || !e.Loop || e.Spatial < 0.99f || e.MinDistance != 2f || e.MaxDistance != 30f || e.Group != (n == "GUIDE_Wind" ? "Ambience" : "SFX");
+            }).ToList();
+            var menu = audio.Bank.Find("MUS_Menu");
+            var menuOk = menu != null && menu.Loop && menu.Spatial < 0.01f && menu.Group == "Music";
+            var guideLine = $"events {VantageSounds.All.Length}/40, guide events with the wrong defaults {wrong.Count} ({string.Join(", ", wrong)}), menu music 2D loop in Music {menuOk}";
+            if (VantageSounds.All.Length == 40 && wrong.Count == 0 && menuOk) log("PASS audio guide events: " + guideLine);
+            else fail("audio guide events: " + guideLine);
         }
     }
 }

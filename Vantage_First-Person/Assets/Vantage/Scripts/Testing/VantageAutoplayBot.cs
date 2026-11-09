@@ -229,6 +229,8 @@ namespace Vantage.Testing
             yield return checkpointRestore();
             yield return respawnIsSafe(2);
             yield return shotCameraStaysQuiet();
+            // The guide sound on a fresh run (it ends with a reload into level 2, like the checks after it expect).
+            yield return guideChecksFresh();
             // Sentries and the ring last: the sentry checks clear the levels and end with a reload.
             yield return ringChecks(VantageTowerLevels.Instance);
             yield return sentryChecks(VantageTowerLevels.Instance);
@@ -258,6 +260,9 @@ namespace Vantage.Testing
                     break;
                 case "audio":
                     yield return audioChecks(levels);
+                    break;
+                case "guide":
+                    yield return guideChecks(levels);
                     break;
                 case "robot":
                     yield return clearLevel(levels, 0);
@@ -310,8 +315,17 @@ namespace Vantage.Testing
             menu.MoveSelection(+1);
             menu.MoveSelection(-1);
             var held = VantageCinematic.Active && VantageIntro.Instance != null && !VantageIntro.Instance.Playing;
+            // Menu music while it shows, the level music only after Play (2026-11-09).
+            var menuMusic = VantageAudio.Plays(VantageSounds.MusMenu);
+            var exploreDuringMenu = VantageAudio.Plays(VantageSounds.MusExplore);
             menu.Play();
             for (float t = 0; t < 2f && (menu.Showing || !VantageIntro.Instance.Playing); t += Time.deltaTime) yield return null;
+            for (float t = 0; t < 2f; t += Time.deltaTime) yield return null;   // the menu music's 1.5 s fade
+            var menuSourceLeft = FindObjectsByType<AudioSource>(FindObjectsSortMode.None).Any(a => a.isPlaying && a.name == "Loop " + VantageSounds.MusMenu);
+            var exploreAfter = VantageAudio.Plays(VantageSounds.MusExplore);
+            var musicLine = $"menu music requests {menuMusic}, level music during the menu {exploreDuringMenu}, menu music still playing 2 s after Play {menuSourceLeft}, level music after Play {exploreAfter}";
+            if (menuMusic == 1 && exploreDuringMenu == 0 && !menuSourceLeft && exploreAfter == 1) log("PASS menu music: " + musicLine);
+            else fail("menu music: " + musicLine);
             var line = $"camera held {held}, after Play: menu showing {menu.Showing}, intro playing {VantageIntro.Instance.Playing}; " +
                        $"settings {names}, master lowered to {lowered:0.0} (listener {listener:0.0}, mixer {!noMixer})";
             if (held && !menu.Showing && VantageIntro.Instance.Playing && settingsOk) log("PASS title screen, then Play starts the intro: " + line);
@@ -1192,8 +1206,11 @@ namespace Vantage.Testing
             robot.OnHit(new Hit(robot.transform.position, Vector3.up, 40f, soldier, robot.gameObject, HitType.Rifle, 0));
             var afterSoldier = robot.Health;
             Destroy(part);
-            var line = $"health {before:F0} -> {afterPart:F0} after a rifle hit on a model collider -> {afterSoldier:F0} after a soldier's rifle hit; eye {(robot.Eye != null)}, muzzle {(robot.Muzzle != null)} outside the model {(robot.Muzzle != null && robot.Model != null && !robot.Muzzle.IsChildOf(robot.Model))}";
-            if (afterPart < before && afterSoldier == afterPart && robot.Muzzle != null && robot.Model != null && !robot.Muzzle.IsChildOf(robot.Model) && !robot.Eye.transform.IsChildOf(robot.Model))
+            // Eye and muzzle survive a model swap: outside the model, or (a rigged model) on its bones, which
+            // VantageEnemyModels lifts out before it replaces the model.
+            bool kept(Transform t) => t != null && robot.Model != null && (!t.IsChildOf(robot.Model) || robot.Animator != null);
+            var line = $"health {before:F0} -> {afterPart:F0} after a rifle hit on a model collider -> {afterSoldier:F0} after a soldier's rifle hit; eye {(robot.Eye != null)}, muzzle {(robot.Muzzle != null)} kept on a swap {kept(robot.Muzzle)}/{(robot.Eye != null && kept(robot.Eye.transform))} (on the rig {(robot.Animator != null)})";
+            if (afterPart < before && afterSoldier == afterPart && kept(robot.Muzzle) && robot.Eye != null && kept(robot.Eye.transform))
                 log("PASS robot model: hits on model colliders count, soldiers can't hurt it, eye and muzzle survive a model swap: " + line);
             else fail("robot model / friendly fire: " + line);
         }
@@ -1369,6 +1386,10 @@ namespace Vantage.Testing
             yield return new WaitForSeconds(2.5f);
             if (!acquire()) yield break;
             var introAgain = VantageIntro.Instance != null && VantageIntro.Instance.Playing;
+            // The title screen is once per session: no menu music on a new run, the level music at once.
+            var againLine = $"menu showing {(VantageMainMenu.Instance != null && VantageMainMenu.Instance.Showing)}, menu music {VantageAudio.Plays(VantageSounds.MusMenu)}, level music {VantageAudio.Plays(VantageSounds.MusExplore)}";
+            if (VantageAudio.Plays(VantageSounds.MusMenu) == 0 && VantageAudio.Plays(VantageSounds.MusExplore) == 1) log("PASS no menu music on play again: " + againLine);
+            else fail("music on play again: " + againLine);
             yield return skipIntro();
             if (introAgain) log("PASS the intro plays again on a new run");
             else fail("the intro did not play on the new run after play again");
@@ -1389,6 +1410,12 @@ namespace Vantage.Testing
         {
             var robot = levels.Enemies.Where(e => e != null).Select(e => e.GetComponent<VantageHeavyRobot>()).FirstOrDefault(r => r != null && !r.IsBoss);
             if (robot == null) { fail("level 3 has no heavy robot"); yield break; }
+            // The Asset Store Sci-Fi Warrior (2026-11-09): rigged (an Animator), 2.4 m tall.
+            var robotRenderers = robot.Model != null ? robot.Model.GetComponentsInChildren<Renderer>() : new Renderer[0];
+            var robotHeight = robotRenderers.Length > 0 ? robotRenderers.Select(r => r.bounds).Aggregate((a, x) => { a.Encapsulate(x); return a; }).size.y : 0f;
+            var modelLine = $"model {(robot.Model != null ? robot.Model.name : "none")}, animator {(robot.Animator != null)}, height {robotHeight:F2} m";
+            if (robot.Animator != null && Mathf.Abs(robotHeight - 2.4f) <= 0.15f) log("PASS heavy robot model: " + modelLine);
+            else fail("heavy robot model: " + modelLine);
             // The player's real guns, each hit typed the way that gun types it (the template's drum rifle sends pistol hits).
             var arsenal = _motor.GetComponent<VantageArsenal>();
             arsenal.Unlock("Pistol");

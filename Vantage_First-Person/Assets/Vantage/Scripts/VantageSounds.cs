@@ -38,13 +38,23 @@ namespace Vantage
         public const string StgLockdown = "STG_Lockdown";
         public const string StgCleared = "STG_Cleared";
         public const string StgExtraction = "STG_Extraction";
+        public const string MusMenu = "MUS_Menu";
+        // The guide sounds: one at a time, at the player's next goal (VantageGoalSound).
+        public const string GuidePa = "GUIDE_PA";
+        public const string GuideStairs = "GUIDE_Stairs";
+        public const string GuideRadio = "GUIDE_Radio";
+        public const string GuidePhone = "GUIDE_Phone";
+        public const string KeySlotBeep = "KEYSLOT_Beep";
+        public const string GuideWind = "GUIDE_Wind";
+        public const string GuideHeliRadio = "GUIDE_HeliRadio";
 
         public static readonly string[] All =
         {
             AmbExterior, AmbL1, AmbL2, AmbL3, AmbHelipad, AmbDebris, FsConcrete, FsMetal, FsDirt, AlarmSiren, ShutterSlam,
             ShutterRoll, KeyPickup, KeySlotTurn, SentryGlint, SentryCrack, SentryWarningCall, VoContact, RobotDeflect,
             RobotServo, RobotTelegraph, DroneHum, HeliRotor, UiMove, UiSelect, CoinCollect, PickupWeapon, MusExplore,
-            MusCombat, StgLockdown, StgCleared, StgExtraction,
+            MusCombat, StgLockdown, StgCleared, StgExtraction, MusMenu, GuidePa, GuideStairs, GuideRadio, GuidePhone,
+            KeySlotBeep, GuideWind, GuideHeliRadio,
         };
     }
 }

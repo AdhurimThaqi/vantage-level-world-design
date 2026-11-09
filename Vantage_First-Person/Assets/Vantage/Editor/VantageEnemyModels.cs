@@ -15,6 +15,8 @@ namespace Vantage.EditorTools
     ///   model's own rifle (a submesh) is cut away, the template guns are the ones that fire.
     /// - Boss: the ISO Mech under the boss prefab's "Model" (scaled to the placeholder's height), with a URP copy of
     ///   its HDRP material and an Animator (idle, walk, death). Eye and Muzzle move onto its turret and gun.
+    /// - L3 heavy robot: the Sci-Fi Warrior (PBR) under the heavy robot prefab's "Model", 2.4 m tall, URP material,
+    ///   an Animator (gun-raised idle, walk, death). Eye on its head, muzzle at its rifle's tip.
     /// A missing pack leaves that enemy as it was.
     /// </summary>
     public static class VantageEnemyModels
@@ -22,10 +24,16 @@ namespace Vantage.EditorTools
         public const string SoldierModel = "Assets/LowPolySoldiers_demo/models/Soldier_demo.FBX";
         public const string MechModel = "Assets/RSG_UnderWater_Pack/ISO/HDRP/Models/Mech/SK_ISO_Mech.fbx";
         private const string MechPack = "Assets/RSG_UnderWater_Pack/ISO/HDRP";
+        public const string RobotModel = "Assets/SciFiWarriorPBRHPPolyart/Prefabs/PBRCharacter.prefab";
+        private const string RobotPack = "Assets/SciFiWarriorPBRHPPolyart";
+        private const float RobotHeight = 2.4f;
         private const string Folder = "Assets/Vantage/Characters";
 
         [MenuItem("Vantage/Enemies/Use Asset Store Models (boss; soldiers via Set Up Tower)", priority = 91)]
         public static void BossFromMenu() => Boss();
+
+        [MenuItem("Vantage/Enemies/Use Asset Store Model (L3 heavy robot)", priority = 92)]
+        public static void HeavyRobotFromMenu() => HeavyRobot();
 
         #region Soldier
 
@@ -257,30 +265,36 @@ namespace Vantage.EditorTools
             return m;
         }
 
-        /// <summary>Idle ↔ walk by "Speed", any state → death on "Die" (the pack's clips; idle and walk set to loop).</summary>
+        /// <summary>The ISO Mech's controller (the pack's idle, walk forward and death clips).</summary>
         private static AnimatorController mechController()
         {
-            var folder = ensureFolder($"{Folder}/ISO_Mech");
-            var path = $"{folder}/Boss.controller";
-            AnimationClip clip(string name, bool loop)
-            {
-                var file = $"{MechPack}/Animations/Mech/A_ISO_Mech_{name}_01.fbx";
-                if (loop && AssetImporter.GetAtPath(file) is ModelImporter importer)
-                {
-                    var clips = importer.clipAnimations.Length > 0 ? importer.clipAnimations : importer.defaultClipAnimations;
-                    if (clips.Any(c => !c.loopTime))
-                    {
-                        foreach (var c in clips) c.loopTime = true;
-                        importer.clipAnimations = clips;
-                        importer.SaveAndReimport();
-                    }
-                }
-                return AssetDatabase.LoadAllAssetsAtPath(file).OfType<AnimationClip>().FirstOrDefault(c => !c.name.StartsWith("__preview"));
-            }
-            var idle = clip("Idle", true);
-            var walk = clip("WalkForward", true);
-            var death = clip("Death", false);
+            string file(string name) => $"{MechPack}/Animations/Mech/A_ISO_Mech_{name}_01.fbx";
+            return locomotion($"{ensureFolder($"{Folder}/ISO_Mech")}/Boss.controller",
+                clipFrom(file("Idle"), true), clipFrom(file("WalkForward"), true), clipFrom(file("Death"), false));
+        }
 
+        /// <summary>The clip in a model file; with loop, its import settings are set to loop first.</summary>
+        private static AnimationClip clipFrom(string file, bool loop)
+        {
+            if (loop && AssetImporter.GetAtPath(file) is ModelImporter importer)
+            {
+                var clips = importer.clipAnimations.Length > 0 ? importer.clipAnimations : importer.defaultClipAnimations;
+                if (clips.Any(c => !c.loopTime))
+                {
+                    foreach (var c in clips) c.loopTime = true;
+                    importer.clipAnimations = clips;
+                    importer.SaveAndReimport();
+                }
+            }
+            return AssetDatabase.LoadAllAssetsAtPath(file).OfType<AnimationClip>().FirstOrDefault(c => !c.name.StartsWith("__preview"));
+        }
+
+        /// <summary>
+        /// The contract VantageHeavyRobot drives: idle and walk by the float "Speed" (over 0.3 / under 0.2), any state
+        /// to death on the trigger "Die". Rebuilt on every run.
+        /// </summary>
+        private static AnimatorController locomotion(string path, AnimationClip idle, AnimationClip walk, AnimationClip death)
+        {
             AssetDatabase.DeleteAsset(path);
             var controller = AnimatorController.CreateAnimatorControllerAtPath(path);
             controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
@@ -304,6 +318,153 @@ namespace Vantage.EditorTools
             toDeath.AddCondition(AnimatorConditionMode.If, 0, "Die");
             AssetDatabase.SaveAssets();
             return controller;
+        }
+
+        #endregion
+
+        #region Heavy robot
+
+        /// <summary>
+        /// Level 3's heavy robot: the Sci-Fi Warrior (PBR look) under HeavyRobot.prefab's "Model", 2.4 m tall, URP
+        /// material, an Animator with its gun-raised idle, walk and death. Eye on the head, muzzle at the rifle's tip
+        /// (both follow the animation); the body collider and agent as tall as the model. Gameplay values are kept.
+        /// </summary>
+        public static void HeavyRobot()
+        {
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(RobotModel);
+            if (model == null || AssetDatabase.LoadAssetAtPath<GameObject>(VantageTower.HeavyRobotPrefabPath) == null) return;
+            var material = robotMaterial();
+            string file(string name) => $"{RobotPack}/Animations/{name}.fbx";
+            var controller = locomotion($"{ensureFolder($"{Folder}/SciFi_Warrior")}/HeavyRobot.controller",
+                clipFrom(file("Idle_Shoot_ar"), true), clipFrom(file("WalkFront_Shoot_ar"), true), clipFrom(file("Die"), false));
+            var root = PrefabUtility.LoadPrefabContents(VantageTower.HeavyRobotPrefabPath);
+            try
+            {
+                var robot = root.GetComponent<VantageHeavyRobot>();
+                var old = root.transform.Find("Model");
+                if (robot == null || old == null) { Debug.LogWarning("[Vantage] HeavyRobot prefab has no VantageHeavyRobot or Model; not changed."); return; }
+                // Eye, its light and the muzzle may sit on the old model's bones: keep them before it goes.
+                foreach (var keep in new[] { robot.Eye != null ? robot.Eye.transform : null, robot.EyeLight != null ? robot.EyeLight.transform : null, robot.Muzzle })
+                    if (keep != null && keep.IsChildOf(old)) keep.SetParent(root.transform, true);
+                Object.DestroyImmediate(old.gameObject);
+
+                var body = (GameObject)PrefabUtility.InstantiatePrefab(model, root.transform);
+                PrefabUtility.UnpackPrefabInstance(body, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                body.name = "Model";
+                body.transform.localPosition = Vector3.zero;
+                body.transform.localRotation = Quaternion.identity;
+                var renderers = body.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in renderers)
+                    r.sharedMaterials = Enumerable.Repeat(material, r.sharedMaterials.Length).ToArray();
+                var b = boundsIn(root.transform, renderers);
+                var scale = RobotHeight / b.size.y;
+                body.transform.localScale *= scale;
+                b = boundsIn(root.transform, renderers);
+                body.transform.localPosition += new Vector3(-b.center.x, -b.min.y, -b.center.z);
+                b = boundsIn(root.transform, renderers);
+
+                var animator = body.GetComponent<Animator>();
+                if (animator == null) animator = body.AddComponent<Animator>();
+                animator.runtimeAnimatorController = controller;
+                animator.applyRootMotion = false;
+                animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+                robot.Model = body.transform;
+                robot.Animator = animator;
+
+                var capsule = root.GetComponent<CapsuleCollider>();
+                if (capsule != null)
+                {
+                    capsule.height = b.size.y;
+                    capsule.center = new Vector3(0, b.size.y / 2, 0);
+                }
+                var agent = root.GetComponent<UnityEngine.AI.NavMeshAgent>();
+                if (agent != null) agent.height = b.size.y;
+
+                var head = find(body.transform, "Head") ?? body.transform;
+                var headRenderers = renderers.Where(r => r.name.StartsWith("head")).ToArray();
+                var hb = headRenderers.Length > 0 ? boundsIn(root.transform, headRenderers) : new Bounds(new Vector3(0, b.max.y * 0.92f, 0), Vector3.zero);
+                var eyeAt = root.transform.TransformPoint(new Vector3(hb.center.x, hb.center.y, hb.max.z));
+                if (robot.Eye != null) { robot.Eye.transform.SetParent(head, true); robot.Eye.transform.position = eyeAt; }
+                if (robot.EyeLight != null) { robot.EyeLight.transform.SetParent(head, true); robot.EyeLight.transform.position = eyeAt + root.transform.forward * 0.1f; }
+                // The muzzle at the rifle's front, riding on the right hand.
+                var rifle = renderers.FirstOrDefault(r => r.name == "AssaultRifle");
+                var hand = find(body.transform, "Hand_Right") ?? body.transform;
+                if (robot.Muzzle != null)
+                {
+                    // In the idle pose (gun raised, aiming ahead) the barrel's tip is the rifle's most forward vertex; the
+                    // muzzle rides on the bone that carries the rifle, so it follows every animation.
+                    var idleClip = controller.animationClips.FirstOrDefault();
+                    if (idleClip != null) idleClip.SampleAnimation(body, idleClip.length * 0.5f);
+                    var tip = hand.position + root.transform.forward * 0.5f;
+                    var carrier = hand;
+                    if (rifle is SkinnedMeshRenderer skinned && skinned.sharedMesh != null)
+                    {
+                        var baked = new Mesh();
+                        skinned.BakeMesh(baked, true);
+                        var best = float.MinValue;
+                        foreach (var v in baked.vertices)
+                        {
+                            var w = skinned.transform.TransformPoint(v);
+                            var ahead = root.transform.InverseTransformPoint(w).z;
+                            if (ahead > best) { best = ahead; tip = w; }
+                        }
+                        Object.DestroyImmediate(baked);
+                        var weights = skinned.sharedMesh.boneWeights;
+                        if (weights.Length > 0 && skinned.bones.Length > 0)
+                        {
+                            var main = weights.GroupBy(w => w.boneIndex0).OrderByDescending(g => g.Count()).First().Key;
+                            if (main < skinned.bones.Length && skinned.bones[main] != null) carrier = skinned.bones[main];
+                        }
+                    }
+                    robot.Muzzle.SetParent(carrier, true);
+                    robot.Muzzle.position = tip;
+                    robot.Muzzle.rotation = root.transform.rotation;
+                }
+                PrefabUtility.SaveAsPrefabAsset(root, VantageTower.HeavyRobotPrefabPath);
+                Debug.Log($"[Vantage] Heavy robot model: Sci-Fi Warrior, {b.size.y:F2} m tall (scale {scale:F3}), footprint {b.size.x:F1} x {b.size.z:F1} m, rifle {(rifle != null)}, muzzle on {(robot.Muzzle != null && robot.Muzzle.parent != null ? robot.Muzzle.parent.name : "none")} at {(robot.Muzzle != null ? root.transform.InverseTransformPoint(robot.Muzzle.position).ToString("F2") : "-")} in the idle pose, {controller.animationClips.Length} animations.");
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        /// <summary>URP Lit from the pack's Built-in Standard material (metallic in R, smoothness in A).</summary>
+        private static Material robotMaterial()
+        {
+            var folder = ensureFolder($"{Folder}/SciFi_Warrior");
+            var path = $"{folder}/M_SciFi_Warrior_URP.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m != null) return m; // kept, so hand-tuning survives
+            Texture tex(string name) => AssetDatabase.LoadAssetAtPath<Texture>($"{RobotPack}/Textures/{name}.png");
+            m = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "M_SciFi_Warrior_URP" };
+            m.SetTexture("_BaseMap", tex("PBR_Albedo"));
+            m.SetColor("_BaseColor", Color.white);
+            var normal = tex("PBR_Free_NM");
+            if (normal != null)
+            {
+                if (AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(normal)) is TextureImporter ti && ti.textureType != TextureImporterType.NormalMap)
+                {
+                    ti.textureType = TextureImporterType.NormalMap;
+                    ti.SaveAndReimport();
+                }
+                m.SetTexture("_BumpMap", normal);
+                m.EnableKeyword("_NORMALMAP");
+            }
+            var ms = tex("PBR_Free_MS");
+            if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); }
+            var ao = tex("PBR_Free_AO");
+            if (ao != null) { m.SetTexture("_OcclusionMap", ao); m.EnableKeyword("_OCCLUSIONMAP"); }
+            var em = tex("PBR_Free_EM");
+            if (em != null)
+            {
+                m.SetTexture("_EmissionMap", em);
+                m.SetColor("_EmissionColor", Color.white);
+                m.EnableKeyword("_EMISSION");
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
+            AssetDatabase.CreateAsset(m, path);
+            return m;
         }
 
         #endregion
@@ -368,6 +529,32 @@ namespace Vantage.EditorTools
             var bossCentre = boss.transform.position + Vector3.up * 1.8f;
             VantageEditorUtil.Shot(folder, "boss_front", bossCentre + boss.transform.forward * 8f + Vector3.up * 1.5f, bossCentre, false, 0);
             VantageEditorUtil.Shot(folder, "boss_side", bossCentre + boss.transform.right * 8f + Vector3.up * 1f, bossCentre, false, 0);
+
+            // The L3 heavy robot in its idle pose (gun raised).
+            var robotObject = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(VantageTower.HeavyRobotPrefabPath));
+            robotObject.transform.SetPositionAndRotation(at - forward * 10f - right * 4f, Quaternion.LookRotation(forward));
+            var heavy = robotObject.GetComponent<VantageHeavyRobot>();
+            var idle = heavy != null && heavy.Animator != null && heavy.Animator.runtimeAnimatorController != null
+                ? heavy.Animator.runtimeAnimatorController.animationClips.FirstOrDefault() : null;
+            AnimationMode.StartAnimationMode();
+            try
+            {
+                if (idle != null)
+                {
+                    AnimationMode.BeginSampling();
+                    AnimationMode.SampleAnimationClip(heavy.Animator.gameObject, idle, idle.length * 0.5f);
+                    AnimationMode.EndSampling();
+                }
+                var robotCentre = robotObject.transform.position + Vector3.up * 1.3f;
+                VantageEditorUtil.Shot(folder, "robot_front", robotCentre + robotObject.transform.forward * 4.5f + Vector3.up * 0.4f, robotCentre, false, 0);
+                VantageEditorUtil.Shot(folder, "robot_side", robotCentre + robotObject.transform.right * 4.5f, robotCentre, false, 0);
+                if (heavy != null && heavy.Muzzle != null)
+                    Debug.Log($"[Vantage] Enemy shots: robot muzzle {robotObject.transform.InverseTransformPoint(heavy.Muzzle.position):F2} (local), clip '{(idle != null ? idle.name : "none")}'.");
+            }
+            finally
+            {
+                AnimationMode.StopAnimationMode();
+            }
             VantageEditorUtil.Shot(folder, "enemies_together", at - forward * 1f + right * 2f + Vector3.up * 2.2f, at - forward * 12f + Vector3.up * 1.5f, false, 0);
             EditorApplication.Exit(0);
         }

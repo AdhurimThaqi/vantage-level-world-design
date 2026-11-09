@@ -40,6 +40,9 @@ namespace Vantage
             refresh();
         }
 
+        /// <summary>Whether the player has picked up this gun (its RightItem name, e.g. "Rifle").</summary>
+        public bool IsUnlocked(string weaponName) => _unlocked.Contains(weaponName);
+
         public bool Unlock(string weaponName)
         {
             var index = System.Array.FindIndex(_all, w => w.RightItem != null && w.RightItem.name == weaponName);

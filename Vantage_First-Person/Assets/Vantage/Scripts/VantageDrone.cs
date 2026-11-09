@@ -130,15 +130,6 @@ namespace Vantage
                     Recoil[i].localPosition = _recoilRest[i] + Recoil[i].parent.InverseTransformVector(back);
         }
 
-        /// <summary>Moves the drone and makes that spot its new post (used when it has left its level).</summary>
-        public void Relocate(Vector3 position)
-        {
-            transform.position = position;
-            _home = _patrolTarget = position;
-            _alerted = false;
-            _cornerCount = 0;
-        }
-
         private void Start()
         {
             // The produced hum (when the bank has it) replaces the synthesised one.

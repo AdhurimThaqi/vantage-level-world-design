@@ -10,8 +10,7 @@ namespace Vantage.EditorTools
     /// <summary>
     /// The level's time of day: dusk. The sun just above the horizon (warm, long shadows), a dusk sky, cool trilight
     /// ambient so shadowed sides stay readable, haze in the sky's colour, and the base's own lights switched on:
-    /// sodium lamps on the light poles and white floodlights near the tower, and blinking red aircraft-warning
-    /// lights on the tower's top corners and the helipad. Everything it adds lives under one root and is rebuilt on
+    /// sodium lamps on the light poles and white floodlights near the tower. Everything it adds lives under one root and is rebuilt on
     /// every run; the world tool calls Atmosphere() so a rebuild keeps dusk.
     /// </summary>
     public static class VantageDusk
@@ -102,7 +101,7 @@ namespace Vantage.EditorTools
             RenderSettings.fogColor = new Color(0.55f, 0.45f, 0.45f);
         }
 
-        /// <summary>The base's lamps near the tower and the tower's warning lights, under one rebuilt root.</summary>
+        /// <summary>The base's lamps near the tower, under one rebuilt root.</summary>
         public static void Lights()
         {
             foreach (var old in EditorSceneManager.GetActiveScene().GetRootGameObjects().Where(g => g.name == RootName).ToList())
@@ -158,45 +157,7 @@ namespace Vantage.EditorTools
                 lit++;
             }
 
-            // Aircraft-warning lights: the tower's top corners and the helipad's far corners, blinking together.
-            var blink = new GameObject("Aircraft Warning Lights").AddComponent<VantageBlinkLights>();
-            blink.transform.SetParent(root, false);
-            var corners = new List<Vector3>();
-            if (tower != null && VantageTower.WorldBounds(tower.transform, out var all))
-            {
-                var structure = VantageTower.Find(tower.transform, "LVL1_Structure");
-                var body = structure != null && VantageTower.WorldBounds(structure, out var sb) ? sb : all;
-                var y = all.max.y + 0.25f;
-                foreach (var x in new[] { body.min.x + 0.4f, body.max.x - 0.4f })
-                    foreach (var z in new[] { body.min.z + 0.4f, body.max.z - 0.4f })
-                        corners.Add(new Vector3(x, y, z));
-                var pad = VantageTower.Find(tower.transform, "FINAL_Helipad");
-                if (pad != null && VantageTower.WorldBounds(pad, out var hb))
-                {
-                    var outward = hb.center - body.center; outward.y = 0;
-                    outward = outward.sqrMagnitude > 0.01f ? outward.normalized : Vector3.forward;
-                    var side = Vector3.Cross(Vector3.up, outward);
-                    var edge = hb.center + outward * hb.extents.magnitude * 0.6f;
-                    corners.Add(new Vector3(edge.x, hb.max.y + 0.2f, edge.z) + side * hb.extents.magnitude * 0.45f);
-                    corners.Add(new Vector3(edge.x, hb.max.y + 0.2f, edge.z) - side * hb.extents.magnitude * 0.45f);
-                }
-            }
-            for (int i = 0; i < corners.Count; i++)
-            {
-                var bulb = glowBulb(blink.transform, corners[i], 0.28f, glowMaterial("Warning", blink.Glow * blink.GlowIntensity));
-                blink.Glows.Add(bulb);
-                if (i % 2 != 0) continue;   // half of them carry a real light; the glow is what reads from afar
-                var light = new GameObject("Warning Light").AddComponent<Light>();
-                light.transform.SetParent(blink.transform, false);
-                light.transform.position = corners[i] + Vector3.up * 0.3f;
-                light.type = LightType.Point;
-                light.color = blink.Glow;
-                light.range = 7f;
-                light.intensity = 3f;
-                light.shadows = LightShadows.None;
-                blink.Lights.Add(light);
-            }
-            Debug.Log($"[Vantage] Dusk lights: {lit} pole lights ({poles.Count(p => p.flood)} floodlights within {PoleReach} m), {corners.Count} warning lights ({blink.Lights.Count} with a light).");
+            Debug.Log($"[Vantage] Dusk lights: {lit} pole lights ({poles.Count(p => p.flood)} floodlights within {PoleReach} m).");
         }
 
         private static Renderer glowBulb(Transform parent, Vector3 at, float size, Material material)

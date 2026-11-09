@@ -1,0 +1,58 @@
+time,x,y,z,space
+0.0,0.99,4.10,-87.95,Military Base
+1.0,0.99,4.05,-87.95,Military Base
+2.0,0.99,4.05,-87.95,Military Base
+3.0,0.99,4.05,-87.95,Military Base
+4.0,0.99,4.05,-87.95,Military Base
+5.0,0.99,4.05,-87.95,Military Base
+6.0,0.99,4.05,-87.95,Military Base
+7.0,0.99,4.05,-87.95,Military Base
+8.0,0.99,4.05,-87.95,Military Base
+9.0,-1.70,4.06,-70.50,Level 1 (ground floor)
+10.0,-1.70,4.05,-70.50,Level 1 (ground floor)
+11.0,-1.59,4.05,-69.73,Level 1 (ground floor)
+12.0,-1.59,4.05,-69.73,Level 1 (ground floor)
+13.0,0.85,4.05,-85.95,Military Base
+14.0,0.49,4.05,-82.06,Level 1 (ground floor)
+15.0,0.26,4.05,-79.64,Level 1 (ground floor)
+16.0,0.09,4.06,-76.74,Level 1 (ground floor)
+17.1,0.50,4.06,-73.84,Level 1 (ground floor)
+18.1,0.93,4.05,-70.03,Level 1 (ground floor)
+19.1,0.96,5.09,-67.77,Level 1 (ground floor)
+20.1,0.97,6.16,-66.04,Level 1 (ground floor)
+21.1,2.05,6.22,-64.84,Level 1 (ground floor)
+22.1,2.90,6.79,-65.89,Level 1 (ground floor)
+23.1,3.04,7.67,-67.35,Level 2 (armory)
+24.1,3.13,8.22,-68.27,Level 2 (armory)
+25.1,3.16,8.38,-69.32,Level 2 (armory)
+26.1,-2.09,8.37,-70.46,Level 2 (armory)
+27.1,-1.90,8.37,-70.47,Level 2 (armory)
+28.1,-1.69,4.05,-70.39,Level 1 (ground floor)
+29.1,-2.46,8.37,-71.12,Level 2 (armory)
+30.1,-2.48,8.45,-71.06,Level 2 (armory)
+31.1,-2.48,8.37,-71.06,Level 2 (armory)
+32.1,-2.48,8.37,-71.06,Level 2 (armory)
+33.1,0.99,4.05,-87.95,Military Base
+34.1,0.99,4.05,-87.95,Military Base
+35.1,-2.11,8.37,-70.54,Level 2 (armory)
+36.1,-2.04,8.37,-70.64,Level 2 (armory)
+37.1,-2.03,8.37,-70.65,Level 2 (armory)
+38.1,-2.39,8.37,-70.27,Level 2 (armory)
+39.1,-2.40,8.37,-70.30,Level 2 (armory)
+40.1,-1.76,8.37,-70.67,Level 2 (armory)
+41.1,-1.73,8.37,-70.71,Level 2 (armory)
+42.1,-1.96,8.37,-70.49,Level 2 (armory)
+43.1,-1.92,8.37,-70.52,Level 2 (armory)
+44.1,-2.61,8.37,-70.13,Level 2 (armory)
+45.1,-2.62,8.37,-70.17,Level 2 (armory)
+46.1,3.19,12.68,-58.80,Level 3 (destroyed floor)
+47.1,3.19,12.68,-58.80,Level 3 (destroyed floor)
+48.1,3.19,12.68,-58.80,Level 3 (destroyed floor)
+49.1,3.34,12.68,-59.54,Level 3 (destroyed floor)
+50.1,3.34,12.68,-59.54,Level 3 (destroyed floor)
+51.1,3.19,12.68,-58.80,Level 3 (destroyed floor)
+52.1,3.19,12.68,-58.80,Level 3 (destroyed floor)
+53.1,20.69,14.47,-62.50,Finale (helipad)
+54.1,20.68,14.47,-62.53,Finale (helipad)
+55.1,20.74,14.47,-62.64,Finale (helipad)
+56.1,20.67,14.47,-62.50,Finale (helipad)
