@@ -241,6 +241,7 @@ namespace Vantage
                 BossDead = true;
                 Debug.Log("[Vantage] Boss defeated.");
                 Current = Levels.Count;
+                VantageBossReveal.Stop();   // a boss killed mid-reveal: control back before the extraction takes the camera
                 BossDefeated?.Invoke();
                 return;
             }
@@ -636,6 +637,7 @@ namespace Vantage
             var boss = spawnSpecial(Current, BossPrefab, at, look, "Boss");
             _countedFrame = -1;
             VantageEvents.RaiseBossSpawned();
+            if (boss != null) VantageBossReveal.Play(boss.GetComponent<VantageHeavyRobot>());
             Debug.Log($"[Vantage] Boss {(boss != null ? "spawned" : "missing (no prefab): extraction starts")}.");
             return true;
         }

@@ -60,6 +60,18 @@ namespace Vantage.EditorTools
                 { VantageSounds.StgCleared, ("Music", 0, false, 1, 50) },
                 { VantageSounds.StgExtraction, ("Music", 0, false, 1, 50) },
                 { VantageSounds.MusMenu, ("Music", 0, true, 1, 50) },
+                { VantageSounds.MusIntro, ("Music", 0, false, 1, 50) },
+                { VantageSounds.BossReveal, ("SFX", 0, false, 1, 50) },
+                { VantageSounds.BossRoar, ("SFX", 1, false, 10, 150) },
+                { VantageSounds.StgBossFight, ("Music", 0, false, 1, 50) },
+                { VantageSounds.MusBossFight, ("Music", 0, true, 1, 50) },
+                { VantageSounds.MusEnd, ("Music", 0, false, 1, 50) },
+                { VantageSounds.BodyFall, ("SFX", 1, false, 2, 30) },
+                { VantageSounds.GunPistol, ("SFX", 1, false, 1, 500) },
+                { VantageSounds.GunEmpty, ("SFX", 1, false, 1, 20) },
+                { VantageSounds.PlayerJump, ("SFX", 1, false, 1, 20) },
+                { VantageSounds.RobotFire, ("SFX", 1, false, 5, 80) },
+                { VantageSounds.RobotHit, ("SFX", 1, false, 3, 40) },
                 { VantageSounds.GuidePa, ("SFX", 1, true, 2, 30) },
                 { VantageSounds.GuideStairs, ("SFX", 1, true, 2, 30) },
                 { VantageSounds.GuideRadio, ("SFX", 1, true, 2, 30) },
@@ -119,7 +131,7 @@ namespace Vantage.EditorTools
                 if (bank.Events.Any(e => e.Name == name)) continue;
                 var d = Defaults.TryGetValue(name, out var v) ? v : ("SFX", 1f, false, 2f, 40f);
                 bank.Events.Add(new SoundEvent { Name = name, Group = d.Item1, Spatial = d.Item2, Loop = d.Item3, MinDistance = d.Item4, MaxDistance = d.Item5,
-                    Pitch = d.Item1 == "Music" || d.Item1 == "Ambience" || isGuide(name) ? Vector2.one : new Vector2(0.95f, 1.05f),
+                    Pitch = d.Item1 == "Music" || d.Item1 == "Ambience" || isGuide(name) || name == VantageSounds.BossReveal ? Vector2.one : new Vector2(0.95f, 1.05f),
                     Volume = isGuide(name) ? 0.8f : 1f });
             }
 
@@ -130,6 +142,7 @@ namespace Vantage.EditorTools
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var stem = Regex.Replace(Path.GetFileNameWithoutExtension(path), @"_\d+$", "");
                 if (!byEvent.TryGetValue(stem, out var list)) byEvent[stem] = list = new List<AudioClip>();
+                importSettings(path, stem);
                 list.Add(AssetDatabase.LoadAssetAtPath<AudioClip>(path));
             }
             var filled = 0;
@@ -144,6 +157,27 @@ namespace Vantage.EditorTools
             Debug.Log($"[Vantage] Sound bank refreshed: {filled} / {bank.Events.Count} events filled." +
                       (unknown.Count > 0 ? $" Files with no event (check the name): {string.Join(", ", unknown)}." : ""));
             return bank;
+        }
+
+        /// <summary>
+        /// Memory for long clips: tracks of 20 s and more stream from disk (Vorbis), except the two music layers,
+        /// which start together on one DSP time and stay compressed in memory; clips of 5–20 s are compressed in
+        /// memory; short ones keep Unity's default (decompressed, no latency). Only changed settings reimport.
+        /// </summary>
+        private static void importSettings(string path, string stem)
+        {
+            var importer = AssetImporter.GetAtPath(path) as AudioImporter;
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            if (importer == null || clip == null || clip.length < 5f) return;
+            var layer = stem == VantageSounds.MusExplore || stem == VantageSounds.MusCombat;
+            var s = importer.defaultSampleSettings;
+            var load = clip.length >= 20f && !layer ? AudioClipLoadType.Streaming : AudioClipLoadType.CompressedInMemory;
+            if (s.loadType == load && s.compressionFormat == AudioCompressionFormat.Vorbis) return;
+            s.loadType = load;
+            s.compressionFormat = AudioCompressionFormat.Vorbis;
+            s.quality = 0.7f;
+            importer.defaultSampleSettings = s;
+            importer.SaveAndReimport();
         }
 
         /// <summary>Surface footsteps on the player rig and the soldier (prefab components: the motor collects listeners in Awake).</summary>

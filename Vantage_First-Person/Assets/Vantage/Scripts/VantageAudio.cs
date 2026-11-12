@@ -165,6 +165,21 @@ namespace Vantage
             source.Play();
         }
 
+        /// <summary>A one-shot that starts after 'delay' seconds (a body hitting the ground after the death). Null when nothing plays.</summary>
+        public static AudioSource PlayDelayed(string name, Vector3 position, float delay)
+        {
+            var source = Play(name, position);
+            if (source != null) { source.Stop(); source.PlayDelayed(delay); }
+            return source;
+        }
+
+        /// <summary>The event's clips (to hand to a template component), or null when it has none.</summary>
+        public static AudioClip[] Clips(string name)
+        {
+            var e = Instance != null && Instance.Bank != null ? Instance.Bank.Find(name) : null;
+            return e != null && e.Filled ? e.Clips.ToArray() : null;
+        }
+
         /// <summary>The event exists and has clips.</summary>
         public static bool Has(string name)
         {
@@ -240,6 +255,7 @@ namespace Vantage
         private void setup(AudioSource source, SoundEvent e, bool flat)
         {
             source.playOnAwake = false;
+            source.ignoreListenerPause = false;   // the pause menu sets it on its own clicks; pool sources are reused
             source.volume = e != null ? e.Volume : 1f;
             source.pitch = e != null ? Random.Range(e.Pitch.x, e.Pitch.y) : 1f;
             source.spatialBlend = flat ? 0f : e != null ? e.Spatial : 1f;

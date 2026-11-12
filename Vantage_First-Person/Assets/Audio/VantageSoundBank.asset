@@ -68,7 +68,11 @@ MonoBehaviour:
     Loop: 0
     Group: Ambience
   - Name: FS_Concrete
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: 11e7640b7a2932b40b52300554f04786, type: 3}
+    - {fileID: 8300000, guid: 8381c8581593c754fb155287e70b2239, type: 3}
+    - {fileID: 8300000, guid: b72da18bf1a1bf84b87fceff7c8f1731, type: 3}
+    - {fileID: 8300000, guid: 06101ca08a1e5df44ad89d6885827c80, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -86,7 +90,11 @@ MonoBehaviour:
     Loop: 0
     Group: SFX
   - Name: FS_Dirt
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: c264bd8bd1d355d4387d0aa2bcde66aa, type: 3}
+    - {fileID: 8300000, guid: 4d3926424943dd547a334004fe9d66ae, type: 3}
+    - {fileID: 8300000, guid: 3de842a217ed4a74195d81ff3a97904a, type: 3}
+    - {fileID: 8300000, guid: 8626fce6e74e567488bf0504e80c8f8e, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -95,7 +103,8 @@ MonoBehaviour:
     Loop: 0
     Group: SFX
   - Name: ALARM_Siren
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: b9aa4afe7087da14b83f1af5194985f1, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -104,7 +113,8 @@ MonoBehaviour:
     Loop: 1
     Group: SFX
   - Name: SHUTTER_Slam
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: 2f593cca81f235a448f281093f8941a4, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -203,7 +213,8 @@ MonoBehaviour:
     Loop: 0
     Group: SFX
   - Name: DRONE_Hum
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: 0667034c896caea4c95b683f7a485313, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -221,8 +232,9 @@ MonoBehaviour:
     Loop: 1
     Group: SFX
   - Name: UI_Move
-    Clips: []
-    Volume: 1
+    Clips:
+    - {fileID: 8300000, guid: 7bb4f2603afa77f4f838c0ae6a37209b, type: 3}
+    Volume: 0.15
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 0
     MinDistance: 1
@@ -230,7 +242,8 @@ MonoBehaviour:
     Loop: 0
     Group: UI
   - Name: UI_Select
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: ebca886d84930284c97e44fa2d657bf9, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 0
@@ -302,7 +315,8 @@ MonoBehaviour:
     Loop: 0
     Group: Music
   - Name: MUS_Menu
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: f073ae0e953ecec42886324e453abb06, type: 3}
     Volume: 1
     Pitch: {x: 1, y: 1}
     Spatial: 0
@@ -329,7 +343,8 @@ MonoBehaviour:
     Loop: 1
     Group: SFX
   - Name: GUIDE_Radio
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: 643af68677f209645b320272bc15f1aa, type: 3}
     Volume: 0.8
     Pitch: {x: 1, y: 1}
     Spatial: 1
@@ -372,4 +387,104 @@ MonoBehaviour:
     MinDistance: 2
     MaxDistance: 30
     Loop: 1
+    Group: SFX
+  - Name: MUS_Intro
+    Clips:
+    - {fileID: 8300000, guid: f498ac90116bbec4e8d9bee949c97217, type: 3}
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: Music
+  - Name: BOSS_Reveal
+    Clips:
+    - {fileID: 8300000, guid: 7ca6d29ff09fa14429697c3346645800, type: 3}
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: SFX
+  - Name: BOSS_Roar
+    Clips:
+    - {fileID: 8300000, guid: 25f8307bca21d7e49ae443ab58ef2ca7, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 10
+    MaxDistance: 150
+    Loop: 0
+    Group: SFX
+  - Name: STG_BossFight
+    Clips:
+    - {fileID: 8300000, guid: 43768b9aaa3ea49478693d076d7c39fa, type: 3}
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: Music
+  - Name: BODY_Fall
+    Clips:
+    - {fileID: 8300000, guid: b5a38c4a59ce077419a6fbe6c0835b3e, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 2
+    MaxDistance: 30
+    Loop: 0
+    Group: SFX
+  - Name: GUN_Pistol
+    Clips:
+    - {fileID: 8300000, guid: b8bb1a3eef76762459754ede3e916652, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 500
+    Loop: 0
+    Group: SFX
+  - Name: GUN_Empty
+    Clips:
+    - {fileID: 8300000, guid: 51fc5756b4cb7e3439c20f0739ee0aaa, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 20
+    Loop: 0
+    Group: SFX
+  - Name: PLAYER_Jump
+    Clips:
+    - {fileID: 8300000, guid: 2d989600993822a4eb7f504c980524b8, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 20
+    Loop: 0
+    Group: SFX
+  - Name: ROBOT_Fire
+    Clips:
+    - {fileID: 8300000, guid: a72dd141e5fdd064b8a9d31837a67c63, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 5
+    MaxDistance: 80
+    Loop: 0
+    Group: SFX
+  - Name: ROBOT_Hit
+    Clips:
+    - {fileID: 8300000, guid: 8c82a6a88af58f648a753ede6223d14e, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 40
+    Loop: 0
     Group: SFX

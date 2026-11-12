@@ -66,6 +66,7 @@ namespace Vantage
             var amount = _health != null ? _health.Health + 100f : 1000f;
             SendMessage("OnHit", new Hit(at, (from - at).normalized, amount, shooter, gameObject, HitType.Rifle, 0), SendMessageOptions.DontRequireReceiver);
             if (_motor.IsAlive) _motor.Die();
+            VantageAudio.PlayDelayed(VantageSounds.BodyFall, transform.position, VantageKillReporter.BodyFallDelay);
         }
     }
 }

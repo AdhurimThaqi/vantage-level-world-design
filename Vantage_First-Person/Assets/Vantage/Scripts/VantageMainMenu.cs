@@ -15,6 +15,8 @@ namespace Vantage
     /// Credits / Quit (mouse, or W/S and Enter; Esc goes back). Play hands the camera, where it is, to VantageIntro.
     /// Settings (master, music and effects volume, mouse sensitivity, graphics quality, fullscreen) are kept in
     /// PlayerPrefs and applied on every scene load (the volumes by VantageAudio, through the mixer).
+    /// The same pages are the pause menu: Esc (or P) in play, or the window losing focus in a build, stops time and
+    /// sound and shows Resume / Restart from checkpoint / Settings / Controls / Main menu / Quit; Esc again resumes.
     /// </summary>
     public class VantageMainMenu : MonoBehaviour
     {
@@ -25,7 +27,8 @@ namespace Vantage
             "Design, level, code and 3D models\nAdhurim Thaqi\n\n" +
             "HSLU  Level and World Design  HS26\n\n" +
             "Course template: Third Person Cover Shooter, Pistol Animset Pro\n" +
-            "Asset Store: Low Poly Soldiers (demo), ISO Mech, Stylized Coin Pack\n" +
+            "Asset Store: Low Poly Soldiers (demo), ISO Mech, Sci-fi turrets, VoodooPlay Sci-fi Drone,\n" +
+            "Raptor3D MSH N2 helicopter, Robot Hero (Sci-Fi Warrior), Stylized Coin Pack\n" +
             "Textures: Poly Haven (CC0)\n" +
             "Player character: Avaturn";
 
@@ -34,24 +37,32 @@ namespace Vantage
         public bool Showing { get; private set; }
         /// <summary>Showing, or about to show on this load (the level music waits for it: VantageMusic).</summary>
         public bool Holding => Showing || _pending;
+        /// <summary>The pause menu is up (time stopped, sound paused).</summary>
+        public bool Paused { get; private set; }
+        /// <summary>The game is paused (the HUD and the minimap hide under the pause menu).</summary>
+        public static bool GamePaused => Instance != null && Instance.Paused;
+        /// <summary>The pause menu may open now: in play, not on the title screen, in a cutscene or dead.</summary>
+        public bool CanPause => !Showing && !_pending && !Paused && !VantageCinematic.Active && VantageEvents.ActivePlayer() != null;
         [Tooltip("Fade-out of the title-screen music (MUS_Menu) after Play, in seconds.")]
         public float MusicFade = 1.5f;
 
         private const string SensitivityKey = "vantage.sensitivity", QualityKey = "vantage.quality";
         private const float SwayDegrees = 8f, SwaySpeed = 0.11f, Distance = 38f, Height = 1.8f, Turn = 20f;
 
-        private enum Page { Main, Settings, Credits }
+        private enum Page { Main, Pause, Settings, Controls, Credits }
         private Page _page;
         private int _selected;
-        private bool _play;
-        private float _shownAt;
+        private bool _play, _title;
+        private float _shownAt, _pausedAt;
+        private int _confirm = -1;   // a pause row waiting for its second press (Main menu, Quit)
+        private Behaviour _input;    // the player's input, switched off while paused
 
         private Camera _camera;
         private Vector3 _centre, _toCamera, _lookAt;
         private RectTransform _canvas;
         private Image _cover;
-        private readonly List<Row> _main = new List<Row>(), _settings = new List<Row>();
-        private RectTransform _mainPanel, _settingsPanel, _creditsPanel;
+        private readonly List<Row> _main = new List<Row>(), _pause = new List<Row>(), _settings = new List<Row>();
+        private RectTransform _mainPanel, _pausePanel, _settingsPanel, _controlsPanel, _creditsPanel;
         private readonly List<Behaviour> _mouseLocks = new List<Behaviour>();
         private GameObject _helicopter;
         private AudioSource _rotor;
@@ -72,8 +83,10 @@ namespace Vantage
         private void Awake()
         {
             Instance = this;
+            Time.timeScale = 1f;   // a pause never outlives its scene
+            AudioListener.pause = false;
             ApplySettings();
-            if (!VantageRun.MenuShown) build();   // black from the first frame, until the intro hands over the camera
+            if (!VantageRun.MenuShown) build(true);   // black from the first frame, until the intro hands over the camera
             // The intro runs the menu on a session's first run (VantageIntro.Start: checkpoint 0, intro not played).
             _pending = !VantageRun.MenuShown && (!VantageRun.Started || (VantageRun.Checkpoint == 0 && !VantageRun.IntroPlayed));
         }
@@ -81,6 +94,7 @@ namespace Vantage
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;
+            if (Paused) { Time.timeScale = 1f; AudioListener.pause = false; }
             if (_canvas != null) Destroy(_canvas.gameObject);
             if (_helicopter != null) Destroy(_helicopter);
         }
@@ -111,7 +125,7 @@ namespace Vantage
                 if (m.enabled) { m.enabled = false; _mouseLocks.Add(m); }
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            if (_canvas == null) build();
+            if (_canvas == null) build(true);
             spawnHelicopter();
             Showing = true;
             _pending = false;
@@ -132,23 +146,133 @@ namespace Vantage
         /// <summary>Starts the game (also used by the playtest bot).</summary>
         public void Play()
         {
-            VantageAudio.Play2D(VantageSounds.UiSelect);
+            ui(VantageSounds.UiSelect);
             _play = true;
         }
 
         public void OpenSettings() => show(Page.Settings);
+        public void OpenControls() => show(Page.Controls);
         public void OpenCredits() => show(Page.Credits);
-        public void Back() => show(Page.Main);
+        /// <summary>To the first page: the title's main page, or the pause page.</summary>
+        public void Back() => show(home);
+
+        private Page home => _title ? Page.Main : Page.Pause;
+        private List<Row> rowsOf(Page page) => page == Page.Main ? _main : page == Page.Pause ? _pause : page == Page.Settings ? _settings : null;
+
+        #region Pause
+
+        /// <summary>Stops the game and shows the pause menu (Esc or P; also the bot). Does nothing when it can't pause.</summary>
+        public void Pause()
+        {
+            if (!CanPause) return;
+            Paused = true;
+            _pausedAt = Time.realtimeSinceStartup;
+            Time.timeScale = 0f;
+            AudioListener.pause = true;   // the menu's own clicks ignore it (ui())
+            var player = VantageEvents.ActivePlayer();
+            var input = player != null ? player.GetComponent<ThirdPersonInput>() : null;
+            _input = input != null && input.enabled ? input : null;   // the bot drives the player with it off
+            if (_input != null) _input.enabled = false;
+            lockMouse(false);
+            build(false);
+            ui(VantageSounds.UiSelect);
+        }
+
+        /// <summary>Back to the game; the controls return once the mouse button that chose Resume is let go.</summary>
+        public void Resume()
+        {
+            if (!Paused) return;
+            ui(VantageSounds.UiSelect);
+            unpause();
+            StartCoroutine(giveControlBack());
+        }
+
+        /// <summary>Restarts the current level at its checkpoint (like a death, without counting one).</summary>
+        public void RestartLevel()
+        {
+            unpause();
+            VantageRun.ReloadLevel();
+        }
+
+        /// <summary>Ends the run and goes back to the title screen.</summary>
+        public void ToMainMenu()
+        {
+            unpause();
+            VantageRun.ToTitle();
+        }
+
+        private void unpause()
+        {
+            if (!Paused) return;
+            Paused = false;
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+            VantageRun.StartTime += Time.realtimeSinceStartup - _pausedAt;   // paused time is not run time
+            if (_canvas != null) Destroy(_canvas.gameObject);
+            _canvas = null;
+        }
+
+        private IEnumerator giveControlBack()
+        {
+            while (Input.GetMouseButton(0)) yield return null;   // the click on Resume must not fire a shot
+            yield return null;
+            if (Paused) yield break;
+            if (_input != null) _input.enabled = true;
+            _input = null;
+            lockMouse(true);
+        }
+
+        /// <summary>The template's MouseLock unlocks on Esc and locks on a click: off while a menu shows.</summary>
+        private void lockMouse(bool locked)
+        {
+            if (!locked)
+            {
+                _mouseLocks.Clear();
+                foreach (var m in FindObjectsByType<MouseLock>(FindObjectsSortMode.None))
+                    if (m.enabled) { m.enabled = false; _mouseLocks.Add(m); }
+            }
+            else
+                foreach (var m in _mouseLocks) if (m != null) m.enabled = true;
+            Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !locked;
+        }
+
+        // Alt-tab in a build pauses the game (not in the editor: clicking the Inspector would pause it).
+        private void OnApplicationFocus(bool focus)
+        {
+            if (!focus && !Application.isEditor) Pause();
+        }
+
+        /// <summary>A menu sound that plays while the pause has every other sound stopped.</summary>
+        private static void ui(string sound)
+        {
+            var source = VantageAudio.Play2D(sound);
+            if (source != null) source.ignoreListenerPause = true;
+        }
+
+        #endregion
 
         private void Update()
         {
-            if (!Showing) return;
-            var t = Time.time - _shownAt;
-            if (_cover != null) _cover.color = new Color(0, 0, 0, 1f - Mathf.Clamp01(t / 1.5f));
-            flyHelicopter();
+            if (!Showing && !Paused)
+            {
+                if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P)) Pause();
+                return;
+            }
+            if (Showing)
+            {
+                var t = Time.time - _shownAt;
+                if (_cover != null) _cover.color = new Color(0, 0, 0, 1f - Mathf.Clamp01(t / 1.5f));
+                flyHelicopter();
+            }
 
-            var rows = _page == Page.Main ? _main : _page == Page.Settings ? _settings : null;
-            if (Input.GetKeyDown(KeyCode.Escape) && _page != Page.Main) { Back(); return; }
+            var rows = rowsOf(_page);
+            if (Input.GetKeyDown(KeyCode.Escape) || (Paused && _page == Page.Pause && Input.GetKeyDown(KeyCode.P)))
+            {
+                if (_page != home) Back();
+                else if (Paused) Resume();
+                return;
+            }
             if (rows == null)
             {
                 if (Input.anyKeyDown) Back();
@@ -239,32 +363,52 @@ namespace Vantage
 
         #region Pages
 
-        private void build()
+        private void build(bool title)
         {
-            _canvas = VantageUI.Canvas("VANTAGE Main Menu", 80);
+            _title = title;
+            _main.Clear();
+            _pause.Clear();
+            _settings.Clear();
+            _confirm = -1;
+            _canvas = VantageUI.Canvas(title ? "VANTAGE Main Menu" : "VANTAGE Pause Menu", title ? 80 : 90);
+            if (!title) VantageUI.Image(VantageUI.Stretch("Dim", _canvas), new Color(0, 0, 0, 0.45f));
             // A dark falloff behind the menu side, like a vignette from the left.
             var shade = VantageUI.Rect("Shade", _canvas, new Vector2(0, 0.5f), Vector2.zero, new Vector2(1300, 1400));
             VantageUI.Image(shade, new Color(0, 0, 0, 0.72f), VantageUI.Shade).rectTransform.anchoredPosition = new Vector2(-520, 0);
             VantageUI.Image(VantageUI.Stretch("Vignette", _canvas), new Color(0, 0, 0, 0.55f), VantageUI.Vignette);
 
-            var title = VantageUI.Text(_canvas, "Title", 168, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(110, -150), new Vector2(900, 170));
-            title.text = "VANTAGE";
-            title.characterSpacing = 6;
+            var heading = VantageUI.Text(_canvas, "Title", 168, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(110, -150), new Vector2(900, 170));
+            heading.text = title ? "VANTAGE" : "PAUSED";
+            heading.characterSpacing = 6;
             VantageUI.Image(VantageUI.Rect("Line", _canvas, new Vector2(0, 1), new Vector2(110, -330), new Vector2(560, 3)), VantageUI.Danger, VantageUI.Pixel);
-            var subtitle = VantageUI.Text(_canvas, "Subtitle", 34, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(112, -350), new Vector2(900, 40));
-            subtitle.text = "THE TOWER IS SILENT";
+            var subtitle = VantageUI.Text(_canvas, "Subtitle", 34, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(112, -350), new Vector2(1200, 40));
+            subtitle.text = title ? "THE TOWER IS SILENT" : runSummary();
             subtitle.characterSpacing = 18;
             subtitle.color = new Color(0.85f, 0.85f, 0.85f);
-            var tag = VantageUI.Text(_canvas, "Tagline", 24, TextAlignmentOptions.Left, new Vector2(0, 0), new Vector2(110, 60), new Vector2(900, 30));
-            tag.text = VantageUI.Caps(Tagline);
+            var tag = VantageUI.Text(_canvas, "Tagline", 24, TextAlignmentOptions.Left, new Vector2(0, 0), new Vector2(110, 60), new Vector2(1400, 30));
+            tag.text = title ? VantageUI.Caps(Tagline) : "ESC RESUME   W S CHOOSE   ENTER SELECT";
             tag.characterSpacing = 14;
             tag.color = VantageUI.Muted;
 
             _mainPanel = VantageUI.Rect("Main", _canvas, new Vector2(0, 0.5f), new Vector2(100, -90), new Vector2(560, 330));
-            _main.Add(row(_mainPanel, _main.Count, "Play game", null, _ => Play()));
-            _main.Add(row(_mainPanel, _main.Count, "Settings", null, _ => OpenSettings()));
-            _main.Add(row(_mainPanel, _main.Count, "Credits", null, _ => OpenCredits()));
-            _main.Add(row(_mainPanel, _main.Count, "Quit", null, _ => quit()));
+            _pausePanel = VantageUI.Rect("Pause", _canvas, new Vector2(0, 0.5f), new Vector2(100, -150), new Vector2(620, 450));
+            if (title)
+            {
+                _main.Add(row(_mainPanel, _main.Count, "Play game", null, _ => Play()));
+                _main.Add(row(_mainPanel, _main.Count, "Settings", null, _ => OpenSettings()));
+                _main.Add(row(_mainPanel, _main.Count, "Controls", null, _ => OpenControls()));
+                _main.Add(row(_mainPanel, _main.Count, "Credits", null, _ => OpenCredits()));
+                _main.Add(row(_mainPanel, _main.Count, "Quit", null, _ => quit()));
+            }
+            else
+            {
+                _pause.Add(row(_pausePanel, _pause.Count, "Resume", null, _ => Resume()));
+                _pause.Add(row(_pausePanel, _pause.Count, "Restart from checkpoint", null, _ => RestartLevel()));
+                _pause.Add(row(_pausePanel, _pause.Count, "Settings", null, _ => OpenSettings()));
+                _pause.Add(row(_pausePanel, _pause.Count, "Controls", null, _ => OpenControls()));
+                _pause.Add(row(_pausePanel, _pause.Count, "Main menu", null, _ => confirm(4, ToMainMenu)));
+                _pause.Add(row(_pausePanel, _pause.Count, "Quit game", null, _ => confirm(5, quit)));
+            }
 
             _settingsPanel = VantageUI.Rect("Settings", _canvas, new Vector2(0, 0.5f), new Vector2(100, -160), new Vector2(760, 530));
             _settings.Add(row(_settingsPanel, 0, "Master", "", d => volume(VantageAudio.MasterKey, d)));
@@ -275,13 +419,55 @@ namespace Vantage
             _settings.Add(row(_settingsPanel, 5, "Fullscreen", "", _ => { Screen.fullScreen = !Screen.fullScreen; refresh(); }));
             _settings.Add(row(_settingsPanel, 6, "Back", null, _ => Back()));
 
+            // Below the heading's line (its top 110 above the centre) and clear of the tagline at the bottom.
+            _controlsPanel = VantageUI.Rect("Controls", _canvas, new Vector2(0, 0.5f), new Vector2(110, -150), new Vector2(1000, 520));
+            var controls = VantageUI.Text(_controlsPanel, "Text", 24, TextAlignmentOptions.TopLeft, new Vector2(0, 1), Vector2.zero, new Vector2(1000, 520));
+            controls.lineSpacing = -8f;
+            controls.text = ControlsText + "\n<color=#ffffff88>ANY KEY: BACK</color>";
+
             _creditsPanel = VantageUI.Rect("Credits", _canvas, new Vector2(0, 0.5f), new Vector2(110, -90), new Vector2(900, 420));
             var credits = VantageUI.Text(_creditsPanel, "Text", 26, TextAlignmentOptions.TopLeft, new Vector2(0, 1), Vector2.zero, new Vector2(900, 420));
             credits.textWrappingMode = TextWrappingModes.Normal;
             credits.text = Credits + "\n\n<color=#ffffff88>ANY KEY: BACK</color>";
 
-            _cover = VantageUI.Image(VantageUI.Stretch("Fade", _canvas), Color.black);
-            show(Page.Main);
+            if (title) _cover = VantageUI.Image(VantageUI.Stretch("Fade", _canvas), Color.black);
+            show(home);
+        }
+
+        /// <summary>The keys (Input Manager and the template's ThirdPersonInput): action, then key, one per line.</summary>
+        public const string ControlsText =
+            "MOVE<pos=46%><color=#FFBD4D>W A S D</color>\n" +
+            "LOOK<pos=46%><color=#FFBD4D>MOUSE</color>\n" +
+            "RUN<pos=46%><color=#FFBD4D>LEFT SHIFT</color>\n" +
+            "CROUCH<pos=46%><color=#FFBD4D>LEFT CTRL (HOLD)</color>\n" +
+            "AIM / SHOOT<pos=46%><color=#FFBD4D>RIGHT / LEFT MOUSE</color>\n" +
+            "RELOAD<pos=46%><color=#FFBD4D>R</color>\n" +
+            "HOLSTER / PISTOL / RIFLE<pos=46%><color=#FFBD4D>1 / 2 / 3</color>\n" +
+            "TAKE COVER<pos=46%><color=#FFBD4D>SPACE (NEAR A WALL)</color>\n" +
+            "CLIMB / VAULT<pos=46%><color=#FFBD4D>SPACE (FACING IT)</color>\n" +
+            "ROLL<pos=46%><color=#FFBD4D>DOUBLE TAP A DIRECTION</color>\n" +
+            "USE<pos=46%><color=#FFBD4D>E</color>\n" +
+            "GRENADE<pos=46%><color=#FFBD4D>HOLD G, LEFT MOUSE</color>\n" +
+            "MELEE<pos=46%><color=#FFBD4D>F</color>\n" +
+            "PAUSE<pos=46%><color=#FFBD4D>ESC</color>\n";
+
+        /// <summary>The pause page's line under the heading: where the run stands.</summary>
+        private static string runSummary()
+        {
+            var levels = VantageTowerLevels.Instance;
+            var where = levels == null || levels.Current < 0 ? "OUTSIDE"
+                : levels.Current < levels.Levels.Count - 1 ? $"LEVEL {levels.Current + 1} / {levels.Levels.Count - 1}" : "FINALE";
+            var time = VantageRun.Elapsed;
+            return $"{where}   {(int)(time / 60)}:{(int)(time % 60):00}   COINS {VantageRun.Coins.Count} / {VantageCoin.Total}";
+        }
+
+        /// <summary>Main menu and Quit lose the run: the first press asks, the second does it.</summary>
+        private void confirm(int index, System.Action act)
+        {
+            if (_confirm == index) { act(); return; }
+            _confirm = index;
+            _pause[index].Label.text = VantageUI.Caps(_pause[index].Name + "? Press again");
+            _pause[index].Label.color = VantageUI.Accent;
         }
 
         private Row row(RectTransform panel, int index, string label, string value, System.Action<int> act)
@@ -319,10 +505,12 @@ namespace Vantage
 
         private void show(Page page)
         {
-            if (_mainPanel != null && page != _page) VantageAudio.Play2D(VantageSounds.UiSelect);
+            if (_mainPanel != null && page != _page) ui(VantageSounds.UiSelect);
             _page = page;
             _mainPanel.gameObject.SetActive(page == Page.Main);
+            _pausePanel.gameObject.SetActive(page == Page.Pause);
             _settingsPanel.gameObject.SetActive(page == Page.Settings);
+            _controlsPanel.gameObject.SetActive(page == Page.Controls);
             _creditsPanel.gameObject.SetActive(page == Page.Credits);
             select(0);
             refresh();
@@ -351,16 +539,19 @@ namespace Vantage
         /// <summary>Moves the highlight up (-1) or down (+1) the current page, wrapping (W/S; also the bot).</summary>
         public void MoveSelection(int step)
         {
-            var rows = _page == Page.Main ? _main : _page == Page.Settings ? _settings : null;
+            var rows = rowsOf(_page);
             var count = rows != null ? rows.Count : 0;
             if (count > 0) select(((_selected + step) % count + count) % count);
         }
 
         private void select(int index)
         {
-            if (index != _selected && Showing) VantageAudio.Play2D(VantageSounds.UiMove);
+            if (index != _selected && (Showing || Paused)) ui(VantageSounds.UiMove);
             _selected = index;
-            var rows = _page == Page.Main ? _main : _settings;
+            if (_confirm >= 0 && _confirm < _pause.Count) _pause[_confirm].Label.text = VantageUI.Caps(_pause[_confirm].Name);
+            _confirm = -1;
+            var rows = rowsOf(_page);
+            if (rows == null) return;
             for (int i = 0; i < rows.Count; i++)
             {
                 var on = i == index;

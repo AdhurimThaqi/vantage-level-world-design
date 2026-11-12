@@ -1,0 +1,38 @@
+VANTAGE playtest  2026-11-12_13-25-57
+Enemy placement seed: 95484
+Session length: 59s (run 254s, deaths 2)  Completed: no   Furthest: Finale (helipad)   Backtracks: 2
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      2s   deaths 0
+  Level 3 (destroyed floor)     51s   deaths 0
+  Finale (helipad)      3s   deaths 1
+
+Kills
+  Soldier        5
+  Heavy robot    1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  244.4s] Enemy placement seed 95484
+[    0.0s] Session started
+[    1.5s] Level 2 (armory) -> Level 3 (destroyed floor)
+[    7.3s] Killed Soldier in Level 3 (destroyed floor)
+[    8.9s] Killed Soldier in Level 3 (destroyed floor)
+[   21.4s] Killed Soldier in Level 3 (destroyed floor)
+[   37.1s] Killed Heavy robot in Level 3 (destroyed floor)
+[   40.7s] Killed Soldier in Level 3 (destroyed floor)
+[   46.1s] Killed Soldier in Level 3 (destroyed floor)
+[   50.7s] Level 3 (destroyed floor) -> Finale (helipad)
+[   52.8s] Finale (helipad) -> Level 3 (destroyed floor)
+[   52.8s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   54.1s] Level 3 (destroyed floor) -> Finale (helipad)
+[   54.4s] Finale (helipad) -> Level 3 (destroyed floor)
+[   54.4s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   55.3s] Level 3 (destroyed floor) -> Finale (helipad)
+[   55.8s] DEATH in Finale (helipad) at (13.7, 12.7, -75.7) (health reached zero)

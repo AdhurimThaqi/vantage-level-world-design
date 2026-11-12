@@ -99409,12 +99409,16 @@ MonoBehaviour:
     Course template: Third Person Cover Shooter, Pistol
     Animset Pro
 
-    Asset Store: Low Poly Soldiers (demo), ISO Mech, Stylized Coin
-    Pack
+    Asset Store: Low Poly Soldiers (demo), ISO Mech, Sci-fi turrets,
+    VoodooPlay Sci-fi Drone,
+
+    Raptor3D MSH N2 helicopter, Robot Hero (Sci-Fi
+    Warrior), Stylized Coin Pack
 
     Textures: Poly Haven (CC0)
 
-    Player character: Avaturn'
+    Player character:
+    Avaturn'
   MusicFade: 1.5
 --- !u!114 &278775010
 MonoBehaviour:
@@ -99431,7 +99435,6 @@ MonoBehaviour:
   Helipad: {fileID: 2054885008}
   EntrancePoint: {x: 0.98845166, y: 4.065919, z: -79.94577}
   EntranceFacing: {x: 0, y: 0, z: -1}
-  Music: {fileID: 0}
   Whoosh: {fileID: 0}
 --- !u!1001 &281410919
 PrefabInstance:
@@ -119925,6 +119928,8 @@ MonoBehaviour:
   StingerDip: -8
   SnapshotBlend: 1.5
   EndingFade: 4
+  IntroFightFade: 3
+  ExploreFadeIn: 4
 --- !u!114 &747965142
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119981,6 +119986,7 @@ MonoBehaviour:
   PollInterval: 0.25
   StepFade: 1
   FloorFade: 0.5
+  FloorDelay: 0.75
 --- !u!1 &749045662
 GameObject:
   m_ObjectHideFlags: 0

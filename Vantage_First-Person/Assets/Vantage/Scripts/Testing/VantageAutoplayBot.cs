@@ -226,6 +226,7 @@ namespace Vantage.Testing
             yield return walkStairs(levels);
             yield return finale(levels);
             yield return playAgain();
+            yield return pauseChecks();
             yield return checkpointRestore();
             yield return respawnIsSafe(2);
             yield return shotCameraStaysQuiet();
@@ -276,6 +277,9 @@ namespace Vantage.Testing
                     yield return clearLevel(levels, 0);
                     yield return level2SpawnsReachable(levels);
                     break;
+                case "pause":
+                    yield return pauseChecks();
+                    break;
                 default:
                     fail($"unknown -vantageOnly group '{group}'");
                     break;
@@ -323,8 +327,13 @@ namespace Vantage.Testing
             for (float t = 0; t < 2f; t += Time.deltaTime) yield return null;   // the menu music's 1.5 s fade
             var menuSourceLeft = FindObjectsByType<AudioSource>(FindObjectsSortMode.None).Any(a => a.isPlaying && a.name == "Loop " + VantageSounds.MusMenu);
             var exploreAfter = VantageAudio.Plays(VantageSounds.MusExplore);
-            var musicLine = $"menu music requests {menuMusic}, level music during the menu {exploreDuringMenu}, menu music still playing 2 s after Play {menuSourceLeft}, level music after Play {exploreAfter}";
-            if (menuMusic == 1 && exploreDuringMenu == 0 && !menuSourceLeft && exploreAfter == 1) log("PASS menu music: " + musicLine);
+            // The intro's own track (2026-11-12) starts with the flyover and holds the level music under it.
+            var introMusic = VantageAudio.Plays(VantageSounds.MusIntro);
+            var music = FindAnyObjectByType<VantageMusic>();
+            var introPlaying = music != null && music.IntroMusicPlaying;
+            var introOk = introMusic == 1 && (!VantageAudio.Has(VantageSounds.MusIntro) || introPlaying);
+            var musicLine = $"menu music requests {menuMusic}, level music during the menu {exploreDuringMenu}, menu music still playing 2 s after Play {menuSourceLeft}, level music after Play {exploreAfter}, intro track requests {introMusic} (filled {VantageAudio.Has(VantageSounds.MusIntro)}, playing {introPlaying})";
+            if (menuMusic == 1 && exploreDuringMenu == 0 && !menuSourceLeft && exploreAfter == 1 && introOk) log("PASS menu music: " + musicLine);
             else fail("menu music: " + musicLine);
             var line = $"camera held {held}, after Play: menu showing {menu.Showing}, intro playing {VantageIntro.Instance.Playing}; " +
                        $"settings {names}, master lowered to {lowered:0.0} (listener {listener:0.0}, mixer {!noMixer})";
@@ -892,6 +901,47 @@ namespace Vantage.Testing
 
         // ---------------- finale ----------------
 
+        /// <summary>
+        /// The boss reveal (2026-11-12): a cutscene starts with the boss, the boss stands still and holds its fire,
+        /// the player takes no hits, the camera stays outside walls (sight line to the boss), the roar and the
+        /// fight stinger play once each, and control comes back at the end. Pictures: boss_reveal_low, boss_reveal_arc.
+        /// </summary>
+        private IEnumerator bossReveal(VantageHeavyRobot boss)
+        {
+            var started = VantageBossReveal.Playing && VantageCinematic.Active;
+            var bossAt = boss != null ? boss.transform.position : Vector3.zero;
+            var health = _motor.GetComponent<CharacterHealth>();
+            var hpBefore = health != null ? health.Health : 0f;
+            var stingers = VantageAudio.Plays(VantageSounds.StgBossFight);
+            int frames = 0, blocked = 0;
+            bool lowShot = false, arcShot = false;
+            var cam = Camera.main;
+            for (float t = 0; t < VantageBossReveal.Length + 2f && VantageBossReveal.Playing; t += Time.deltaTime)
+            {
+                yield return null;
+                if (!VantageBossReveal.Playing || boss == null || cam == null) break;
+                var reveal = VantageBossReveal.Instance;
+                frames++;
+                var focus = boss.transform.position + Vector3.up * 2f;
+                if (reveal.Elapsed < VantageBossReveal.ShotArc
+                    && Physics.Linecast(cam.transform.position, focus, out var hit, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
+                    && !hit.transform.IsChildOf(boss.transform)) blocked++;
+                if (!lowShot && reveal.Elapsed > 2f) { lowShot = true; yield return hudSnapshot("boss_reveal_low"); }
+                if (!arcShot && reveal.Elapsed > 5f) { arcShot = true; yield return hudSnapshot("boss_reveal_arc"); }
+            }
+            yield return null;
+            var moved = boss != null ? Vector3.Distance(boss.transform.position, bossAt) : -1f;
+            var hurt = health != null ? hpBefore - health.Health : 0f;
+            var roars = VantageAudio.Plays(VantageSounds.BossRoar);
+            var line = $"started {started}, frames {frames}, camera blocked from the boss in {blocked}, boss moved {moved:0.00} m, player hurt {hurt:0}, " +
+                       $"reveal sound {VantageAudio.Plays(VantageSounds.BossReveal)}, roars {roars}, fight stinger {VantageAudio.Plays(VantageSounds.StgBossFight) - stingers}, " +
+                       $"control back {!VantageCinematic.Active}, reveals {VantageBossReveal.Count}";
+            if (started && frames > 0 && blocked <= frames / 10 && moved < 0.3f && hurt <= 0f && VantageAudio.Plays(VantageSounds.BossReveal) == 1
+                && roars >= 1 && VantageAudio.Plays(VantageSounds.StgBossFight) - stingers == 1 && !VantageCinematic.Active)
+                log("PASS boss reveal: " + line);
+            else fail("boss reveal: " + line);
+        }
+
         private bool _won;
         private void onWon() => _won = true;
 
@@ -909,6 +959,7 @@ namespace Vantage.Testing
             teleport(onPad, onPad + Vector3.forward);
             for (float t = 0; t < 2f && !levels.BossSpawned; t += Time.deltaTime) yield return null;
             var boss = levels.Enemies.Where(e => e != null).Select(e => e.GetComponent<VantageHeavyRobot>()).FirstOrDefault(r => r != null && r.IsBoss);
+            yield return bossReveal(boss);
             yield return new WaitForSeconds(1f);
             yield return hudSnapshot("hud_boss");
             _won = false;
@@ -1397,6 +1448,88 @@ namespace Vantage.Testing
             var line = $"level {levels.Current + 1}, weapons {VantageRun.Weapons.Count}, coins {VantageRun.Coins.Count}, deaths {VantageRun.Deaths}";
             if (levels.Current == 0 && VantageRun.Weapons.Count == 0 && VantageRun.Coins.Count == 0 && VantageRun.Deaths == 0) log("PASS play again starts a new run: " + line);
             else fail("play again: " + line);
+        }
+
+        // ---------------- pause menu ----------------
+
+        private static IEnumerator realSeconds(float seconds)
+        {
+            for (float t = 0; t < seconds; t += Time.unscaledDeltaTime) yield return null;
+        }
+
+        /// <summary>
+        /// The pause menu (Esc in play): it stops time, sound and the player, its pages open (screenshots menu_pause,
+        /// menu_controls), it doesn't open in a cutscene, Resume gives the game back with the paused time left out of
+        /// the run clock; Restart from checkpoint reloads without a death or the intro; Main menu ends the run on the
+        /// title screen, and Play from there starts a new one. Ends on a fresh run with the intro skipped.
+        /// </summary>
+        private IEnumerator pauseChecks()
+        {
+            var menu = VantageMainMenu.Instance;
+            if (menu == null) { fail("pause: no VantageMainMenu"); yield break; }
+
+            VantageCinematic.Begin();
+            menu.Pause();
+            var inCutscene = menu.Paused;
+            VantageCinematic.End();
+            if (inCutscene) menu.Resume();
+            yield return null;
+
+            var canPause = menu.CanPause;
+            var clockBefore = VantageRun.Elapsed;
+            var position = _motor.transform.position;
+            var gameTime = Time.time;
+            menu.Pause();
+            yield return realSeconds(1.2f);
+            var stopped = menu.Paused && Time.timeScale == 0f && AudioListener.pause && Mathf.Approximately(Time.time, gameTime)
+                          && Vector3.Distance(position, _motor.transform.position) < 0.01f;
+            var canvas = GameObject.Find("VANTAGE Pause Menu") != null;
+            yield return hudSnapshot("menu_pause");
+            menu.OpenSettings();
+            var names = string.Join("/", menu.SettingNames);
+            menu.OpenControls();
+            yield return hudSnapshot("menu_controls");
+            menu.Back();
+            menu.Resume();
+            yield return null;
+            var clockGain = VantageRun.Elapsed - clockBefore;
+            var resumed = !menu.Paused && Time.timeScale == 1f && !AudioListener.pause && GameObject.Find("VANTAGE Pause Menu") == null;
+            var line = $"not in a cutscene {!inCutscene}, can pause {canPause}, stopped {stopped} (time scale while paused, player moved {Vector3.Distance(position, _motor.transform.position):F3} m), " +
+                       $"canvas {canvas}, settings {names}, resumed {resumed}, run clock gained {clockGain:F2} s over a 1.2 s pause";
+            if (!inCutscene && canPause && stopped && canvas && names.EndsWith("/Back") && resumed && clockGain < 0.5f) log("PASS pause and resume: " + line);
+            else fail("pause and resume: " + line);
+
+            // Restart from checkpoint: a reload into the same run, no death counted, no intro.
+            var deaths = VantageRun.Deaths;
+            VantageRun.IntroPlayed = true;   // the bot's VantageRun.Reset() at its start came after the intro had played
+            menu.Pause();
+            menu.RestartLevel();
+            yield return realSeconds(2.5f);
+            if (!acquire()) yield break;
+            var intro = VantageIntro.Instance != null && VantageIntro.Instance.Playing;
+            var title = VantageMainMenu.Instance != null && VantageMainMenu.Instance.Showing;
+            line = $"time scale {Time.timeScale}, listener paused {AudioListener.pause}, deaths {deaths} -> {VantageRun.Deaths}, intro {intro}, title {title}";
+            if (Time.timeScale == 1f && !AudioListener.pause && VantageRun.Deaths == deaths && !intro && !title) log("PASS restart from checkpoint: " + line);
+            else fail("restart from checkpoint: " + line);
+
+            // Main menu: back to the title screen, then Play starts a new run with its intro.
+            VantageMainMenu.Instance.Pause();
+            VantageMainMenu.Instance.ToMainMenu();
+            yield return realSeconds(2.5f);
+            if (!acquire()) yield break;
+            menu = VantageMainMenu.Instance;
+            title = menu != null && menu.Showing;
+            var paused = menu != null && menu.Paused;
+            if (menu != null) menu.Pause();   // not on the title screen
+            var pausedOnTitle = menu != null && menu.Paused;
+            if (menu != null && menu.Showing) menu.Play();
+            for (float t = 0; t < 2f && (VantageIntro.Instance == null || !VantageIntro.Instance.Playing); t += Time.deltaTime) yield return null;
+            intro = VantageIntro.Instance != null && VantageIntro.Instance.Playing;
+            yield return skipIntro();
+            line = $"title screen {title}, paused {paused}, pause on the title {pausedOnTitle}, intro after Play {intro}, level {VantageTowerLevels.Instance.Current + 1}, weapons {VantageRun.Weapons.Count}, deaths {VantageRun.Deaths}";
+            if (title && !paused && !pausedOnTitle && intro && VantageTowerLevels.Instance.Current == 0 && VantageRun.Weapons.Count == 0 && VantageRun.Deaths == 0)
+                log("PASS pause menu to the title screen and a new run: " + line);
+            else fail("pause to main menu: " + line);
         }
 
         // ---------------- robot ----------------

@@ -59,7 +59,6 @@ namespace Vantage
 
         private CharacterHealth _health;
         private NavMeshAgent _agent;
-        private AudioSource _audio;
         private BaseActor _target;
         private bool _alerted, _canSee;
         private Vector3 _lastKnown;
@@ -99,7 +98,6 @@ namespace Vantage
             _health.Health = MaxHealth;
             _agent = GetComponent<NavMeshAgent>();
             if (_agent != null) { _agent.speed = Speed; _agent.stoppingDistance = 6f; }
-            _audio = GetComponent<AudioSource>();
             if (Eye != null && Eye.material.HasProperty(EmissionColor)) _eyeMaterial = Eye.material;
             if (Tracer != null) Tracer.enabled = false;
             ForwardChildHits();
@@ -119,6 +117,8 @@ namespace Vantage
         private void Update()
         {
             if (IsDead) { collapse(); return; }
+            if (VantageCinematic.Active) { hold(); return; }
+            if (_held) resume();
             if (Tracer != null && Tracer.enabled && Time.time > _tracerOff) Tracer.enabled = false;
             if (Animator != null) Animator.SetFloat(SpeedParam, _chargeLeft > 0 ? ChargeSpeed : _agent != null && _agent.enabled ? _agent.velocity.magnitude : 0f);
 
@@ -134,6 +134,35 @@ namespace Vantage
             face(_canSee ? _target.transform.position : _lastKnown);
             shoot();
         }
+
+        private bool _held;
+        private float _nextHitSound;
+
+        /// <summary>A cutscene has the camera (the boss reveal): stand still, no shots, no charge; the eye is the cutscene's.</summary>
+        private void hold()
+        {
+            if (_held) return;
+            _held = true;
+            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            if (Animator != null) Animator.SetFloat(SpeedParam, 0f);
+            if (_servo != null) { VantageAudio.Stop(_servo, 0.3f); _servo = null; }
+            _shotsLeft = 0;
+            _windUpStart = -1f;
+            _chargeLeft = 0f;
+            _chargeWindUp = -1f;
+        }
+
+        /// <summary>Back from a cutscene: a moment before the first burst and the first charge.</summary>
+        private void resume()
+        {
+            _held = false;
+            setEye(0f);
+            _nextBurst = Mathf.Max(_nextBurst, Time.time + 1.5f);
+            _nextCharge = Mathf.Max(_nextCharge, Time.time + ChargeInterval * 0.5f);
+        }
+
+        /// <summary>The eye's glow, 0..1 (the boss reveal flares it when the machine roars).</summary>
+        public void Glow(float amount) => setEye(amount);
 
         /// <summary>Looks for the player and decides where to walk (a few times a second).</summary>
         private void think()
@@ -210,11 +239,9 @@ namespace Vantage
             }
             if (MuzzleFlash != null && Muzzle != null)
                 Destroy(Instantiate(MuzzleFlash, Muzzle.position, Muzzle.rotation, Muzzle), 1.5f);
-            if (_audio != null && FireSound != null)
-            {
-                _audio.pitch = Random.Range(0.7f, 0.8f);
-                _audio.PlayOneShot(FireSound, 0.9f);
-            }
+            // ROBOT_Fire (the prefab's FireSound until it has clips); the boss sounds heavier.
+            var shot = VantageAudio.Play(VantageSounds.RobotFire, origin, FireSound);
+            if (shot != null) shot.pitch *= IsBoss ? 0.75f : 1f;
         }
 
         /// <summary>Boss only: wind-up (eye full red, standing still), then a dash at the player. True while charging.</summary>
@@ -293,6 +320,11 @@ namespace Vantage
                 return;
             }
             _health.Deal(hit.Damage);
+            if (Time.time >= _nextHitSound)
+            {
+                _nextHitSound = Time.time + 0.25f;   // the rifle fires fast: one armour clank per quarter second
+                VantageAudio.Play(VantageSounds.RobotHit, hit.Position);
+            }
             if (HitEffect != null) Destroy(Instantiate(HitEffect, hit.Position, Quaternion.LookRotation(hit.Normal)), 3f);
             if (_health.Health <= 0) die();
         }

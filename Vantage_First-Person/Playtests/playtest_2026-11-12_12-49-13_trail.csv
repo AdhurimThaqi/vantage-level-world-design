@@ -1,0 +1,157 @@
+time,x,y,z,space
+0.0,0.99,4.10,-87.95,Military Base
+1.0,0.99,4.05,-87.95,Military Base
+2.0,0.99,4.05,-87.95,Military Base
+3.0,0.99,4.05,-87.95,Military Base
+4.0,0.99,4.05,-87.95,Military Base
+5.0,0.99,4.05,-87.95,Military Base
+6.0,0.99,4.05,-87.95,Military Base
+7.0,0.99,4.05,-87.95,Military Base
+8.0,0.99,4.05,-87.95,Military Base
+9.0,0.99,4.05,-87.95,Military Base
+10.0,0.99,4.05,-87.95,Military Base
+11.0,0.99,4.05,-87.95,Military Base
+12.0,0.99,4.05,-87.95,Military Base
+13.0,0.99,4.05,-87.95,Military Base
+14.0,0.99,4.05,-87.95,Military Base
+15.0,0.99,4.05,-87.95,Military Base
+16.0,0.99,4.05,-87.95,Military Base
+17.0,0.99,4.05,-87.95,Military Base
+18.1,0.99,4.05,-87.95,Military Base
+19.1,0.99,4.05,-87.95,Military Base
+20.1,0.99,4.05,-87.95,Military Base
+21.1,0.99,4.05,-87.95,Military Base
+22.1,0.99,4.05,-87.95,Military Base
+23.1,0.99,4.05,-87.95,Military Base
+24.3,0.99,4.05,-87.95,Military Base
+25.3,8.53,4.05,-75.98,Level 1 (ground floor)
+26.3,0.99,4.05,-87.95,Military Base
+27.3,0.99,4.05,-83.91,Military Base
+28.3,0.99,4.06,-78.35,Level 1 (ground floor)
+29.4,0.99,4.06,-75.31,Level 1 (ground floor)
+30.4,7.55,4.05,-98.22,Military Base
+31.4,7.55,4.05,-98.22,Military Base
+32.4,7.55,4.05,-98.22,Military Base
+33.4,7.55,4.05,-98.22,Military Base
+34.4,7.55,4.05,-98.22,Military Base
+35.4,7.55,4.05,-98.22,Military Base
+36.4,-0.41,4.06,-73.50,Level 1 (ground floor)
+37.4,-0.38,4.06,-73.50,Level 1 (ground floor)
+38.4,-0.47,4.05,-73.57,Level 1 (ground floor)
+39.4,-0.17,4.05,-76.52,Level 1 (ground floor)
+40.4,-0.20,4.05,-76.60,Level 1 (ground floor)
+41.4,-0.20,4.05,-76.64,Level 1 (ground floor)
+42.4,-0.15,4.05,-76.68,Level 1 (ground floor)
+43.4,-0.11,4.06,-76.70,Level 1 (ground floor)
+44.4,-0.20,4.06,-76.59,Level 1 (ground floor)
+45.4,-0.19,4.05,-76.58,Level 1 (ground floor)
+46.4,-0.17,4.05,-76.66,Level 1 (ground floor)
+47.4,0.04,4.05,-76.48,Level 1 (ground floor)
+48.4,0.03,4.06,-76.48,Level 1 (ground floor)
+49.4,0.09,4.06,-76.48,Level 1 (ground floor)
+50.4,0.07,4.06,-76.31,Level 1 (ground floor)
+51.4,0.10,4.05,-76.44,Level 1 (ground floor)
+52.4,0.06,4.05,-76.58,Level 1 (ground floor)
+53.4,11.76,4.06,-67.45,Level 1 (ground floor)
+54.4,11.76,4.06,-67.45,Level 1 (ground floor)
+55.4,11.76,4.06,-67.45,Level 1 (ground floor)
+56.4,11.76,4.05,-67.45,Level 1 (ground floor)
+57.4,11.76,4.05,-67.45,Level 1 (ground floor)
+58.4,11.76,4.06,-67.45,Level 1 (ground floor)
+59.4,11.76,4.06,-67.45,Level 1 (ground floor)
+60.4,11.76,4.06,-67.45,Level 1 (ground floor)
+61.5,11.76,4.06,-67.45,Level 1 (ground floor)
+62.5,11.76,4.05,-67.45,Level 1 (ground floor)
+63.5,11.76,4.06,-67.45,Level 1 (ground floor)
+64.5,11.76,4.06,-67.45,Level 1 (ground floor)
+65.5,11.76,4.06,-67.45,Level 1 (ground floor)
+66.5,11.76,4.06,-67.45,Level 1 (ground floor)
+67.5,11.76,4.05,-67.45,Level 1 (ground floor)
+68.5,11.76,4.05,-67.45,Level 1 (ground floor)
+69.5,11.76,4.06,-67.45,Level 1 (ground floor)
+70.5,11.76,4.06,-67.45,Level 1 (ground floor)
+71.5,11.76,4.05,-67.45,Level 1 (ground floor)
+72.5,11.76,4.05,-67.45,Level 1 (ground floor)
+73.5,0.99,4.05,-87.50,Military Base
+74.5,0.88,4.05,-86.33,Military Base
+75.5,0.69,4.05,-84.25,Military Base
+76.5,0.48,4.05,-81.99,Level 1 (ground floor)
+77.5,0.25,4.07,-79.54,Level 1 (ground floor)
+78.5,0.09,4.05,-76.76,Level 1 (ground floor)
+79.5,0.46,4.05,-74.09,Level 1 (ground floor)
+80.5,0.87,4.05,-70.72,Level 1 (ground floor)
+81.5,0.96,5.07,-67.80,Level 1 (ground floor)
+82.5,0.97,6.22,-65.90,Level 1 (ground floor)
+83.5,2.32,6.23,-64.82,Level 1 (ground floor)
+84.5,2.92,7.01,-66.24,Level 1 (ground floor)
+85.6,3.05,8.03,-67.95,Level 2 (armory)
+86.6,3.15,8.37,-69.84,Level 2 (armory)
+87.6,-2.56,9.59,-62.82,Level 2 (armory)
+88.6,-2.56,9.87,-62.77,Level 2 (armory)
+89.6,-8.11,8.37,-77.29,Level 2 (armory)
+90.6,-8.11,8.37,-77.29,Level 2 (armory)
+91.6,-8.11,8.37,-77.29,Level 2 (armory)
+92.6,-8.11,8.37,-77.29,Level 2 (armory)
+93.6,-8.11,8.37,-77.29,Level 2 (armory)
+94.6,-8.11,8.37,-77.29,Level 2 (armory)
+95.6,-8.11,8.37,-77.28,Level 2 (armory)
+96.6,-8.10,8.37,-77.27,Level 2 (armory)
+97.6,-8.11,8.37,-77.28,Level 2 (armory)
+98.6,-8.11,8.37,-77.28,Level 2 (armory)
+99.6,-8.11,8.37,-77.28,Level 2 (armory)
+100.6,-8.11,8.37,-77.28,Level 2 (armory)
+101.6,-8.11,8.37,-77.28,Level 2 (armory)
+102.6,-8.11,8.37,-77.28,Level 2 (armory)
+103.6,3.16,8.38,-68.91,Level 2 (armory)
+104.6,1.99,8.37,-69.12,Level 2 (armory)
+105.6,-0.58,8.37,-68.97,Level 2 (armory)
+106.6,-1.04,8.37,-66.43,Level 2 (armory)
+107.6,-1.45,8.37,-64.12,Level 2 (armory)
+108.6,-1.94,8.37,-62.05,Level 2 (armory)
+109.6,-3.50,8.71,-60.60,Level 2 (armory)
+110.6,-3.25,9.15,-59.16,Level 2 (armory)
+111.6,-1.77,10.05,-59.07,Level 2 (armory)
+112.7,-0.22,10.98,-58.98,Level 2 (armory)
+113.7,1.36,11.93,-58.91,Level 3 (destroyed floor)
+114.7,3.13,12.68,-58.83,Level 3 (destroyed floor)
+115.7,5.36,12.67,-58.80,Level 3 (destroyed floor)
+116.7,5.59,12.67,-58.80,Level 3 (destroyed floor)
+117.7,5.59,12.67,-58.80,Level 3 (destroyed floor)
+118.7,5.59,12.67,-58.80,Level 3 (destroyed floor)
+119.7,9.59,4.06,-70.40,Level 1 (ground floor)
+120.7,9.59,4.05,-70.40,Level 1 (ground floor)
+121.7,0.97,4.10,-69.38,Level 1 (ground floor)
+122.7,0.97,4.84,-68.19,Level 1 (ground floor)
+123.7,0.97,5.87,-66.48,Level 1 (ground floor)
+124.7,3.17,6.23,-64.89,Level 1 (ground floor)
+125.7,3.17,7.24,-66.63,Level 1 (ground floor)
+126.7,-3.81,9.15,-58.80,Level 2 (armory)
+127.7,-2.94,9.33,-58.80,Level 2 (armory)
+128.7,-1.33,10.31,-58.80,Level 2 (armory)
+129.7,0.25,11.26,-58.80,Level 2 (armory)
+130.7,1.81,12.20,-58.80,Level 3 (destroyed floor)
+131.7,14.29,12.71,-74.72,Finale (helipad)
+132.7,14.29,13.62,-72.50,Finale (helipad)
+133.7,20.69,14.47,-62.50,Finale (helipad)
+134.7,20.66,14.47,-62.52,Finale (helipad)
+135.8,20.63,14.47,-62.46,Finale (helipad)
+136.8,20.71,14.47,-62.46,Finale (helipad)
+137.8,20.71,14.47,-62.46,Finale (helipad)
+138.8,20.71,14.47,-62.46,Finale (helipad)
+139.8,20.71,14.47,-62.48,Finale (helipad)
+140.8,20.71,14.47,-62.46,Finale (helipad)
+141.8,20.70,14.47,-62.48,Finale (helipad)
+142.9,20.51,14.47,-62.40,Finale (helipad)
+143.9,20.45,14.47,-62.43,Finale (helipad)
+144.9,20.47,14.47,-62.47,Finale (helipad)
+145.9,20.63,14.47,-62.36,Finale (helipad)
+146.9,20.52,14.47,-62.55,Finale (helipad)
+147.9,20.63,14.47,-62.37,Finale (helipad)
+148.9,20.65,14.47,-62.51,Finale (helipad)
+149.9,20.59,14.47,-62.53,Finale (helipad)
+150.9,20.62,14.47,-62.39,Finale (helipad)
+151.9,20.63,14.47,-62.38,Finale (helipad)
+152.9,20.59,14.47,-62.46,Finale (helipad)
+153.9,20.51,14.47,-62.54,Finale (helipad)
+154.9,20.60,14.47,-62.47,Finale (helipad)
+155.9,20.64,14.47,-62.37,Finale (helipad)

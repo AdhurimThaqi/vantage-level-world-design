@@ -156,7 +156,7 @@ namespace Vantage
         {
             var dead = (_player != null && _player.IsDead) || (_motor != null && !_motor.IsAlive);
             var won = _wonAt >= 0;
-            _hud.gameObject.SetActive(!dead && !won && !VantageCinematic.Active);
+            _hud.gameObject.SetActive(!dead && !won && !VantageCinematic.Active && !VantageMainMenu.GamePaused);
             if (!dead && !won)
             {
                 updateHealth();
@@ -495,7 +495,7 @@ namespace Vantage
             _endTitle.text = VantageUI.Caps("The tower is silent");
             _endStats = VantageUI.Text(_canvas, "End Stats", 34, TextAlignmentOptions.Top, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1400, 260));
             _endAgain = VantageUI.Text(_canvas, "End Again", 26, TextAlignmentOptions.Center, new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(1000, 40));
-            _endAgain.text = VantageUI.Caps("Press Enter to play again");
+            _endAgain.text = VantageUI.Caps("Enter: play again   Esc: main menu");
             _endTitle.color = _endStats.color = _endAgain.color = Color.clear;
         }
 

@@ -100,7 +100,14 @@ namespace Vantage
         {
             if (Running && !_won && _startTime >= 0) fly();
             if (_won && confirmPressed()) PlayAgain();
+            else if (_won && Input.GetKeyDown(KeyCode.Escape)) ToMainMenu();
         }
+
+        /// <summary>The end screen is up (Enter plays again, Esc goes to the title screen).</summary>
+        public bool Won => _won;
+
+        /// <summary>Esc on the end screen: back to the title screen.</summary>
+        public void ToMainMenu() => VantageRun.ToTitle();
 
         /// <summary>Enter on the end screen: a new run from the start.</summary>
         public void PlayAgain()

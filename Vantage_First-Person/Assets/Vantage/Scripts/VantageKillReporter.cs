@@ -10,6 +10,8 @@ namespace Vantage
     public class VantageKillReporter : MonoBehaviour
     {
         public string EnemyName = "Soldier";
+        /// <summary>Seconds from the death to the body hitting the ground (BODY_Fall).</summary>
+        public const float BodyFallDelay = 0.5f;
 
         private CharacterHealth _health;
         private bool _reported;
@@ -26,6 +28,7 @@ namespace Vantage
 
             _reported = true;
             VantageEvents.RaiseEnemyKilled(EnemyName, transform.position);
+            VantageAudio.PlayDelayed(VantageSounds.BodyFall, transform.position, BodyFallDelay);
         }
     }
 }

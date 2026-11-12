@@ -47,6 +47,17 @@ namespace Vantage
         }
 
         /// <summary>
+        /// Ends the run and reloads into the title screen (the pause menu's and the end screen's Main menu): the
+        /// next load starts a new run and shows the menu again.
+        /// </summary>
+        public static void ToTitle()
+        {
+            Started = false;
+            MenuShown = false;
+            ReloadLevel();
+        }
+
+        /// <summary>
         /// Reloads the level scene: after a death (the checkpoint takes it from there) and for a new run. In the
         /// editor through EditorSceneManager (works whether or not the scene is in Build Settings).
         /// </summary>

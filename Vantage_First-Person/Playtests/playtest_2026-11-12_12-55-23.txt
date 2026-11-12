@@ -1,0 +1,32 @@
+VANTAGE playtest  2026-11-12_12-55-23
+Enemy placement seed: 61359
+Session length: 46s (run 42s, deaths 0)  Completed: no   Furthest: Finale (helipad)   Backtracks: 3
+
+Time per space
+  Military Base       9s   deaths 0
+  Level 1 (ground floor)      7s   deaths 0
+  Level 2 (armory)      3s   deaths 0
+  Level 3 (destroyed floor)     23s   deaths 0
+  Finale (helipad)      3s   deaths 0
+
+Kills
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 61359
+[    0.0s] Session started
+[    6.1s] Intro skipped at 2.0 s
+[    9.2s] Military Base -> Level 1 (ground floor)
+[   12.2s] Level 1 (ground floor) -> Level 2 (armory)
+[   15.2s] Level 2 (armory) -> Level 3 (destroyed floor)
+[   18.2s] Level 3 (destroyed floor) -> Finale (helipad)
+[   21.2s] Finale (helipad) -> Level 2 (armory)
+[   21.2s] BACKTRACK to Level 2 (armory) (furthest so far: Finale (helipad))
+[   21.2s] Level 2 (armory) -> Level 1 (ground floor)
+[   21.2s] BACKTRACK to Level 1 (ground floor) (furthest so far: Finale (helipad))
+[   25.7s] Level 1 (ground floor) -> Level 3 (destroyed floor)
+[   25.7s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))

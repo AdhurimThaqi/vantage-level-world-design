@@ -52,9 +52,10 @@ namespace Vantage
 
         private void LateUpdate()
         {
-            // Hidden while a cinematic has the camera (intro, extraction).
-            if (_canvas.gameObject.activeSelf == VantageCinematic.Active)
-                _canvas.gameObject.SetActive(!VantageCinematic.Active);
+            // Hidden while a cinematic has the camera (intro, extraction) and under the pause menu.
+            var hidden = VantageCinematic.Active || VantageMainMenu.GamePaused;
+            if (_canvas.gameObject.activeSelf == hidden)
+                _canvas.gameObject.SetActive(!hidden);
             var player = VantageEvents.ActivePlayer();
             if (player == null)
                 return; // dead: the map holds its last view under the death screen

@@ -95,6 +95,7 @@ namespace Vantage
             {
                 _dead = true;
                 VantageEvents.RaisePlayerDied("health reached zero", transform.position);
+                VantageAudio.PlayDelayed(VantageSounds.BodyFall, transform.position, VantageKillReporter.BodyFallDelay);
                 Invoke(nameof(restart), RestartDelay);
             }
         }

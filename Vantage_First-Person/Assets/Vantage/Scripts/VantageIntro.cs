@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Vantage
 {
@@ -26,8 +24,7 @@ namespace Vantage
         public Transform Helipad;
         [Tooltip("Ground point of the main entrance and its outward direction (set by Setup).")]
         public Vector3 EntrancePoint, EntranceFacing = Vector3.back;
-        [Header("Sounds (empty: synthesized)")]
-        public AudioClip Music;
+        [Header("Sound (empty: synthesized). The music is the sound bank's MUS_Intro, played by VantageMusic.")]
         public AudioClip Whoosh;
 
         public static VantageIntro Instance { get; private set; }
@@ -73,11 +70,7 @@ namespace Vantage
         private Transform _pistol;
         private Vector3 _pad;
         private bool _walking, _killed;
-        private RectTransform _canvas, _top, _bottom;
-        private Image _cover;
-        private TMP_Text _kicker, _caption;
-        private int _shownCaption = -1;
-        private AudioSource _music;
+        private VantageLetterbox _overlay;
         private static AudioClip _swoosh;
 
         private void Awake() => Instance = this;
@@ -85,7 +78,8 @@ namespace Vantage
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;
-            if (_canvas != null) Destroy(_canvas.gameObject);
+            _overlay?.Destroy();
+            _overlay = null;
         }
 
         private IEnumerator Start()
@@ -126,7 +120,7 @@ namespace Vantage
                 Playing = true;
                 _startTime = Time.time;
                 buildOverlay();
-                _cover.color = Color.clear;
+                _overlay.Cover.color = Color.clear;
                 _fromMenu = true;
             }
             // Outside every wall: the far corner of the tower's footprint, plus room.
@@ -140,7 +134,6 @@ namespace Vantage
                 if (pickup.WeaponName == "Pistol") _pistol = pickup.transform;
             _pad = padTop();
             placeDeserter();
-            playMusic();
         }
 
         private void Update()
@@ -306,10 +299,10 @@ namespace Vantage
             if (Deserter != null) Deserter.Kill(slab != null ? slab.gameObject : null);
             if (_camera != null) _camera.transform.SetPositionAndRotation(_endPosition, _endRotation);
             VantageCinematic.End();
-            if (_music != null) StartCoroutine(fadeOut(_music, 1.5f));
             var whoosh = Whoosh != null ? Whoosh : swoosh();
-            if (whoosh != null && _camera != null) AudioSource.PlayClipAtPoint(whoosh, _camera.transform.position, 0.6f);
-            if (_canvas != null) Destroy(_canvas.gameObject);
+            if (whoosh != null && _camera != null) VantageAudio.PlayClip(whoosh, _camera.transform.position, "SFX");
+            _overlay?.Destroy();
+            _overlay = null;
             Finished?.Invoke(skipped, _endedAt);
         }
 
@@ -446,19 +439,11 @@ namespace Vantage
 
         #region Overlay and sound
 
+        /// <summary>The letterbox and subtitles (VantageLetterbox); black at first unless the menu's camera flies on.</summary>
         private void buildOverlay()
         {
-            _canvas = VantageUI.Canvas("VANTAGE Intro", 60);
-            _cover = VantageUI.Image(VantageUI.Stretch("Fade", _canvas), Color.black);
-            _top = VantageUI.Rect("Letterbox Top", _canvas, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(4000, 0));
-            _bottom = VantageUI.Rect("Letterbox Bottom", _canvas, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(4000, 0));
-            _top.pivot = new Vector2(0.5f, 1f);
-            _bottom.pivot = new Vector2(0.5f, 0f);
-            VantageUI.Image(_top, Color.black);
-            VantageUI.Image(_bottom, Color.black);
-            _kicker = VantageUI.Text(_canvas, "Kicker", 22, TextAlignmentOptions.Center, new Vector2(0.5f, 0f), new Vector2(0, 112), new Vector2(1400, 26));
-            _caption = VantageUI.Text(_canvas, "Caption", 40, TextAlignmentOptions.Center, new Vector2(0.5f, 0f), new Vector2(0, 52), new Vector2(1400, 60));
-            _kicker.color = _caption.color = Color.clear;
+            _overlay = new VantageLetterbox("VANTAGE Intro", 60);
+            _overlay.Cover.color = Color.black;
         }
 
         /// <summary>Which caption shows when: (start, end) per caption, inside its shot.</summary>
@@ -466,62 +451,25 @@ namespace Vantage
         {
             0 => (0f, Shot1),
             1 => (Shot1 + 1.2f, ShotDeserter),
-            6 => (ShotClimb, Length - 0.3f),
+            6 => (ShotClimb, Length - 0.7f),   // gone before the bars slide out
             _ => (ShotDeserter + (shot - 2) * Beat + 0.5f, ShotDeserter + (shot - 1) * Beat + 0.5f),   // a climb stop, as the camera arrives
         };
 
         private void updateOverlay(float t)
         {
-            if (_canvas == null) return;
+            if (_overlay == null) return;
             // Bars slide in over the first half second and out over the last.
-            var bars = Mathf.Clamp01(t / 0.5f) * Mathf.Clamp01((Length - t) / 0.6f);
-            var h = 130f * bars;
-            _top.sizeDelta = new Vector2(4000, h);
-            _bottom.sizeDelta = new Vector2(4000, h);
-            _cover.color = _fromMenu ? Color.clear : new Color(0, 0, 0, 1f - Mathf.Clamp01(t / 0.8f));
-
+            _overlay.Bars = Mathf.Clamp01(t / 0.5f) * Mathf.Clamp01((Length - t) / 0.6f);
+            _overlay.Cover.color = _fromMenu ? Color.clear : new Color(0, 0, 0, 1f - Mathf.Clamp01(t / 0.8f));
             var shot = -1;
             for (int i = 0; i < Captions.Length; i++)
             {
                 var (s, e) = captionTime(i);
                 if (t >= s && t < e) shot = i;
             }
-            if (shot != _shownCaption)
-            {
-                _shownCaption = shot;
-                _caption.text = shot < 0 ? "" : VantageUI.Caps(Captions[shot]);
-                _kicker.text = shot < 0 ? "" : VantageUI.Caps(Kickers[shot]);
-                _caption.fontSize = shot == 0 ? 72 : 40;
-            }
             var a = 0f;
-            if (shot >= 0)
-            {
-                var (start, end) = captionTime(shot);
-                a = Mathf.Clamp01((t - start - 0.3f) / 0.5f) * Mathf.Clamp01((end - t) / 0.4f);
-            }
-            _caption.color = shot == 0 ? new Color(1, 1, 1, a) : new Color(VantageUI.Accent.r, VantageUI.Accent.g, VantageUI.Accent.b, a);
-            _kicker.color = new Color(1, 1, 1, a * 0.75f);
-        }
-
-        private void playMusic()
-        {
-            _music = gameObject.AddComponent<AudioSource>();
-            _music.spatialBlend = 0f;
-            _music.loop = Music == null;
-            _music.clip = Music != null ? Music : VantageProceduralAudio.Create(VantageProceduralAudio.Kind.Wind, 3);
-            _music.volume = Music != null ? 0.8f : 0.5f;
-            _music.Play();
-        }
-
-        private static IEnumerator fadeOut(AudioSource source, float seconds)
-        {
-            var from = source.volume;
-            for (float t = 0; t < seconds && source != null; t += Time.deltaTime)
-            {
-                source.volume = from * (1f - t / seconds);
-                yield return null;
-            }
-            if (source != null) source.Stop();
+            if (shot >= 0) { var (start, end) = captionTime(shot); a = VantageLetterbox.Fade(t, start, end); }
+            _overlay.Subtitle(shot, shot >= 0 ? Kickers[shot] : "", shot >= 0 ? Captions[shot] : "", a, shot == 0);
         }
 
         /// <summary>A short rising noise sweep for the hand-back (made once).</summary>

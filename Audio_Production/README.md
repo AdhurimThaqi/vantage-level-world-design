@@ -4,6 +4,8 @@ This folder holds your REAPER projects and raw recordings. It is outside the Uni
 
 **Whose part is what (for SOUNDCREA).** The sound design, recording, editing, music, the mixer, the reverb presets and the final mix are **yours**. Claude built the code that plays the sounds: the sound bank, the zones, the music states, footsteps, the event hooks and the settings menu. Declare that help in your hand-in.
 
+**Cuts made by Claude (2026-11-12, at your request, to be replaced by your REAPER renders if you want):** from your takes in `Source_SFX/` Claude cut, looped (equal-power crossfade), mixed to mono and levelled: `FS_Concrete_01-04` (run steps 0.38/0.98/1.34/1.97 s), `FS_Dirt_01-04` (grass steps 1.41/1.95/2.60/3.24 s), `BODY_Fall` (2.25–3.6 s of the fall), `SHUTTER_Slam` (heavy object falling), `ALARM_Siren` (0.02–4.02 s loop), `GUIDE_Radio` (11.1–19.1 s loop), `DRONE_Hum` (4–14 s loop, +19 dB), `GUN_Pistol`, `GUN_Empty`, `PLAYER_Jump`, `ROBOT_Fire` (laser gun), `ROBOT_Hit` (robot damage), and trimmed silence from `UI_Select`, `UI_Move` and `BOSS_Roar`. Declare these in the hand-in, or render your own versions with the same names (the refresh picks them up).
+
 ---
 
 ## 1. Render settings (REAPER)
@@ -47,6 +49,16 @@ Put each file in its folder: `Ambience/`, `SFX/`, `Voice/`, `Music/`, `UI/` unde
 | `AMB_Debris` | 3 | random crumbles around you on level 3 | Ambience | 3D | 2 |
 | `DRONE_Hum`, `COIN_Collect`, `PICKUP_Weapon`, `ROBOT_Telegraph` | 1 each | replace the synthesised placeholders | SFX | 3D | 2 |
 | `MUS_Menu` | 1 loop | the title screen's theme (fades out on Play; the level music starts after it) | Music | 2D | 1 |
+| `BOSS_Reveal` | 1 (not looped) | the finale's boss reveal cutscene (8 s, faded out as the fight starts) | SFX | 2D | 1 |
+| `BOSS_Roar` | 1+ | the mech's roar half way through the reveal | SFX | 3D | 1 |
+| `STG_BossFight` | 1 | the stinger as the boss fight starts (after the reveal) | Music | 2D | 1 |
+| `BODY_Fall` | 1+ | a body hitting the ground (soldiers, the deserter, the player; 0.5 s after the death) | SFX | 3D | 1 |
+| `GUN_Pistol`, `GUN_Empty` | 1+ each | the player's pistol shot; the empty click on any gun (replace the template's clips) | SFX | 3D | 1 |
+| `PLAYER_Jump` | 1+ | the player's jump (replaces the template's clip) | SFX | 3D | 2 |
+| `ROBOT_Fire`, `ROBOT_Hit` | 1+ each | the robot's and boss's shot (the boss pitched down); a rifle round hitting their armour | SFX | 3D | 1 |
+| `MUS_BossFight` | 1 loop | the boss fight's track: from the end of the boss reveal until the boss dies (the other music is silent under it; faded 2 s at the death) | Music | 2D | 1 |
+| `MUS_End` | 1 (not looped) | the ending: from the boss's death through the extraction and the end screen | Music | 2D | 1 |
+| `MUS_Intro` | 1 (not looped) | the intro flyover's track: starts on Play as the menu theme fades (1.5 s), plays to its own end after the intro (23 s) and rings out into the ambience; `MUS_Explore` fades in after it. End it on a long fade or a sustained tone that sits under the exterior bed. A fight cuts it short with a 3 s fade | Music | 2D | 1 |
 | `GUIDE_PA` | 1 loop | L1 lockdown: a PA speaker crackling a looped lockdown announcement at the end of the route (turret hallway) | SFX | 3D | 1 |
 | `GUIDE_Stairs` | 1 loop | the way up: a draft and a low hum from the open stairwell (used three times) | SFX | 3D | 1 |
 | `GUIDE_Radio` | 1 loop | L2: a field radio murmuring next to the rifle in the Armory | SFX | 3D | 1 |
@@ -64,7 +76,7 @@ Any event without files keeps its placeholder (the synthesised siren, drone hum,
 1. Save the WAVs into `Assets/Audio/<folder>/` with the right names.
 2. In Unity: **Vantage → Audio → Refresh Sound Bank.** It fills every event from the files and sets 3D/2D, loop and group. Its log line tells you which events are still empty.
 3. Fine-tune an event in `Assets/Audio/VantageSoundBank.asset` (volume, pitch range, min/max distance). The refresh keeps your values; it only replaces the clip list.
-4. Press Play. The Console prints `[Vantage] Sound bank: n / 40 events filled (missing: …)`.
+4. Press Play. The Console prints `[Vantage] Sound bank: n / 52 events filled (missing: …)`.
 
 ## 5. Build the mixer (your part)
 

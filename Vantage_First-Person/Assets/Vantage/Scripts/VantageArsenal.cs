@@ -40,6 +40,29 @@ namespace Vantage
             refresh();
         }
 
+        /// <summary>
+        /// The player's own sounds from the sound bank, where they have clips: GUN_Pistol on the pistol, GUN_Empty on
+        /// every gun's empty click, PLAYER_Jump on the jump. The template plays them (through VantageAudio.PlayClip);
+        /// an empty event keeps the template's clip. In Start: the bank's VantageAudio wakes in Awake.
+        /// </summary>
+        private void Start()
+        {
+            var pistol = VantageAudio.Clips(VantageSounds.GunPistol);
+            var empty = VantageAudio.Clips(VantageSounds.GunEmpty);
+            foreach (var weapon in _all)
+            {
+                if (weapon.RightItem == null) continue;
+                foreach (var sounds in weapon.RightItem.GetComponentsInChildren<GunSounds>(true))
+                {
+                    if (pistol != null && weapon.RightItem.name == "Pistol") sounds.Fire = pistol;
+                    if (empty != null) sounds.EmptyFire = empty;
+                }
+            }
+            var jump = VantageAudio.Clips(VantageSounds.PlayerJump);
+            var character = GetComponent<CharacterSounds>();
+            if (jump != null && character != null) character.Jump = jump;
+        }
+
         /// <summary>Whether the player has picked up this gun (its RightItem name, e.g. "Rifle").</summary>
         public bool IsUnlocked(string weaponName) => _unlocked.Contains(weaponName);
 

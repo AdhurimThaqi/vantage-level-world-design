@@ -309,8 +309,11 @@ namespace Vantage.Testing
             }).ToList();
             var menu = audio.Bank.Find("MUS_Menu");
             var menuOk = menu != null && menu.Loop && menu.Spatial < 0.01f && menu.Group == "Music";
-            var guideLine = $"events {VantageSounds.All.Length}/40, guide events with the wrong defaults {wrong.Count} ({string.Join(", ", wrong)}), menu music 2D loop in Music {menuOk}";
-            if (VantageSounds.All.Length == 40 && wrong.Count == 0 && menuOk) log("PASS audio guide events: " + guideLine);
+            // The intro track (2026-11-12): 2D music, not looped (it rings out into the level).
+            var intro = audio.Bank.Find(VantageSounds.MusIntro);
+            menuOk &= intro != null && !intro.Loop && intro.Spatial < 0.01f && intro.Group == "Music";
+            var guideLine = $"events {VantageSounds.All.Length}/52, guide events with the wrong defaults {wrong.Count} ({string.Join(", ", wrong)}), menu music 2D loop and intro music 2D one-shot in Music {menuOk}";
+            if (VantageSounds.All.Length == 52 && wrong.Count == 0 && menuOk) log("PASS audio guide events: " + guideLine);
             else fail("audio guide events: " + guideLine);
         }
     }

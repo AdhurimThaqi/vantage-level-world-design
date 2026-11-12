@@ -14,6 +14,104 @@ Entry format:
 
 ---
 
+## 2026-11-12: New music tracks checked and wired (Claude session)
+**Asked:** "ok i replace the Music audios please check them out"
+**Done:**
+- Checked the 4 new tracks (all 44.1 kHz / 24-bit stereo, **every one peaks at 0.00 dBFS**): main menu 143 s, intro 148 s (starts at −27 dB with no fade-in), boss fight 175 s (0.45 s silence at the start, fades at the end), end 154 s. The old `STG_BossFight` file was removed by the user.
+- Renamed to events: `MUS_MainMenu` → `MUS_Menu`, `MUS_Intro-AfterPressingPlay` → `MUS_Intro`, `MUS_FinalBossFight` → `MUS_BossFight` (new), `MUS_FinalEndMusic` → `MUS_End` (new); 52 events.
+- `VantageMusic`: the intro track now fades 15 s after the hand-back (over 8 s), since the new one is 2.5 min; `MUS_BossFight` loops from the end of the boss reveal until the boss dies (layers silent under it), then fades 2 s; `MUS_End` starts at the death and plays through the extraction and the end screen.
+- `VantageAudioSetup`: import settings per clip on refresh (≥ 20 s streaming Vorbis, except the two layers; 5–20 s compressed in memory). Each track would otherwise sit decompressed in memory (~60 MB each).
+- Bot event count 52. Docs: CLAUDE.md, the audio guide.
+**Verified:** offline compile 0 errors. Not run in Unity (the user tests).
+**Open:** in Unity: Vantage → Audio → Refresh Sound Bank (also applies the import settings), then listen: menu → intro crossfade, the intro's fade 15 s into play, boss track start after the reveal, the end track. Re-render with about −1 dB headroom. Nothing committed.
+
+## 2026-11-12: All SFX cut and wired in (Claude session)
+**Asked:** "you can cut them in game - ill cut them on reaper and if its necessary after i test i will put my versions and replace them with yours", later "and dont test it i will do it".
+**Done:**
+- Cut from the user's 11 takes (now in `Audio_Production/Source_SFX/`, out of Unity) by `cut.py` in the session scratch (mono, 24-bit, levelled, equal-power loop crossfades): `FS_Concrete_01-04`, `FS_Dirt_01-04`, `BODY_Fall`, `SHUTTER_Slam`, `ALARM_Siren` (4 s loop), `GUIDE_Radio` (8 s loop), `DRONE_Hum` (10 s loop, +19 dB), `GUN_Pistol`, `GUN_Empty`, `PLAYER_Jump`, `ROBOT_Fire`, `ROBOT_Hit`. Declared in the audio guide for the hand-in.
+- 6 new events (50): `BODY_Fall` (0.5 s after a soldier's, the deserter's or the player's death; `VantageAudio.PlayDelayed`), `GUN_Pistol`/`GUN_Empty`/`PLAYER_Jump` (put on the player's template `GunSounds`/`CharacterSounds` in `VantageArsenal.Start` via `VantageAudio.Clips`), `ROBOT_Fire` (robot and boss shots, boss pitched 0.75; replaces the prefab's direct `FireSound` source), `ROBOT_Hit` (rifle hits on the armour, max every 0.25 s). Metal floors use `FS_Concrete` until `FS_Metal` exists.
+- Bank refreshed: 19 / 50 filled.
+- Boss reveal: the first screenshot showed the player standing between the camera and the mech, so the low shot now looks from 65→50° to one side (the side with more room) and the arc starts from that side.
+- Docs: CLAUDE.md (code map, assets row), audio guide (new rows, the list of Claude's cuts).
+**Verified:** offline compile 0 errors. Full bot before the reveal camera fix: **ALL PASSED, 71 checks** (boss reveal: camera never blocked, boss still, sounds once, control back); audio group ALL PASSED. After the camera fix: compiled only; the rerun was stopped on the user's request (they test themselves). The stopped run left `Temp/UnityLockfile`, deleted.
+**Open:** the user's play test: the reveal's new low shot, footstep loudness vs the rest, the siren/radio/drone loops, pistol and robot shots. The user may replace any cut with their own render of the same name. Nothing committed.
+
+## 2026-11-12: Prompt for a new intro track (Claude session)
+**Asked:** "give me a prompt for gemini to create me a music scene for the camera after i start play. i dont like the current one i will replace it"
+**Done:** Wrote a music-generation prompt fitted to the intro's timeline (`VantageIntro`: title 0–3.5 s, deserter 3.5–9.5 s with the warning shot at ~6 s and the kill at ~8 s, the climb 9.5–19.9 s in four 2.6 s stops = one bar each at ~92 BPM, the pistol 19.9–22.5 s, hand-back at 23 s, then a long tail under the ambience); soft start for the menu crossfade, no vocals, ends on a long fade. Reminded: AI use to declare, process in REAPER, render as `MUS_Intro.wav`.
+**Verified:** not applicable.
+**Open:** the user generates and renders it; the Refresh Sound Bank picks it up (same name, no code change).
+
+## 2026-11-12: "cant you cut them as well?" (Claude session)
+**Asked:** "cant you cut them as well?" (the 11 unwired SFX).
+**Done:** Not cut yet: cutting steps, building loops and setting levels is the SOUNDCREA work CLAUDE.md keeps with the user. Measured the files instead (onset detection, scratch `onsets.py`) and gave exact REAPER cut points: run steps at 0.38/0.98/1.34/1.97 s, grass steps at 1.41/1.95/2.60/3.24 s, the fall's impact at 2.30 s (+ bounce 2.91), the alarm's 2 s cycle (loop 0.02–4.02 s), a radio loop region, drone level +20 dB. Offered to do the mechanical cuts if the user confirms (and declares it).
+**Verified:** not applicable (analysis only).
+**Open:** the user cuts in REAPER, or confirms that Claude should.
+
+## 2026-11-12: Boss reveal cutscene in the finale (Claude session)
+**Asked:** "ok i added the SFX sound effects there is one called Inside Robot scene. Make like a scene in the final when the robot or the mech is left and add this sound effect make like a similar camera scene just as in the beginning and add a action music when you start fighting like make it a bit dramatic."
+**Done:**
+- **`VantageBossReveal`** (new): when the mech spawns on the helipad, an 8 s cutscene through `VantageCinematic`: low push-in in front of it ("Finale: Helipad / It was waiting for you"), an arc around it as it roars with the eye flaring ("Only the rifle hurts it / Bring it down: the helicopter is your way out"), back to the player's camera; Space/Enter/Esc skip after 1 s. Camera from the boss's bounds and facing, kept in front of walls/railings by a sphere cast. Started in `ReachHelipad`, stopped before `BossDefeated` (so the extraction's takeover isn't undone).
+- **`VantageLetterbox`** (new plain class): the intro's bars and subtitles, now shared by the intro and the reveal (intro refactored onto it, same look).
+- **`VantageHeavyRobot`**: stands still in any cutscene (no burst, no charge), 1.5 s grace after; `Glow(amount)` for the reveal.
+- **Sounds:** 3 new events (44): `BOSS_Reveal` (the user's `SFX_InsideRobot-Scene`, 2D, faded 2.5 s as the fight starts), `BOSS_Roar` (`SFX_RobotScream`, 3D at the mech; its 13.7 s silent tail trimmed to 1.49 s), `STG_BossFight` (`SFX_ActionStart-Lvl`, the fight's stinger via `VantageMusic.Stinger`, layers dip under it). Files renamed; originals in the session scratch `audio_originals/`.
+- Bot: `bossReveal` check in the finale (started, boss still, no hits, camera never behind a wall, sounds once, control back; pictures `boss_reveal_low`, `boss_reveal_arc`); audio event count 44. Docs: CLAUDE.md, audio guide rows, concept doc Revisions row.
+- The other 11 SFX are not wired (names don't match events; most are sequences or long takes): feedback with suggested cuts and names given to the user.
+**Verified:** offline compile 0 errors, no warnings in our code. **Not run:** Unity was open (no batch mode), so neither the sound bank refresh nor the bot ran.
+**Open:** in Unity: Vantage → Audio → Refresh Sound Bank (expect 7 / 44); play the finale (or close Unity and ask for the full bot run). Check by eye: the reveal's framing on the platform (mech 5 m wide, railings), subtitle timing, the roar and stinger loudness. Nothing committed.
+
+## 2026-11-12: Plan for shot, footstep and fall sounds in the intro (Claude session)
+**Asked:** "After i add the shooting, footstepps, falling down sfx you will add them to the cutscene as well ok."
+**Done:** Answered only, no files changed. Agreed; told the user which names connect where: the intro's sentry shots are already `SENTRY_Crack` (and `SENTRY_Glint`), the deserter already walks with `FS_*` via `VantageFootsteps` (dirt outside); a body fall needs a new event (to add: e.g. `BODY_Fall`, on the deserter's death and the soldiers'); the player's and soldiers' guns are the template's own clips, so own gun sounds need new events wired into the template's `GunSounds`.
+**Verified:** not applicable.
+**Open:** when the files are in: add the fall (and gun) events, hook them into the intro, check the deserter beat by ear-free checks (counts, timing) and the bot.
+
+## 2026-11-12: First WAVs in (menu, intro, UI), intro subtitles (Claude session)
+**Asked:** "Ok i added Music and UI for clicking and hovering. I also named the Music seperately like when the player starts play the other main menu camera scene music starts playing. I want something that connects to the ambient … make everything smooth and i will test it you dont have to. Also make sure the CC titles where you explain the scene levels it should be more clearer and it should look like a movie subtitles right now they kind are overlapping the screen."
+**Done:**
+- **Files checked** (44.1 kHz / 24-bit stereo, all fine for Unity): `MUS_Menu` 175 s, peak 0.00 dBFS; `MUS_MenuCameraScene` 73 s, peak −0.05, fades in/out; the two UI files were **175 s each** (whole project rendered): trimmed to 0.62 s (click) and 0.43 s (hover; 52 ms silence at the start removed), 10 ms fade-out. Originals in the session scratch `audio_originals/`.
+- **Renamed** to their events: `UI/UI_Select.wav` (click), `UI/UI_Move.wav` (hover), `Music/MUS_Intro.wav` (the intro track).
+- **New event `MUS_Intro`** (41 events): `VantageMusic` starts it when the intro plays (crossfades with the menu theme's 1.5 s fade), lets it play to its own end after the hand-back (rings out into the ambience), holds `MUS_Explore` at 0 under it and fades it in over 4 s after; a fight or the boss's death fades it over 3 s. `VantageIntro`'s own `Music` slot and source removed (it bypassed the bank, mixer and volume settings); its whoosh now goes through `VantageAudio.PlayClip`.
+- **Bank:** refreshed (4 / 41 filled); `UI_Move` volume 0.15 (the hover was ~17 dB louder than the click; now about equal, the click's peak stands out).
+- **Intro subtitles:** both lines inside the bottom letterbox bar (amber label 20 px over a white line 34 px, title 56 px), quick 0.2 s fades, only while the bar is up; the last caption ends before the bars slide out.
+- Bot: intro track checked in the menu-music check and the bank defaults; event count 41. Docs: CLAUDE.md, the audio guide (`MUS_Intro` row), concept doc Revisions row.
+**Verified:** offline compile 0 errors; `-vantageOnly handback` ALL PASSED (intro track requested and playing); `-vantageOnly audio` ALL PASSED after the count fix (first run failed only on the old 40); intro screenshots: subtitles in the bar, nothing over the picture.
+**Open:** by ear: the menu → intro crossfade, the intro track's tail into the ambience, hover/click balance. `MUS_Menu` peaks at 0.00 dBFS (re-render with −1 dB headroom). Next renders: use a time selection or regions so only the sound is rendered. Nothing committed.
+
+## 2026-11-12: REAPER render settings (Claude session)
+**Asked:** "Ok finished one now i need to render it as wav should i touch anything in hz or other stuff?"
+**Done:** Answered only: the render dialog settings from `Audio_Production/README.md` §1–2 (48000 Hz, WAV 24-bit PCM, mono for 3D / stereo for 2D, no dither or normalize needed, −1 dB peak, file name = event name, output into `Assets/Audio/<folder>/`, tail off for loops).
+**Verified:** not applicable (question).
+**Open:** the user sends the first file for a check.
+
+## 2026-11-12: AI-generated sounds (Claude session)
+**Asked:** "i have some sounds i created with AI should do smth about it"
+**Done:** Answered only, no files changed. Advised: (1) check the module's AI rules with the SOUNDCREA lecturer and disclose AI use in the hand-in; (2) process them in REAPER like the rest (that is the graded part); (3) record per file the tool, plan (free tiers are often non-commercial) and date in a sound sources list; (4) for a commercial release, check the tool's licence, note that pure AI output may not be copyrightable, and that Steam asks for an AI content disclosure.
+**Verified:** not applicable (question).
+**Open:** the user asks the lecturer and keeps a sound sources list (tool / site, licence, author, file).
+
+## 2026-11-12: MP3s or WAVs for the sounds? (Claude session)
+**Asked:** "i picked a bunch of sounds. Right now they're mp3 should i put them on reaper and convert them to wav or can i just paste everything here you review each and everything and add them to the game and give me feedback?"
+**Done:** Answered only, no files changed. Advised going through REAPER: the processing is the SOUNDCREA work, `Audio_Production/README.md` asks for 48 kHz / 24-bit WAV (mono for 3D, stereo for beds/music/UI, −1 dBTP), and MP3 adds silence at the start and end, so loops (ambience, music layers, guide loops, siren, rotor) click or gap. Checked `VantageAudioSetup.RefreshBank`: it takes any AudioClip named `EVENT(_NN)`, so MP3s would load technically. Offered to check the rendered WAVs (names against the 40 events, format, channels, peaks, silence, loop seams, length), refresh the bank, run the `audio` bot group and give feedback; noted the source and licence of each downloaded sound must be recorded (credits, commercial use).
+**Verified:** not applicable (question).
+**Open:** the user renders the WAVs into `Assets/Audio/<folder>/`; then the check and Refresh Sound Bank.
+
+## 2026-11-12: Pause menu and build readiness (Claude session)
+**Asked:** "when i start the game i cant pause or you know go back to main menu screen. Make sure you add this as well as all the other necessary stuff the game needs to have to be fully functional."
+**Done:**
+- **Pause menu** inside `VantageMainMenu` (same pages and look as the title): Esc or P in play → time 0, `AudioListener.pause`, player input off, HUD and minimap hidden (`GamePaused`). Rows: Resume, Restart from checkpoint, Settings, Controls, Main menu, Quit game (the last two need a second press). Esc on a sub-page goes back, Esc on the pause page resumes. Input returns once the mouse button is released, so the Resume click fires no shot. Paused time is taken off the run clock. In a build, losing window focus pauses. No pause on the title, in cutscenes or when dead. Menu clicks play with `ignoreListenerPause` (`VantageAudio.setup` resets it for pooled sources).
+- **Controls page** (title and pause), keys taken from the Input Manager and `ThirdPersonInput`.
+- **Back to the title:** `VantageRun.ToTitle()` (pause → Main menu; Esc on the end screen; end-screen hint now "Enter: play again   Esc: main menu").
+- **Bug fixed:** the template's `ExitToEscape` was on `Third Person Rig.prefab`, so **Esc quit a built game at once**. The component is removed from the prefab; no scene overrides referenced it.
+- **Player settings:** product `VANTAGE` (was `Vantage_First-Person`), company `Adhurim Thaqi`, version 1.0, Fullscreen Window (was an 800×600 window).
+- **Credits** (code default and the scene's serialized value) now name every Asset Store pack.
+- Bot: new `pause` group (also in the full run after play again). Docs: CLAUDE.md, README (controls, title screen, bot groups), concept doc Revisions row (Nov 12).
+**Verified:** offline compile 0 errors, no warnings in our code; `-vantageOnly pause` ALL PASSED (the first run failed the restart check only because the bot resets the run after the intro has played; fixed in the test, not the game); screenshots `menu_pause`, `menu_controls`, `menu_main` checked (the first version showed the HUD through the pause screen and the controls overlapped the subtitle; both fixed). **Full autoplay ALL PASSED, 70 checks.**
+**Open:**
+- By hand in Play mode: Esc mid-fight, mouse on the rows, no shot fired by the Resume click, alt-tab in a build, the end screen's Esc.
+- Because the company and product names changed, PlayerPrefs (volumes, sensitivity, quality) start fresh once.
+- Make a test build (File → Build Profiles, Windows) and play it once end to end. Nothing committed.
+
 ## 2026-11-09: Final pass: guide sound, menu music, Sci-Fi Warrior robot, cleanup (Claude session)
 **Asked:** "yes native, go ahead" (run `docs/superpowers/plans/2026-11-09-final-pass.md`: the guide sound spec, the Robot Hero asset as the L3 robot, remove the floating aircraft lights, delete the backups, "optimize the code and everything").
 **Done:**

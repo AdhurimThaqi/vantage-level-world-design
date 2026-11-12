@@ -1,0 +1,34 @@
+VANTAGE playtest  2026-11-12_13-26-57
+Enemy placement seed: 55500
+Session length: 73s (run 329s, deaths 2)  Completed: yes   Furthest: Finale (helipad)   Backtracks: 2
+
+Time per space
+  Military Base       0s   deaths 0
+  Level 1 (ground floor)      0s   deaths 0
+  Level 2 (armory)      0s   deaths 0
+  Level 3 (destroyed floor)     32s   deaths 0
+  Finale (helipad)     41s   deaths 0
+
+Kills
+  Soldier        2
+  SENTRY_Helipad 1
+  Boss           1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[  303.3s] Enemy placement seed 55500
+[    0.0s] Session started
+[    3.5s] Killed Soldier in Finale (helipad)
+[    5.1s] Killed SENTRY_Helipad in Finale (helipad)
+[    7.9s] Killed Soldier in Finale (helipad)
+[   37.7s] Finale (helipad) -> Level 3 (destroyed floor)
+[   37.7s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   39.3s] Level 3 (destroyed floor) -> Finale (helipad)
+[   42.3s] Finale (helipad) -> Level 3 (destroyed floor)
+[   42.3s] BACKTRACK to Level 3 (destroyed floor) (furthest so far: Finale (helipad))
+[   57.2s] Killed Boss in Finale (helipad)
+[   65.5s] LEVEL COMPLETE
