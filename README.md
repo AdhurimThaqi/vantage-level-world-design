@@ -54,13 +54,15 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 | **Finale · Helipad** | outside stairs, platform, helipad | 2 soldiers, then the **boss** | Clear the platform, step onto the pad: the boss appears, a bigger red-eyed robot that also **charges** after a visible wind-up. | The boss dies: the helicopter lands, *THE TOWER IS SILENT* |
 
 - **Title screen at dusk.** The game opens on its own title screen inside the level: the camera drifts in front of the tower at dusk, the extraction helicopter circling the base with a searchlight. Play game flies straight into the intro; Settings has master, music and effects volume, mouse sensitivity, graphics quality and fullscreen (kept between sessions); Controls lists every key; Credits lists who and what made the game. In play, **Esc pauses**: time and sound stop and the same settings and controls are there, plus Restart from checkpoint and Main menu. The whole level plays at dusk: a low warm sun, long shadows, the base's lamps and floodlights on.
-- **Intro and briefing.** A new run opens with a 23-second flyover that is also the mission briefing: in over the base onto the tower; a soldier walks away from the tower, the sentry on the broken slab fires a warning shot in front of him, he runs, and the next shot kills him (*RULE: STAY AT THE TOWER*); then the camera climbs around the outside of the tower and stops at each level with its task (*A TRAP LOCKS YOU IN: CLEAR THE FLOOR*, *FIND THE RIFLE AND THE KEY*, *ONLY THE RIFLE HURTS THE MACHINE*, and over the helipad *KILL THE BOSS: THE HELICOPTER IS YOUR WAY OUT*); it ends on the pistol on the ground (*FIRST: GRAB THE PISTOL*, repeated as a banner when you take over). Any key skips it; it doesn't play again after a death.
+- **Intro and briefing.** A new run opens with a flyover of about 40 seconds that is also the mission briefing: in over the base onto the tower; a soldier walks away from the tower, the sentry on the broken slab fires a warning shot in front of him and he runs; the camera cuts to over the sentry's shoulder and zooms in as it shoots him (*ANYONE WHO LEAVES THE TOWER GETS SHOT*), then holds on his body (*RULE: STAY CLOSE TO THE TOWER*); then the camera climbs around the outside of the tower and stops at each level with its task (*AN ALARM LOCKS YOU IN. KILL EVERY SOLDIER TO OPEN THE STAIRS*, *TAKE THE RIFLE AND THE KEY, THEN USE THE KEY SLOT (E)*, *THE ROBOT IS ARMOURED: ONLY THE RIFLE HURTS IT*, and over the helipad *KILL THE BOSS. THE HELICOPTER IS YOUR WAY OUT*); it ends on the pistol on the ground (*PICK UP THE PISTOL IN FRONT OF THE ENTRANCE*, repeated as a banner when you take over). Any key skips it; it doesn't play again after a death.
 - **A quiet approach.** The tower is silent until you go in: soldiers that haven't fought yet don't notice you outside or during a cutscene. Entering the tower, the alarm, or shooting one of them wakes them.
 - **Sentries and the warning ring.** Two sentries patrol the outside of the top: the rim of the broken slab and the rim of the helipad platform, stopping at each end to scan the ground. Near the tower you are free. Walk more than 15 m past the tower's plot and the HUD warns *SENTRIES ABOVE: GET BACK TO THE TOWER* while they fire warning shots into the dirt at your feet (a red glint gives each one away first); go past 35 m, or stay in the warning band for 5 s, and they shoot to hit until you are back. Up on their level they fight like any soldier. They hold no door shut, and a sentry you kill stays dead for the run. The minimap shows the ring.
 - **Coins.** Five gold coins are hidden off the main route, one or two per level: a dead end on the ground floor, the far end of the office and a corner of the hall on level 2, the broken slab outside on level 3 (patrol ground), the far edge of the helipad. They are counted on the HUD and the end screen.
 - **End screen.** Time, deaths, coins, and three achievements: *All coins*, *No deaths*, *Under 15 minutes*.
 - **Dying** restarts the level you were on after three seconds (a checkpoint per level), a little way down the stairs below that level (the helipad's restart is outside the exit), with your best gun already drawn and 3 seconds of protection: the floor above hides you, and you step up into the room when you are ready. Soldiers are also never placed within 14 m of a restart point with a view of it, unless the level has no other spawn points left. Weapons and coins you found stay found; the level's enemies, doors and key are back where they started.
-- **Enemy fire.** Soldiers fire in bursts with a pause between them and some aim error, so a soldier in the open takes a few seconds to bring you down, not one; damage rises from level 1 (6 per hit) to level 3 and the finale (8).
+- **Enemy fire.** Soldiers fire in bursts with a pause between them and some aim error, so a soldier in the open takes a few seconds to bring you down, not one; damage rises from level 1 (6 per hit) to level 3 and the finale (8). **Only two soldiers shoot at you at once**: the others keep their guns on you and reload, waiting for their turn.
+- **Goal arrow.** An arrow on the HUD shows where to go next, with the distance: the pistol, then the tower entrance, then the next goal on each floor (the stairs up, the rifle, the key, the key slot, the breach, the helipad). When the goal is behind you it waits at the edge of the screen, pointing the way. During the lockdown there is none: the soldiers are the goal.
+- **The helicopter fights with you.** When the boss appears, the extraction helicopter comes in over the valley. Every few seconds it fires its cannon at the boss and draws its fire: that is your moment to move. It can wear the boss down, but the last hits are yours.
 - **HUD.** Kept to what you act on:
   - Top centre: the level, its name, one marker per enemy (it dims when that enemy dies), the goal of the moment (*FIND A WEAPON*, *LOCKDOWN · CLEAR THE FLOOR*, *REACH THE HELIPAD*, *DESTROY THE MACHINE*) and the coins found.
   - Bottom left: health, with a tick where regeneration stops. Bottom right: weapon and ammo.
@@ -75,7 +77,7 @@ A low golden sun shines in from the south-west, and the valley has its own sound
 
 The sound is my SOUNDCREA project, produced in REAPER (the guide is `Audio_Production/README.md`). Every space has its own ambience and reverb: the dusk exterior, the ground floor's ventilation, the Armory's big hall, the wind through the destroyed floor and the open helipad. Moving between them crossfades the ambience. Footsteps change with the surface (dirt, concrete, metal). The level's moments have their own sounds: the trap's shutter slam and siren, the key and its slot, the sentries' warning tick and distant crack, a soldier's "Contact!" when it spots you (one at a time), the robot's servos and the pistol rounds bouncing off it, the helicopter's rotor. The music is a low drone with a percussion layer that comes in while you fight and leaves a few seconds after, plus stingers for the lockdown, a cleared level and the extraction; after the boss the tower goes silent. The title screen has its own theme, which fades out when you press Play.
 
-**Sound as wayfinding.** After my lecturer's feedback that each floor should *sound* like where you need to go, one sound in the world always plays from your next goal: during the lockdown a PA speaker crackles at the end of the route; on level 2 a field radio murmurs by the rifle, then the phone on the office desk rings where the key lies, then the key slot beeps by the stairwell gate; on level 3 the wind howls through the breach in the robot room; on the helipad the helicopter's radio calls from the pad; and whenever a floor is cleared, the stairwell up hums and draws you to it. Only one plays at a time and only on its own floor; in a fight there is none, the enemies lead you. Until my recordings are in, a soft two-tone pulse marks the goal.
+**Sound as wayfinding.** After my lecturer's feedback that each floor should *sound* like where you need to go, one sound in the world always plays from your next goal: during the lockdown a PA speaker crackles at the end of the route; on level 2 a field radio murmurs by the rifle, then the phone on the office desk rings where the key lies, then the key slot beeps by the stairwell gate; on level 3 the wind howls through the breach in the robot room; on the helipad the helicopter's radio calls from the pad; and whenever a floor is cleared, the stairwell up hums and draws you to it. Only one plays at a time and only on its own floor; in a fight there is none, the enemies lead you. Until a step's own recording is in, it plays my radio recording from the same spot. The HUD arrow points to the same goal.
 
 Until a sound is recorded its event plays the old synthesised placeholder or nothing. Guns, hits and grunts are the template's.
 
@@ -114,30 +116,9 @@ You start with nothing (`VantageArsenal`). The **pistol** lies just outside the 
 
 `VantageTowerLevels` places each level's soldiers from a **seed** every time you press Play. Each level has more authored spawn markers than soldiers (13 on the ground floor alone); the level draws its soldiers from them **spread over different rooms first**, so the fights are different every play while the counts, difficulty and pacing stay the same. Markers a door depends on (the L3 patrols) are always used, and markers that can only be reached through the level's exit (the L2 stairwell, behind the gate that opens when the floor is clear) are never used. The seed is written to the playtest log; `-vantageSeed N` on the command line replays a layout.
 
-### Automated playtest
+### Testing
 
-**Vantage → Test → Run Autoplay Test** (or batch: `-executeMethod Vantage.EditorTools.VantageAutoplay.RunBatch`, exit code 0 = passed) plays the real level and logs every result with `[Bot]`. It checks, in order:
-- the intro plays on a new run; the deserter is in the warning band, gets a warning shot and is shot dead, in frame with the slab sentry; the climb never puts the camera inside the tower and frames the slab sentry at level 3 and the helipad at the end; a skip gives back control and the player's camera, and the HUD shows the pistol objective
-- the security camera spots the player and springs the trap; walking through the trigger afterwards doesn't spring it twice
-- the main entrance can be walked through without getting stuck
-- soldiers fire and deal damage
-- a door of a later level stays locked while its enemies haven't spawned
-- clearing level 1 stops the alarm, reopens the shutter and opens the stairs
-- the key: the slot refuses without it, picking it up works, and the gate waits until level 2 is clear
-- the last enemies come for the player
-- the L3 patrol door opens after both patrols (not one)
-- the robot ignores the player's pistol (one warning, not one per bullet) and dies to the drum rifle, with the real guns in hand
-- every stair flight can be climbed without stalling
-- the finale: the boss appears on the pad, its death brings the helicopter and the win
-- dying on level 2 restarts there with the pistol and a collected coin kept
-- dying on level 3 restarts protected with a gun in hand, no soldier in sight of the arrival, and little damage in the first 4 seconds
-- a shot-out camera stays quiet, while the trigger still springs the trap; no intro after a death, the intro again after *play again*
-- the warning ring: the zones, the 5-second grace (reset by stepping back), the HUD warning, no shots in the free zone, warning shots then hits in the warning band, hits in the kill zone, no hits without line of sight, silence during a cutscene
-- the sentries: both spawn on their routes and walk them without straying more than 6 m or changing level, they hold no lock (level 3's exit and the helipad open with both alive), and a killed sentry stays dead after a death
-
-`-vantageOnly cinematic|ring|sentries|intro|handback|spawns|respawn|robot|audio|guide|pause` runs one group of checks for quick iteration (`handback` watches the whole intro and checks that nobody fires at the player in the 8 s after it; `guide` walks the goal-sound ladder from the alarm to the helipad, checks one sound at a time at its goal, silence off its floor and in cutscenes, no flapping on the stairs and the state after a death).
-
-With `-vantageShots <folder>` it also saves screenshots of the game **with the HUD**: combat, alarm, key prompt, level cleared, boss, end screen, the ring warning (`hud_warning`), the intro's deserter shot (`intro_deserter`) and the climb's stops (`intro_level1`–`intro_level3`, `intro_helipad`).
+Until 16 November an automated playtest bot played the real level after every change (the intro, the trap, enemy fire, every gate, the key, the robot, every stair flight, the finale, checkpoints, the warning ring, the sentries, the menus and the audio; the last run passed all 74 checks). With the game feature-complete it was removed, and the final touches are tested by hand. It is in the git history.
 
 ### Playtest logging
 
@@ -175,8 +156,7 @@ Level_World_Design_/
    │  ├─ VANTAGE_Tower/                        my Blender tower: level and gameplay models, textures, import scripts
    │  ├─ Vantage/                              all project-specific work
    │  │  ├─ Scripts/                           gameplay (levels, alarm, camera, key, robot, coins, extraction, HUD, …)
-   │  │  │  └─ Testing/                        the automated playtest bot (editor only)
-   │  │  ├─ Editor/                            Vantage menu: tower setup, world builder, placeholders, autoplay test
+   │  │  ├─ Editor/                            Vantage menu: tower setup, world builder, placeholders, sound board
    │  │  ├─ Prefabs/                           Soldier (generated), Drone, Turret, HeavyRobot, Boss, Helicopter, Third Person Rig
    │  │  ├─ World/                             generated: terrain data, stair surfaces, sky, glow materials, minimap
    │  │  ├─ Materials/                         gate, alarm, camera and key slot materials
@@ -211,7 +191,7 @@ The tower models stay as exported from Blender; their import script (`VANTAGE_To
   - **Vantage → Tower → Set Up Tower**: stairs, gates, doors, soldiers, levels, pickups, coins, NavMesh.
   - **Vantage → World → Build Military World**: the world, then the tower setup.
   - **Vantage → Enemies → Use Asset Store Model(s)**: the robot, boss, drone, turret and helicopter looks (Setup runs them too).
-- **After every gameplay change**, run **Vantage → Test → Run Autoplay Test** and check the `[Bot]` lines in the Console.
+- **After every gameplay change**, play it: the automated playtest bot was retired on 16 November once the game was feature-complete (it is in the git history; its last run passed all 74 checks).
 - **Package edits:** `CharacterMotor.AlwaysUpdateIK` in the template, and the runtime scripts of `Assets/VANTAGE_Tower` (doors, triggers, consoles, pickups, level-manager bridge), are marked "VANTAGE change". Re-apply them if either package is ever re-imported.
 
 ## Assets used

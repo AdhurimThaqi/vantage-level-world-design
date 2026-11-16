@@ -75,7 +75,7 @@ namespace Vantage
         {
             if (!Active) return;
             Active = false;
-            VantageAudio.Stop(_siren, 1.5f);
+            VantageAudio.Stop(_siren, VantageAudio.Tuning.SirenFade);
             _siren = null;
             if (Siren != null) Siren.SetActive(false);
             setLights(0f);

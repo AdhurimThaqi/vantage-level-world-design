@@ -4378,6 +4378,12 @@ namespace CoverShooter
 
         private void moveAndRotate()
         {
+            // VANTAGE change: nothing moves in a frame without time (the pause menu sets Time.timeScale to 0). The
+            // velocities below divide the animator's movement by Time.deltaTime, which gave NaN and the error
+            // "rigidbody.velocity assign attempt ... is not valid" for any character walking when the game paused.
+            if (Time.deltaTime <= 0f)
+                return;
+
             if (_isMoving && _useSprintingAnimation)
                 _horizontalAngle = Util.HorizontalAngle(_currentMovement.Direction);
 

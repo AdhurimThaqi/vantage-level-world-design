@@ -75,7 +75,6 @@ namespace Vantage
         }
 
         private CharacterHealth _health;
-        private AudioSource _audio;
         private Vector3 _home;
         private Vector3 _patrolTarget;
         private BaseActor _target;
@@ -98,7 +97,6 @@ namespace Vantage
         private void Awake()
         {
             _health = GetComponent<CharacterHealth>();
-            _audio = GetComponent<AudioSource>();
             _home = transform.position;
             _patrolTarget = _home;
             _nextShot = Time.time + Random.Range(0.5f, FireInterval);
@@ -132,9 +130,15 @@ namespace Vantage
 
         private void Start()
         {
-            // The produced hum (when the bank has it) replaces the synthesised one.
-            _hum = VantageAudio.PlayLoop(VantageSounds.DroneHum, transform);
+            // The produced hum (when the bank has it) replaces the synthesised one. Turrets don't hum (2026-11-16: they
+            // played the drone's hum too).
             var synth = GetComponentInChildren<VantageProceduralAudio>();
+            if (!Mobile)
+            {
+                if (synth != null) synth.gameObject.SetActive(false);
+                return;
+            }
+            _hum = VantageAudio.PlayLoop(VantageSounds.DroneHum, transform);
             if (_hum != null && synth != null) synth.gameObject.SetActive(false);
         }
 
@@ -426,11 +430,25 @@ namespace Vantage
             if (MuzzleFlash != null && Muzzle != null)
                 Destroy(Instantiate(MuzzleFlash, Muzzle.position, Muzzle.rotation, Muzzle), 1.5f);
 
-            if (_audio != null && FireSound != null)
-            {
-                _audio.pitch = Random.Range(1.3f, 1.5f);
-                _audio.PlayOneShot(FireSound, 0.7f);
-            }
+            fireSound();
+        }
+
+        /// <summary>
+        /// The shot's sound from the muzzle, through the sound bank (2026-11-16: the old path needed an AudioSource on the
+        /// root, which the prefabs don't have, so drones and turrets fired silently). DRONE_Fire / TURRET_Fire; while
+        /// empty, the robot's laser (ROBOT_Fire) pitched up for the small drone and down for the turret's cannon, and
+        /// without that the prefab's FireSound.
+        /// </summary>
+        private void fireSound()
+        {
+            var name = Mobile ? VantageSounds.DroneFire : VantageSounds.TurretFire;
+            var at = Muzzle != null ? Muzzle.position : transform.position;
+            if (VantageAudio.Has(name)) { VantageAudio.Play(name, at); return; }
+            var laser = VantageAudio.Clips(VantageSounds.RobotFire);
+            var clip = laser != null && laser.Length > 0 ? laser[0] : FireSound;
+            var source = VantageAudio.Play(name, at, clip);
+            var pitch = Mobile ? VantageAudio.Tuning.DroneFirePitch : VantageAudio.Tuning.TurretFirePitch;
+            if (source != null) source.pitch = Random.Range(pitch.x, pitch.y);
         }
 
         private void setEye(float charge)
@@ -499,7 +517,7 @@ namespace Vantage
             if (DeathExplosion != null)
                 Destroy(Instantiate(DeathExplosion, transform.position, Quaternion.identity), 5f);
             if (DeathSound != null)
-                AudioSource.PlayClipAtPoint(DeathSound, transform.position, 0.8f);
+                VantageAudio.PlayClip(DeathSound, transform.position, "SFX");
 
             VantageEvents.RaiseEnemyKilled(Mobile ? "Drone" : "Turret", transform.position);
 

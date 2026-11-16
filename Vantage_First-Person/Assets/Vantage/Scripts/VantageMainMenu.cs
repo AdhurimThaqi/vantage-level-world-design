@@ -22,15 +22,15 @@ namespace Vantage
     {
         [Tooltip("Shown along the bottom.")]
         public string Tagline = "Get in. Fight up. Get out.";
-        [TextArea(6, 20)]
-        public string Credits =
-            "Design, level, code and 3D models\nAdhurim Thaqi\n\n" +
-            "HSLU  Level and World Design  HS26\n\n" +
-            "Course template: Third Person Cover Shooter, Pistol Animset Pro\n" +
-            "Asset Store: Low Poly Soldiers (demo), ISO Mech, Sci-fi turrets, VoodooPlay Sci-fi Drone,\n" +
-            "Raptor3D MSH N2 helicopter, Robot Hero (Sci-Fi Warrior), Stylized Coin Pack\n" +
-            "Textures: Poly Haven (CC0)\n" +
-            "Player character: Avaturn";
+        [Tooltip("The credits page: a line starting with # is a heading (amber), an empty line a gap. One entry per line: "
+                 + "lines don't wrap, so keep them short.")]
+        [TextArea(6, 24)]
+        public string CreditsText =
+            "# Design, level, code and 3D models\nAdhurim Thaqi\n\n" +
+            "# Course\nHSLU Level and World Design HS26\nTemplate: Third Person Cover Shooter, Pistol Animset Pro\n\n" +
+            "# Asset Store\nLow Poly Soldiers (demo), ISO Mech, Sci-fi turrets\nVoodooPlay Sci-fi Drone, Raptor3D MSH N2 helicopter\n" +
+            "Robot Hero (Sci-Fi Warrior), Stylized Coin Pack\n\n" +
+            "# Textures and character\nPoly Haven (CC0), Avaturn";
 
         public static VantageMainMenu Instance { get; private set; }
         /// <summary>The menu is up (the intro waits for Play).</summary>
@@ -47,6 +47,10 @@ namespace Vantage
         public float MusicFade = 1.5f;
 
         private const string SensitivityKey = "vantage.sensitivity", QualityKey = "vantage.quality";
+        // Layout (reference pixels, 1920×1080): every text starts on one left edge; a row's highlight hangs out to its
+        // left by LabelInset. Every page's list starts at ListTop, under the subtitle, and ends above the tagline.
+        private const float Left = 110f, LabelInset = 24f, ListTop = 440f, RowPitch = 68f, RowHeight = 56f, PanelWidth = 600f;
+        private const float ValueWidth = 170f, ArrowGap = 22f;
         private const float SwayDegrees = 8f, SwaySpeed = 0.11f, Distance = 38f, Height = 1.8f, Turn = 20f;
 
         private enum Page { Main, Pause, Settings, Controls, Credits }
@@ -75,7 +79,7 @@ namespace Vantage
         {
             public RectTransform Rect;
             public Image Frame, Fill, Bar;
-            public TMP_Text Label, Value;
+            public TMP_Text Label, Value, Left, Right;
             public string Name;
             public System.Action<int> Act;   // 0 choose, -1 / +1 change a setting
         }
@@ -137,7 +141,7 @@ namespace Vantage
             VantageAudio.Stop(_music, MusicFade);
             Destroy(_canvas.gameObject);
             if (_helicopter != null) Destroy(_helicopter);
-            VantageAudio.Stop(_rotor, 1f);
+            VantageAudio.Stop(_rotor, VantageAudio.Tuning.MenuRotorFade);
             foreach (var m in _mouseLocks) if (m != null) m.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -377,21 +381,23 @@ namespace Vantage
             VantageUI.Image(shade, new Color(0, 0, 0, 0.72f), VantageUI.Shade).rectTransform.anchoredPosition = new Vector2(-520, 0);
             VantageUI.Image(VantageUI.Stretch("Vignette", _canvas), new Color(0, 0, 0, 0.55f), VantageUI.Vignette);
 
-            var heading = VantageUI.Text(_canvas, "Title", 168, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(110, -150), new Vector2(900, 170));
+            var heading = VantageUI.Text(_canvas, "Title", 168, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(Left, -150), new Vector2(900, 170));
             heading.text = title ? "VANTAGE" : "PAUSED";
             heading.characterSpacing = 6;
-            VantageUI.Image(VantageUI.Rect("Line", _canvas, new Vector2(0, 1), new Vector2(110, -330), new Vector2(560, 3)), VantageUI.Danger, VantageUI.Pixel);
-            var subtitle = VantageUI.Text(_canvas, "Subtitle", 34, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(112, -350), new Vector2(1200, 40));
+            // The red rule spans the title's letters (measured: its spacing and the font decide the width).
+            var ruleWidth = Mathf.Clamp(heading.GetPreferredValues(heading.text).x - 8f, 300f, 900f);
+            VantageUI.Image(VantageUI.Rect("Line", _canvas, new Vector2(0, 1), new Vector2(Left, -330), new Vector2(ruleWidth, 3)), VantageUI.Danger, VantageUI.Pixel);
+            var subtitle = VantageUI.Text(_canvas, "Subtitle", 34, TextAlignmentOptions.Left, new Vector2(0, 1), new Vector2(Left, -350), new Vector2(1200, 40));
             subtitle.text = title ? "THE TOWER IS SILENT" : runSummary();
             subtitle.characterSpacing = 18;
             subtitle.color = new Color(0.85f, 0.85f, 0.85f);
-            var tag = VantageUI.Text(_canvas, "Tagline", 24, TextAlignmentOptions.Left, new Vector2(0, 0), new Vector2(110, 60), new Vector2(1400, 30));
+            var tag = VantageUI.Text(_canvas, "Tagline", 24, TextAlignmentOptions.Left, new Vector2(0, 0), new Vector2(Left, 60), new Vector2(1400, 30));
             tag.text = title ? VantageUI.Caps(Tagline) : "ESC RESUME   W S CHOOSE   ENTER SELECT";
             tag.characterSpacing = 14;
             tag.color = VantageUI.Muted;
 
-            _mainPanel = VantageUI.Rect("Main", _canvas, new Vector2(0, 0.5f), new Vector2(100, -90), new Vector2(560, 330));
-            _pausePanel = VantageUI.Rect("Pause", _canvas, new Vector2(0, 0.5f), new Vector2(100, -150), new Vector2(620, 450));
+            _mainPanel = listPanel("Main", 5);
+            _pausePanel = listPanel("Pause", 6);
             if (title)
             {
                 _main.Add(row(_mainPanel, _main.Count, "Play game", null, _ => Play()));
@@ -410,7 +416,7 @@ namespace Vantage
                 _pause.Add(row(_pausePanel, _pause.Count, "Quit game", null, _ => confirm(5, quit)));
             }
 
-            _settingsPanel = VantageUI.Rect("Settings", _canvas, new Vector2(0, 0.5f), new Vector2(100, -160), new Vector2(760, 530));
+            _settingsPanel = listPanel("Settings", 7);
             _settings.Add(row(_settingsPanel, 0, "Master", "", d => volume(VantageAudio.MasterKey, d)));
             _settings.Add(row(_settingsPanel, 1, "Music", "", d => volume(VantageAudio.MusicKey, d)));
             _settings.Add(row(_settingsPanel, 2, "Effects", "", d => volume(VantageAudio.EffectsKey, d)));
@@ -419,16 +425,17 @@ namespace Vantage
             _settings.Add(row(_settingsPanel, 5, "Fullscreen", "", _ => { Screen.fullScreen = !Screen.fullScreen; refresh(); }));
             _settings.Add(row(_settingsPanel, 6, "Back", null, _ => Back()));
 
-            // Below the heading's line (its top 110 above the centre) and clear of the tagline at the bottom.
-            _controlsPanel = VantageUI.Rect("Controls", _canvas, new Vector2(0, 0.5f), new Vector2(110, -150), new Vector2(1000, 520));
-            var controls = VantageUI.Text(_controlsPanel, "Text", 24, TextAlignmentOptions.TopLeft, new Vector2(0, 1), Vector2.zero, new Vector2(1000, 520));
+            // Text pages start where the lists do, on the text edge, and end above the tagline.
+            var textHeight = 1080f - ListTop - 120f;
+            _controlsPanel = VantageUI.Rect("Controls", _canvas, new Vector2(0, 1), new Vector2(Left, -ListTop), new Vector2(760, textHeight));
+            var controls = VantageUI.Text(_controlsPanel, "Text", 24, TextAlignmentOptions.TopLeft, new Vector2(0, 1), Vector2.zero, new Vector2(760, textHeight));
             controls.lineSpacing = -8f;
             controls.text = ControlsText + "\n<color=#ffffff88>ANY KEY: BACK</color>";
 
-            _creditsPanel = VantageUI.Rect("Credits", _canvas, new Vector2(0, 0.5f), new Vector2(110, -90), new Vector2(900, 420));
-            var credits = VantageUI.Text(_creditsPanel, "Text", 26, TextAlignmentOptions.TopLeft, new Vector2(0, 1), Vector2.zero, new Vector2(900, 420));
-            credits.textWrappingMode = TextWrappingModes.Normal;
-            credits.text = Credits + "\n\n<color=#ffffff88>ANY KEY: BACK</color>";
+            _creditsPanel = VantageUI.Rect("Credits", _canvas, new Vector2(0, 1), new Vector2(Left, -ListTop), new Vector2(760, textHeight));
+            var credits = VantageUI.Text(_creditsPanel, "Text", 24, TextAlignmentOptions.TopLeft, new Vector2(0, 1), Vector2.zero, new Vector2(760, textHeight));
+            credits.lineSpacing = -6f;
+            credits.text = creditsMarkup(CreditsText) + "\n\n<color=#ffffff88>ANY KEY: BACK</color>";
 
             if (title) _cover = VantageUI.Image(VantageUI.Stretch("Fade", _canvas), Color.black);
             show(home);
@@ -470,20 +477,43 @@ namespace Vantage
             _pause[index].Label.color = VantageUI.Accent;
         }
 
+        /// <summary>A page's list: top-left at ListTop, its rows' labels on the text edge (the highlight hangs out left).</summary>
+        private RectTransform listPanel(string name, int rows) =>
+            VantageUI.Rect(name, _canvas, new Vector2(0, 1), new Vector2(Left - LabelInset, -ListTop), new Vector2(PanelWidth, rows * RowPitch - (RowPitch - RowHeight)));
+
+        /// <summary>The credits text: lines starting with # become amber headings with letter spacing.</summary>
+        private static string creditsMarkup(string text)
+        {
+            var lines = (text ?? "").Replace("\r", "").Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+                if (lines[i].StartsWith("#"))
+                    lines[i] = $"<color=#FFBD4D><size=20><cspace=4>{VantageUI.Caps(lines[i].TrimStart('#', ' '))}</cspace></size></color>";
+                else
+                    lines[i] = VantageUI.Caps(lines[i]);
+            return string.Join("\n", lines);
+        }
+
         private Row row(RectTransform panel, int index, string label, string value, System.Action<int> act)
         {
             var r = new Row { Name = label, Act = act };
-            r.Rect = VantageUI.Rect(label, panel, new Vector2(0, 1), new Vector2(0, -index * 78), new Vector2(panel.sizeDelta.x, 60));
+            r.Rect = VantageUI.Rect(label, panel, new Vector2(0, 1), new Vector2(0, -index * RowPitch), new Vector2(panel.sizeDelta.x, RowHeight));
             r.Fill = VantageUI.Image(VantageUI.Stretch("Fill", r.Rect), new Color(VantageUI.Danger.r, VantageUI.Danger.g, VantageUI.Danger.b, 0.16f), VantageUI.Pixel);
             r.Frame = VantageUI.Image(VantageUI.Stretch("Frame", r.Rect), VantageUI.Danger, frameSprite());
             r.Frame.type = Image.Type.Sliced;
-            r.Bar = VantageUI.Image(VantageUI.Rect("Bar", r.Rect, new Vector2(0, 0.5f), Vector2.zero, new Vector2(6, 60)), VantageUI.Danger, VantageUI.Pixel);
-            r.Label = VantageUI.Text(r.Rect, "Label", 34, TextAlignmentOptions.Left, new Vector2(0, 0.5f), new Vector2(36, 0), new Vector2(420, 50));
+            r.Bar = VantageUI.Image(VantageUI.Rect("Bar", r.Rect, new Vector2(0, 0.5f), Vector2.zero, new Vector2(6, RowHeight)), VantageUI.Danger, VantageUI.Pixel);
+            r.Label = VantageUI.Text(r.Rect, "Label", 32, TextAlignmentOptions.Left, new Vector2(0, 0.5f), new Vector2(LabelInset, 0), new Vector2(PanelWidth - LabelInset, RowHeight));
             r.Label.text = VantageUI.Caps(label);
             if (value != null)
             {
-                r.Value = VantageUI.Text(r.Rect, "Value", 30, TextAlignmentOptions.Right, new Vector2(1, 0.5f), new Vector2(-28, 0), new Vector2(300, 50));
+                // A fixed column: the value centred between its arrows, so every row's arrows line up.
+                var right = -LabelInset;
+                r.Right = VantageUI.Text(r.Rect, "More", 28, TextAlignmentOptions.Right, new Vector2(1, 0.5f), new Vector2(right, 0), new Vector2(ArrowGap, RowHeight));
+                r.Value = VantageUI.Text(r.Rect, "Value", 28, TextAlignmentOptions.Center, new Vector2(1, 0.5f), new Vector2(right - ArrowGap, 0), new Vector2(ValueWidth, RowHeight));
+                r.Left = VantageUI.Text(r.Rect, "Less", 28, TextAlignmentOptions.Left, new Vector2(1, 0.5f), new Vector2(right - ArrowGap - ValueWidth, 0), new Vector2(ArrowGap, RowHeight));
+                r.Left.text = "<";
+                r.Right.text = ">";
                 r.Value.color = VantageUI.Accent;
+                r.Left.color = r.Right.color = new Color(VantageUI.Accent.r, VantageUI.Accent.g, VantageUI.Accent.b, 0.6f);
             }
             return r;
         }
@@ -563,12 +593,12 @@ namespace Vantage
         private void refresh()
         {
             if (_settings.Count < 6) return;
-            _settings[0].Value.text = $"< {Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.MasterKey) * 100)} % >";
-            _settings[1].Value.text = $"< {Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.MusicKey) * 100)} % >";
-            _settings[2].Value.text = $"< {Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.EffectsKey) * 100)} % >";
-            _settings[3].Value.text = $"< {PlayerPrefs.GetFloat(SensitivityKey, 1f):0.0}x >";
-            _settings[4].Value.text = $"< {VantageUI.Caps(QualitySettings.names[QualitySettings.GetQualityLevel()])} >";
-            _settings[5].Value.text = Screen.fullScreen ? "< ON >" : "< OFF >";
+            _settings[0].Value.text = $"{Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.MasterKey) * 100)} %";
+            _settings[1].Value.text = $"{Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.MusicKey) * 100)} %";
+            _settings[2].Value.text = $"{Mathf.RoundToInt(VantageAudio.Setting(VantageAudio.EffectsKey) * 100)} %";
+            _settings[3].Value.text = $"{PlayerPrefs.GetFloat(SensitivityKey, 1f):0.0} X";
+            _settings[4].Value.text = VantageUI.Caps(QualitySettings.names[QualitySettings.GetQualityLevel()]);
+            _settings[5].Value.text = Screen.fullScreen ? "ON" : "OFF";
         }
 
         private void change(string key, int step, float min, float max, float by, float fallback)

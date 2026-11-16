@@ -9,6 +9,8 @@ namespace Vantage
     /// shows (VantagePlayerHUD). Enter starts a new run.
     /// The helicopter is a prefab with a "Model" child (placeholder until the user's Blender model replaces it) and
     /// "Main Rotor" / "Tail Rotor" parts that spin.
+    /// Since 2026-11-16 the helicopter is already there, fighting the boss (VantageHelicopterSupport): the extraction
+    /// takes that one over and lands it from where it is; it only flies one in when there is none.
     /// </summary>
     public class VantageExtraction : MonoBehaviour
     {
@@ -33,6 +35,15 @@ namespace Vantage
         private Camera _camera;
         private Vector3 _camFrom, _camTo;
         private Quaternion _camFromRot;
+
+        private void Awake()
+        {
+            // Scenes set up before 2026-11-16 lack it (Set Up Tower adds it with its tunables).
+            if (GetComponent<VantageHelicopterSupport>() == null) gameObject.AddComponent<VantageHelicopterSupport>();
+        }
+
+        /// <summary>The helicopter that lands (for the bot).</summary>
+        public Transform Helicopter => _heli;
 
         private void OnEnable()
         {
@@ -64,7 +75,18 @@ namespace Vantage
             _land = Pad.position;
             _start = _land + away * StartDistance + Vector3.up * StartHeight;
             _control = _land + away * 30f + Vector3.up * 25f;
-            if (HelicopterPrefab != null)
+            var support = GetComponent<VantageHelicopterSupport>();
+            var fighting = support != null ? support.HandOver() : null;
+            if (fighting != null)
+            {
+                // The one already over the pad: from where it is, through a point above the pad's valley side.
+                _heli = fighting;
+                _start = _heli.position;
+                _control = Vector3.Lerp(_start, _land, 0.5f) + Vector3.up * 8f;
+                _mainRotor = findChild(_heli, "Main Rotor");
+                _tailRotor = findChild(_heli, "Tail Rotor");
+            }
+            else if (HelicopterPrefab != null)
             {
                 _heli = Instantiate(HelicopterPrefab, _start, Quaternion.LookRotation(-away)).transform;
                 VantageAudio.PlayLoop(VantageSounds.HeliRotor, _heli);

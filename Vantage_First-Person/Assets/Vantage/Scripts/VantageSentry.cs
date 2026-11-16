@@ -49,7 +49,6 @@ namespace Vantage
         private const float PatrolReach = 1.2f;
         private const float ReorderInterval = 3f;
         private static bool _warnedThisScene;
-        private static AudioClip _crack;
 
         private VantageSentries.Route _route;
         private CharacterMotor _motor;
@@ -149,7 +148,7 @@ namespace Vantage
                 {
                     _warnedThisScene = true;
                     if (VantageAudio.Play(VantageSounds.SentryWarningCall, transform.position) == null)
-                        play(_voice, WarningCall != null ? WarningCall : VantageProceduralAudio.Create(VantageProceduralAudio.Kind.RadioStatic, 7), 0.9f);
+                        play(_voice, WarningCall, VantageAudio.Tuning.WarningCallVolume);
                 }
             }
             _brain.Message("ToTurnAt", player.transform.position);
@@ -246,7 +245,7 @@ namespace Vantage
                 _dust.transform.position = to;
                 _dust.Emit(14);
             }
-            if (VantageAudio.Play(VantageSounds.SentryCrack, from) == null) play(_voice, ShotCrack != null ? ShotCrack : crack(), 1f);
+            if (VantageAudio.Play(VantageSounds.SentryCrack, from) == null) play(_voice, ShotCrack, 1f);
         }
 
         #endregion
@@ -424,40 +423,27 @@ namespace Vantage
 
             _voice = gameObject.AddComponent<AudioSource>();
             _voice.spatialBlend = 1f;
-            _voice.minDistance = 8f;
-            _voice.maxDistance = 120f;
+            var tuning = VantageAudio.Tuning;
+            _voice.minDistance = tuning.SentryVoiceDistance.x;
+            _voice.maxDistance = tuning.SentryVoiceDistance.y;
             _voice.playOnAwake = false;
 
             _radio = gameObject.AddComponent<AudioSource>();
-            _radio.clip = RadioLoop != null ? RadioLoop : VantageProceduralAudio.Create(VantageProceduralAudio.Kind.RadioStatic, name.GetHashCode());
+            // Only a real radio loop: the synthesised static was a constant crackle from the top of the tower (2026-11-16).
+            _radio.clip = RadioLoop;
             _radio.loop = true;
             _radio.spatialBlend = 1f;
-            _radio.minDistance = 2f;
-            _radio.maxDistance = 25f;
-            _radio.volume = 0.25f;
-            _radio.Play();
+            _radio.minDistance = tuning.SentryRadioDistance.x;
+            _radio.maxDistance = tuning.SentryRadioDistance.y;
+            _radio.volume = tuning.SentryRadioVolume;
+            _radio.outputAudioMixerGroup = VantageAudio.Group("Voice");
+            _voice.outputAudioMixerGroup = VantageAudio.Group("Voice");
+            if (_radio.clip != null) _radio.Play();
         }
 
         private static void play(AudioSource source, AudioClip clip, float volume)
         {
             if (source != null && clip != null) source.PlayOneShot(clip, volume);
-        }
-
-        /// <summary>A rifle crack: a short burst of noise with a fast decay (made once).</summary>
-        private static AudioClip crack()
-        {
-            if (_crack != null) return _crack;
-            const int rate = 44100;
-            var samples = new float[rate / 6];
-            var random = new System.Random(11);
-            for (int i = 0; i < samples.Length; i++)
-            {
-                var t = (float)i / rate;
-                samples[i] = (float)(random.NextDouble() * 2 - 1) * Mathf.Exp(-t * 38f) * 0.9f;
-            }
-            _crack = AudioClip.Create("Sentry Crack", samples.Length, 1, rate, false);
-            _crack.SetData(samples, 0);
-            return _crack;
         }
 
         // A new play session or scene: the first warning call plays again.

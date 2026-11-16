@@ -15,10 +15,14 @@ namespace Vantage
     public class VantageAudio : MonoBehaviour
     {
         public VantageSoundBank Bank;
-        [Tooltip("Assets/Audio/VantageMixer.mixer (built by hand). Empty: no routing, no snapshots.")]
+        [Tooltip("Assets/Audio/VantageMixer.mixer (built by Vantage → Audio → Refresh Sound Bank when missing; tune it in Window → Audio → Audio Mixer). Empty: no routing, no snapshots.")]
         public AudioMixer Mixer;
         /// <summary>One-shot sources (the template's gunshots and hits share them).</summary>
-        public const int PoolSize = 24;
+        /// <summary>The bank's tuning values (defaults without a bank), edited in the Sound Board.</summary>
+        public static SoundTuning Tuning => Instance != null && Instance.Bank != null ? Instance.Bank.Tuning : DefaultTuning;
+        private static readonly SoundTuning DefaultTuning = new SoundTuning();
+        /// <summary>One-shot sources in the pool (Tuning.PoolSize).</summary>
+        public static int PoolSize => Tuning.PoolSize;
 
         /// <summary>PlayerPrefs keys of the volume settings (0–1).</summary>
         public const string MasterKey = "vantage.master", MusicKey = "vantage.music", EffectsKey = "vantage.effects";
@@ -36,7 +40,8 @@ namespace Vantage
         {
             Instance = this;
             _plays.Clear();
-            for (int i = 0; i < PoolSize; i++)
+            var size = Bank != null ? Bank.Tuning.PoolSize : DefaultTuning.PoolSize;
+            for (int i = 0; i < size; i++)
             {
                 var go = new GameObject("One-shot " + i);
                 go.transform.SetParent(transform, false);
@@ -156,8 +161,8 @@ namespace Vantage
             if (Instance == null) { AudioSource.PlayClipAtPoint(clip, position); return; }
             var source = Instance.free();
             Instance.setup(source, null, false);
-            source.minDistance = 1f;
-            source.maxDistance = 500f;
+            source.minDistance = Tuning.TemplateSoundDistance.x;
+            source.maxDistance = Tuning.TemplateSoundDistance.y;
             source.outputAudioMixerGroup = Instance.group(group);
             source.transform.position = position;
             source.clip = clip;

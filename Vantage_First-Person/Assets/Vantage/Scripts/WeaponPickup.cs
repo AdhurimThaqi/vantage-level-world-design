@@ -38,8 +38,7 @@ namespace Vantage
 
             VantageEvents.RaiseWeaponPickedUp(WeaponName);
 
-            if (VantageAudio.Play(VantageSounds.PickupWeapon, transform.position) == null && PickupSound != null)
-                AudioSource.PlayClipAtPoint(PickupSound, transform.position);
+            VantageAudio.Play(VantageSounds.PickupWeapon, transform.position, PickupSound);
 
             Destroy(gameObject);
         }

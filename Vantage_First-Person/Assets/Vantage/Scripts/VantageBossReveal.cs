@@ -202,7 +202,7 @@ namespace Vantage
             if (_camera != null) _camera.transform.SetPositionAndRotation(_endPosition, _endRotation);
             if (_boss != null && !_boss.IsDead) _boss.Glow(0f);
             VantageCinematic.End();
-            VantageAudio.Stop(_sound, 2.5f);
+            VantageAudio.Stop(_sound, VantageAudio.Tuning.RevealFade);
             _sound = null;
             _overlay?.Destroy();
             _overlay = null;

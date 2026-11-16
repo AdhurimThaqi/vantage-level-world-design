@@ -3,15 +3,17 @@ using UnityEngine;
 namespace Vantage
 {
     /// <summary>
-    /// Looping 3D ambience synthesised at start-up, so the project needs no audio files for it.
-    /// Placed at each way up, it gets louder as the player approaches: sound pulls the player forward.
+    /// The last stand-in for two looping sounds when the user's file is missing: the drone hum (drone and turret
+    /// prefabs, switched off as soon as DRONE_Hum plays) and the alarm siren (ALARM_Siren). Since 2026-11-16 nothing
+    /// else is synthesised: an empty sound event is silent (the generated wind, radio static and guide pulse sounded
+    /// like a broken speaker and a heart monitor and were removed).
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
     public class VantageProceduralAudio : MonoBehaviour
     {
-        public enum Kind { Wind = 0, DroneHum = 1, RadioStatic = 2, Siren = 6, GuidePulse = 7 }   // values are serialized
+        public enum Kind { DroneHum = 1, Siren = 6 }   // values are serialized
 
-        public Kind Sound = Kind.Wind;
+        public Kind Sound = Kind.DroneHum;
         [Range(0, 1)] public float Volume = 0.6f;
         public float MinDistance = 2f;
         public float MaxDistance = 25f;
@@ -69,36 +71,7 @@ namespace Vantage
 
         public static AudioClip Create(Kind kind, int seed)
         {
-            switch (kind)
-            {
-                case Kind.DroneHum: return hum(seed);
-                case Kind.Siren: return siren();
-                case Kind.RadioStatic: return radio(seed);
-                case Kind.GuidePulse: return guidePulse();
-                default: return wind(seed);
-            }
-        }
-
-        private static AudioClip wind(int seed)
-        {
-            const float seconds = 8f;
-            var count = (int)(Rate * seconds);
-            var data = new float[count];
-            var rng = new System.Random(seed);
-            float brown = 0, low = 0;
-
-            for (int i = 0; i < count; i++)
-            {
-                var white = (float)(rng.NextDouble() * 2 - 1);
-                brown = Mathf.Clamp(brown + white * 0.02f, -1f, 1f);
-                low += (white - low) * 0.05f;
-                var t = i / (float)Rate;
-                // Two slow gusts that fit the loop length exactly.
-                var gust = 0.55f + 0.3f * Mathf.Sin(t * Mathf.PI * 2f / seconds) + 0.15f * Mathf.Sin(t * Mathf.PI * 2f * 3f / seconds);
-                data[i] = (brown * 0.8f + low * 0.6f) * gust;
-            }
-
-            return finish("Wind", data);
+            return kind == Kind.Siren ? siren() : hum(seed);
         }
 
         private static AudioClip hum(int seed)
@@ -122,42 +95,6 @@ namespace Vantage
             }
 
             return finish("Drone Hum", data);
-        }
-
-        /// <summary>The guide sound's placeholder: a soft two-tone pulse (high, then low) every 1.2 s.</summary>
-        private static AudioClip guidePulse()
-        {
-            const float seconds = 1.2f;
-            var count = (int)(Rate * seconds);
-            var data = new float[count];
-            for (int i = 0; i < count; i++)
-            {
-                var t = i / (float)Rate;
-                var tone = t < 0.15f ? Mathf.Sin(t * Mathf.PI * 2f * 880f) * Mathf.Sin(t / 0.15f * Mathf.PI)
-                         : t >= 0.2f && t < 0.35f ? Mathf.Sin(t * Mathf.PI * 2f * 660f) * Mathf.Sin((t - 0.2f) / 0.15f * Mathf.PI) : 0f;
-                data[i] = tone * 0.35f;
-            }
-            return finish("Guide Pulse", data);
-        }
-
-        private static AudioClip radio(int seed)
-        {
-            const float seconds = 6f;
-            var count = (int)(Rate * seconds);
-            var data = new float[count];
-            var rng = new System.Random(seed);
-
-            for (int i = 0; i < count; i++)
-            {
-                var t = i / (float)Rate;
-                var hiss = (float)(rng.NextDouble() * 2 - 1) * 0.18f;
-                var crackle = rng.NextDouble() < 0.002 ? (float)(rng.NextDouble() * 2 - 1) * 0.8f : 0f;
-                // A short automated beep every 2 seconds: still transmitting, to nobody.
-                var beep = (t % 2f) < 0.12f ? Mathf.Sin(t * Mathf.PI * 2f * 1000f) * 0.25f : 0f;
-                data[i] = hiss + crackle + beep;
-            }
-
-            return finish("Radio Static", data);
         }
 
         private static AudioClip siren()

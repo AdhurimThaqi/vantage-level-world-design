@@ -71,14 +71,14 @@ U="C:\Program Files\Unity\Hub\Editor\6000.0.58f2\Editor\Unity.exe"
 
 | Question | Method | Read |
 | --- | --- | --- |
-| Does the whole level work (alarm, camera, key, doors, robot, stairs, finale, checkpoint)? What does the HUD look like? | `Vantage.EditorTools.VantageAutoplay.RunBatch [-vantageShots <dir>]` (enters Play mode, ~5 min, use an ~8 min timeout; exit 0 = passed) | `[Bot] PASS/FAIL` lines; `hud_*.png` |
+| Does the project still import cleanly? | `-batchmode -quit` (no method) | no `error CS`, no import errors in the log |
 | Rebuild the tower setup, door check, screenshots | `Vantage.EditorTools.VantageTower.SetupBatch` | `[Vantage] Door check: n ok, 0 FAIL`, flights, `Coins: 5`, levels line, `tower_*.png` |
 | What is in the tower export (names, positions, Blender properties, floor heights)? | `Vantage.EditorTools.VantageTower.ReportBatch` (read-only) | `[Vantage] Node …` and `Level heights` lines |
 | Ledges around the tower, NavMesh connectivity | `Vantage.EditorTools.VantageMilitaryBase.LedgeReportBatch -vantageShots <dir>` | `ledges.png`, `navmesh.png`, path lines |
 | Swap the player body (or rebuild it from the FBX) | `Vantage.EditorTools.VantagePlayerCharacter.ApplyBatch [-vantageModel <fbx>] [-vantageShots <dir>]` | `[Vantage] Body swap:` (attachments moved, height), `Character material` lines, `player_*.png` |
 | Does the gun sit in the hand? | `Vantage.EditorTools.VantagePlayerCharacter.ShotsBatch -vantageShots <dir>` (samples `Pistol_Idle`, forces skinning per render) | `player_hand_side.png`, `player_hand_top.png` |
 
-Add `-vantageSeed N` to any Play-mode run (bot or build) to replay an enemy layout; bot logs and playtest reports give the seed. Soldier names include their spawn marker. The bot turns the player's `AutoTakeCover` off and leaves cover before teleporting; otherwise its checks fail when a seed puts furniture next to the player.
+Add `-vantageSeed N` to a Play-mode run or a build to replay an enemy layout; playtest reports give the seed. Soldier names include their spawn marker. The automated playtest bot was removed on 2026-11-16 at the user's request (the user play-tests the final touches); it is in git history.
 
 **Offline compile check before launching Unity:** build a scratch csproj from `Assembly-CSharp-Editor.csproj`:
 1. Drop its `<Compile>`, `<ProjectReference>` and `<Analyzer>` items.
@@ -98,13 +98,13 @@ Never close a review without stating what must be re-run, matched to the change:
 | Changed | Run |
 | --- | --- |
 | Tower geometry, doors, gates, stairs, enemies, levels, pickups, coins, alarm, camera, ending, soldier prefab | `Vantage → Tower → Set Up Tower (levels, doors, enemies)` |
-| A new tower export from Blender | `VantageTower.ReportBatch`, then Set Up Tower, then Build Military World (plot), then the autoplay test |
+| A new tower export from Blender | `VantageTower.ReportBatch`, then Set Up Tower, then Build Military World (plot), then a play test by the user |
 | World, terrain, tower plot, base props | `Vantage → World → Build Military World (tower plot in the base)` (includes the tower setup) |
 | Navigable geometry | `Vantage → Bake NavMesh For Enemies` |
 | Layout visible from above | `Vantage → World → Rebake Minimap` |
 | Occluders or static flags | `Vantage → Performance → Bake Occlusion Culling` |
 | Player model or rig | `Vantage → Player → Use Character Model` (then check the hand shots) |
-| Any gameplay | `Vantage → Test → Run Autoplay Test` (extend the bot when new gameplay needs a check) |
+| Any gameplay | An offline compile, a clean batch import, then a play test by the user (name what to try) |
 
 ## Performance guard
 
@@ -157,7 +157,7 @@ Rank by severity. An invariant violation outranks a style note. If nothing is wr
 ## YYYY-MM-DD: short title (vantage-watchdog)
 **Asked:** what you were asked to do, in the user's words where possible.
 **Done:** what you checked or changed: files, tools run, decisions and why.
-**Verified:** what you ran and the result (bot PASS/FAIL lines, gate checks, screenshots, compile), or "not verified" and why.
+**Verified:** what you ran and the result (compile, batch import, gate checks, screenshots, the user's play test), or "not verified" and why.
 **Open:** what is left, what the user must re-run or check in Play mode.
 ```
 

@@ -59,6 +59,9 @@ public class VantageTowerPostprocessor : AssetPostprocessor
     void OnPostprocessModel(GameObject root)
     {
         if (!IsOurs) return;
+        // VANTAGE change (2026-11-16): doubled faces z-fought (flickering textures); remove the covered copies first,
+        // so the colliders below are built from the cleaned meshes too.
+        if (IsLevel) VantageTowerDuplicateFaces.Remove(root);
         foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true))
         {
             var go = mf.gameObject;

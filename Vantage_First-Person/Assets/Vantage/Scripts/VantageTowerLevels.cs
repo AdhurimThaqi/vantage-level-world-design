@@ -86,6 +86,11 @@ namespace Vantage
         public float SoldierBurstWait = 0.7f;
         [Tooltip("Degrees of aim error a soldier adds to every shot (template 2).")]
         public float SoldierAimError = 3.5f;
+        [Tooltip("At most this many soldiers fire at the player at once (lecturer's feedback, 2026-11-16: everyone firing at " +
+                 "once was too much). The others aim, reload and wait for a turn; 0 = no limit.")]
+        public int AttackSlots = 2;
+        [Tooltip("Seconds a soldier keeps its attack turn while others wait for one.")]
+        public float AttackTurn = 5f;
 
         [Header("Arrival")]
         [Tooltip("No soldier spawns closer than this to a level's arrival point with a clear line of sight to it: " +
@@ -114,6 +119,8 @@ namespace Vantage
         /// <summary>The finale's soldiers are dead; the helipad waits for the player.</summary>
         public bool AwaitingHelipad { get; private set; }
         public bool BossSpawned { get; private set; }
+        /// <summary>The finale's boss once spawned (the helicopter's target).</summary>
+        public VantageHeavyRobot Boss { get; private set; }
         public bool BossDead { get; private set; }
         public event Action<int> LevelCleared;
         public event Action BossDefeated;
@@ -636,8 +643,9 @@ namespace Vantage
             var look = pad != null ? Quaternion.LookRotation(Vector3.ProjectOnPlane(pad.transform.position - at, Vector3.up)) : Quaternion.identity;
             var boss = spawnSpecial(Current, BossPrefab, at, look, "Boss");
             _countedFrame = -1;
+            Boss = boss != null ? boss.GetComponent<VantageHeavyRobot>() : null;
             VantageEvents.RaiseBossSpawned();
-            if (boss != null) VantageBossReveal.Play(boss.GetComponent<VantageHeavyRobot>());
+            if (Boss != null) VantageBossReveal.Play(Boss);
             Debug.Log($"[Vantage] Boss {(boss != null ? "spawned" : "missing (no prefab): extraction starts")}.");
             return true;
         }

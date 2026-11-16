@@ -14,6 +14,147 @@ Entry format:
 
 ---
 
+## 2026-11-16: Cleanup: playtest bot, playtest reports and unused assets removed (Claude session)
+**Asked:** "if the .meta files are not necessary remove them and also make sure you delete the unneccessary stuff we dont use in the project and optimize everything"; "erase the playtest you did before since we wont really use it anymore i will be testing actively myself". Choices (asked): reports **and** the bot; all three unused groups (pack leftovers, `Assets/Textures`, unused world-pack files).
+**Done:**
+- `.meta` files kept: Unity needs every one (GUID and import settings); a scan found no orphan metas.
+- Unused assets found by a GUID scan from the scene, project settings, code and the paths our tools load, then deleted (with metas and empty folders), 203 MB with the reports: 50 pack leftovers (Raptor3D camo textures/prefabs other than woodland, four unused turret cannons, the soldier pack's demo clips and sample ground, the drone demo's probe, the three Asset Store pipeline assets in `Assets/Settings`), `Assets/Textures` and its skybox material, 163 unused `MilitaryEnvUnity` textures and models. Kept on purpose: the pack's `Terrain/*.raw`, `Textures/Vegetation` and `Models/World`, which `VantageMilitaryBase` reads by path or folder. The list is in the session's scratch folder (`removed.txt`).
+- The autoplay bot removed: `Testing/` (`VantageAutoplayBot*.cs`, `VantageHitLog`) and `Editor/VantageAutoplay.cs`; no scene or prefab referenced them. All 1210 files in `Playtests/` deleted (`VantagePlaytestLogger` still writes a report per Play session there).
+- Docs: CLAUDE.md (workflow step 5 is now compile + batch import + the user's play test; re-run tables; asset rows; removed list; stale bot notes), README (Testing section, folder tree), `vantage-watchdog` agent; GDD (feature list, procedures, risks, test plan, course-requirements row, Nov 16 feedback) and the PDF re-exported.
+**Verified:** offline compile succeeded; a batch open of the project (`-batchmode -quit`) imported with exit 0 and no errors; no scene/prefab references to the deleted scripts. The last bot run before removal: ALL PASSED, 74 checks.
+**Open:** play the level once in the editor (nothing should be missing); a full `MilitaryEnvBuilder` rebuild of the pack's own scene would now miss the deleted props (our World tool doesn't use them). "Optimize everything" beyond the cleanup was not done: frame-time work needs an F9 capture from the user.
+
+## 2026-11-16: Lecturer's feedback built: goal arrow, attack turns, helicopter in the boss fight; GDD rewrite, bubble diagram, TOC (Claude session)
+**Asked:** "The arrow should be on the HUD, two attackers sounds fine and the helicopter should also deal some damage." Then: "The content on the gdd is not there in the word? … make sure everything is up to date … highly qualitative and doesnt look ai generated"; "The table of content please check it out"; "make sure the bubble diagram is mentioned to the GDD and maybe also the content from the Level world design lecture"; "replace the current pdf with the latest one".
+**Done:**
+- `VantageGoalArrow` (new, built by the HUD): pistol → tower entrance → the guide sound's step, at the screen edge when off screen; `VantageUI.Arrow` sprite.
+- Attack turns in `VantageEnemyAggression` (`AttackSlots` 2, `AttackTurn` 5 s on the level brain): waiting soldiers have `AIFire` off, reload and aim.
+- `VantageHelicopterSupport` (new, on Extraction; Setup and `HelicopterSupportBatch` add it, saved into the scene): flies in during the reveal, sweeps the valley side, a pass every 9 s distracts the boss 4 s and fires 5 × 10 through `VantageHeavyRobot.SupportDamage` (floor 30 %); `VantageExtraction` lands the same helicopter. New sound event `HELI_Gun` (55 events; empty: `ROBOT_Fire` at `Tuning.HeliGunPitch`).
+- The Word file on disk did have the 1.1 update (the old PDF was the Oct 29 export). GDD rewritten where it read crammed (finale, cut scenes, audio, combat, AI, iteration 3, Nov 16 feedback), brought up to the new features (feature list, concept, flow, NPCs, plot, objectives, friendly characters, two new interesting choices, balancing, patterns, HUD table), new sections *Course Requirements* (the lecture's list mapped to the game) and *Bubble Diagram* (the week-2 diagram and pacing curve as figures 11–12, how it changed the design, spaces/events/emotions table); TOC no longer lists itself, tighter spacing, ends on page 6; the end-screen figure renumbered 13. Docx and PDF replaced.
+- Docs: CLAUDE.md, README, concept doc revisions row, audio guide (55 events).
+**Verified:** full autoplay run ALL PASSED, 74 checks (goal arrow, attack turns, helicopter support, the same helicopter landing); screenshots of the arrow on screen and at the edge looked at. GDD: schema validation passed, rendered through Word and the TOC and new pages looked at.
+**Open:** in Play mode: the arrow's size and whether it over-guides, whether turn-taking fights feel fairer, the helicopter's sweep and passes and the boss at 30 %. The *Course Requirements* table names the helipad finale as the vertical slice: the user should confirm. Figure 1 still shows golden hour.
+
+## 2026-11-16: Word GDD brought up to date; lecturer's feedback recorded (Claude session)
+**Asked:** "Please bring it up to date" (the Word GDD), plus the lecturer's feedback: a visual arrow showing where to go (from outside the red door marker doesn't say whether to go there); only ~2 enemies attacking at once while the others reload or do something else; the helicopter arriving with the mech as a distractor that helps fight it. "What do you think?"
+**Done:** `PaperDocumentation-/VANTAGE_GDD.docx` (was Oct 29, v1.0) edited in its XML, formatting kept; the original is in the session scratch folder (`scratchpad/gdd/original.docx`).
+- Version 1.1 row; copyright names the own music and sound.
+- Brought in everything from Nov 2–16: title screen and pause menu (feature set, screen flow, screen descriptions, game options, menus, controls), dusk (look and feel, lighting), cut scenes (40 s intro, boss reveal), the machine models (characters, game art, asset list), the sound (audio, music, sound-effects table, help system, asset list, voice), quiet soldiers, juiciness, gamestate, object pooling (audio), iteration 3, test plan (71 checks).
+- User testing: Playtest 4 (Nov 2), lecturer Nov 9, Playtest 5 (Nov 16), **lecturer feedback Nov 16 (planned)**; the peer session renamed 6. Schedule rows to Nov 16 plus "Lecturer feedback: Planned".
+- Table of contents refreshed in Word (37 pages).
+**Verified:** docx schema validation passed; rendered through Word to PDF and the changed pages looked at.
+**Open:** `VANTAGE_GDD.pdf` is still the Oct 29 export (the new PDF is `scratchpad/gdd/out.pdf`); Figure 1 and other pictures still show golden hour and old models. The three lecturer suggestions are not built yet.
+
+## 2026-11-16: Design document brought up to date (Claude session)
+**Asked:** "Can you also please now update the Game Design Document".
+**Done:** `VANTAGE — Level & World Design Concept.md` (in the user's first-person voice):
+- New **Sound** paragraph in *The current level* (zones and reverb, music layers and tracks, the goal sound, the mixer's three states, all sounds the user's own, nothing synthesised).
+- New *Revisions* row for today's sound pass (synthesised sounds removed, drone/turret shots audible, softer hum and footsteps, the mixer, the flicker fix), with the playtest reasons.
+- Today's intro row: "the user's own playtest" → "my own playtest", missing full stop.
+- Stale facts fixed: the warning lights (removed Nov 9) in the dusk note; *Still to do* (models are Asset Store now; 20 / 54 sounds, mix by ear); the coverage table's procedural, guidance and pacing rows now name the current tower too.
+**Verified:** every replacement matched exactly once (script check); not proofread by the user.
+**Open:** the coverage table's other rows (mast, roof, vertical slice, five story props) still describe the earlier watchtower design; the user should decide what the vertical slice is now.
+
+## 2026-11-16: Mixer, Sound Board, audio values out of the code, no synthesised sounds (Claude session)
+**Asked:** "Please Do not repeat those mistakes as the audio will also be important. … I tried to locate where the audio is for example the main menu music there should be like the mixer and stuff everything needs to be easy accessible and also remove a lot of hardcoded stuff that dont need to be hardcoded please". Choices (asked): build the mixer for me; a Sound Board window; audio values first (gameplay values later).
+**Done:**
+- **Mixer** (`Editor/VantageMixerBuilder.cs`): builds `Assets/Audio/VantageMixer.mixer` through the editor's internal mixer classes by reflection (no public API).
+  - Structure: Master; `Music`, `Ambience`, `SFX`, `Voice` each under a `… Volume` bus that carries the menu slider's exposed parameter; `UI`; `Reverb` (Receive → SFX Reverb). Sends from SFX (`ReverbWet`) and from Voice (−10 dB). Snapshots `Explore` / `Combat` / `Cinematic` on the group faders.
+  - Refresh Sound Bank builds it when missing, never overwrites it, and assigns it.
+  - The old guide's "extra Attenuation" advice was impossible (one per group); the buses replace it.
+- **Sound Board** (`Editor/VantageSoundBoard.cs`, Vantage → Audio → Sound Board):
+  - **Events**: all 54 events by category with "where it plays", files (Show / ▶ preview), and every setting; empty events red.
+  - **Mix**: the mixer with *Open Audio Mixer*, plus the `VANTAGE Audio` components' inspectors (zones, music, guide).
+  - **Tuning**: the bank's new `SoundTuning`.
+- **Audio numbers out of the scripts**: `SoundTuning` on the bank, read through `VantageAudio.Tuning`. Covers pool size, template sound distances, drone/turret fallback pitches, boss shot/servo pitch, servo fade, robot hit gap, body-fall delay, bark gap, sentry voice/radio distances and volumes, and the siren / reveal / menu-rotor fades. Music, zone and guide values were already Inspector fields; the Sound Board shows them.
+- **No synthesised sounds**:
+  - Removed the coin chime, sentry crack and radio-static call, intro whoosh, guide pulse, and the wind / static / pulse generators. `VantageProceduralAudio` keeps only the drone hum and siren as a last resort if their files are deleted.
+  - Empty events are silent, or borrow the user's own clip (guide steps → `GUIDE_Radio`, drone/turret shots → `ROBOT_Fire`).
+  - Coin, weapon pickup and robot death go through `VantageAudio`, so the volume settings and mixer apply. Sentry sources route to the Voice group.
+- **Bot**: new `audio mixer` check: groups, bank groups routed, snapshots, the 8 exposed parameters, Music at 50 % = −6 dB, pooled sound routed, snapshots switch.
+- **Docs**: CLAUDE.md (rules: no synthesised sounds, no audio numbers in scripts, where audio lives); audio guide (new "Where everything is", section 5 rewritten).
+- Removed the temporary API dump script.
+**Verified:**
+- Offline compile OK.
+- Mixer built (log lists all 11 groups, 3 snapshots, 8 parameters); Refresh: 20 / 54 filled, mixer found.
+- `-vantageOnly audio` **ALL PASSED**, including `audio mixer`.
+- Full run: first two runs failed only `intro deserter` (the slab sentry fell out of the frame as the shoulder shot opened). Fixed in `VantageIntro`: the camera picks the side with more room once, and while wide it turns a third of the way toward the sentry. Then `-vantageOnly intro` and `handback` passed (pictures checked), and the full run **ALL PASSED** (71 checks).
+**Open:**
+- The Sound Board and Audio Mixer window are untested by hand (batch mode can't open windows): open them in Unity.
+- The snapshot levels and the reverb are starting values: tune by ear.
+- Gameplay numbers (intro timings, enemy fire, ring distances, menu layout) are the next step if wanted.
+- Nothing committed.
+
+## 2026-11-16: Pause NaN error, sound fixes, flickering textures (Claude session)
+**Asked:** an error when quitting before finishing ("rigidbody.velocity assign attempt for 'SENTRY_Helipad' is not valid … NaN"); "annoying sound at the beginning like the broken speaker"; "a sound … constantly like a heart monitoring machine beep"; drones' and turrets' shots silent; "the drone sound is very bad"; "the footsteps arent the best"; "textures … collided 2 or more textures and they keep changing constantly".
+**Done:**
+- **NaN error.** The pause sets `Time.timeScale` 0, and the template's `CharacterMotor.moveAndRotate` divides the animator's movement by `Time.deltaTime`, so a walking sentry got a NaN velocity. Fix: `moveAndRotate` returns in a frame without time (template edit, marked VANTAGE change).
+- **"Broken speaker":** the synthesised noise "wind" bed outside (`AMB_Exterior` is empty). Removed, along with the sentries' synthesised radio-static loop.
+- **"Heart monitor":** the guide sound's synthesised two-tone pulse for empty `GUIDE_*` events. Empty steps now play the user's `GUIDE_Radio` from their anchor.
+- **Silent drones and turrets.** `VantageDrone` played `FireSound` through a root `AudioSource` the prefabs don't have. New events `DRONE_Fire` and `TURRET_Fire` (54 events) play through the bank. Until they are filled they use `ROBOT_Fire`, pitched up for drones and down for turrets. Death sounds now go through `VantageAudio.PlayClip`, and turrets no longer play the drone hum.
+- **Drone hum and footsteps** (Claude's cuts, re-processed by the scratch `soften.py`; originals in the scratch `audio_before/`):
+  - `DRONE_Hum`: low-pass at 1.2 kHz as a loop, −12 dBFS, bank volume 0.7, heard to 14 m. The centroid dropped from 7.4 kHz to 0.7 kHz.
+  - `FS_*`: low-pass (concrete 4 kHz, dirt 3 kHz), −12 / −14 dBFS, bank volume 0.8, pitch 0.9–1.08. The centroid dropped from 5–6 kHz to 1.5–2 kHz.
+- **Flickering textures** (z-fighting, found with a temporary overlap report):
+  - The tower FBX has doubled faces, e.g. the ground floor in both `TX_Floor` and `T_MacroVariation`, `LVL2_Structure` with `LVL2_FloorSlab`, `LVL3_Structure` with `LVL2_Ceiling`, and sills over walls.
+  - The user chose the import fix: the new `VantageTowerDuplicateFaces` (called from `VantageTowerPostprocessor`) removes 1486 fully covered faces and moves 3109 partly covered ones 5 mm back.
+  - Setup's side-step landing now stands 12 mm proud of the model's tread.
+  - Remaining overlap measured at about 6 m² (from about 280 m²).
+- **Render settings** (found on the way): since the 2026-11-05 commit the default render pipeline and the quality levels pointed at an Asset Store pack's Forward `*_PipelineAsset`s instead of `PC_RPAsset` (Ultra: 150 m shadows, 4 cascades, 4096 shadow map). Default, High, Very High and Ultra are back on `PC_RPAsset`.
+- Ran: tower re-import, Set Up Tower (door check 11 ok, 0 FAIL; 5 coins; both sentry routes).
+- Docs: CLAUDE.md, the audio guide.
+**Verified:**
+- Offline compile OK.
+- Re-import overlap report: about 280 m² → 6 m².
+- Set Up Tower clean.
+- Full autoplay **ALL PASSED, 71 checks**, with no NaN velocity error in the log.
+- `-vantageOnly audio`: the first run failed twice. The bank lacked the 2 new events (Refresh Sound Bank not yet run), and the new turret-hum check placed the turret where the test drone's hum was still fading (a test flaw). After a refresh (20 / 54 filled) and spacing them apart: **ALL PASSED**, with drone and turret shots heard and no turret hum.
+- The render pipeline change was made after these runs; batch mode doesn't render, so it is verified only by reading the settings files.
+- Removed the temporary `VantageZFightReport.cs` and the bot's playtest reports.
+**Open:**
+- By ear: the drone hum, the footsteps, the drone and turret shots (placeholders from the laser), and the radio standing in for the guide steps.
+- By eye: the floors and sills no longer flicker. Look for any hole or a 5 mm seam in the tower.
+- The pause → Quit no longer logs the NaN error.
+- Fence segments in the world pack still overlap slightly at their ends (user's world, not touched).
+- Nothing committed.
+
+## 2026-11-16: Slower, clearer intro; title screen aligned (Claude session)
+**Asked:** "make the intro a bit slower and more understanable on what the user should do … i will edit the MUS_Intro than a bit more so the music will play longer … make sure the MainMenu screen everything aligned with text and looks good. The soldiers go out during the play scene and i dont think they ever come back fix that issue please" (asked back: it is the intro's deserter).
+**Done:**
+- **Diagnosis** (bot pictures of the old intro): the sentry that shoots the deserter was a speck on the roof 58 m away, and he fell about 1 s before the cut, so the beat read as "a soldier walks off".
+- **`VantageIntro`**:
+  - 23 s → 39.5 s, and the deserter beat is now three shots:
+    1. toward him walking, with the warning shot in the dirt;
+    2. a cut over the slab sentry's shoulder (wide 42°), then a zoom while the camera rises 0.5 → 1.4 m (to see past the slab's edge) to a lens where he is about 95 px tall, as it fires; the camera's field of view is restored after;
+    3. his body in the lower third, the tower behind.
+  - The walk (3.5 s) and run (2 s) are unchanged, so he stays in the warning band.
+  - Climb stops are a 2 s move plus a 2.4 s hold. The title is 5 s.
+  - Captions rewritten as instructions (9 subtitles, see CLAUDE.md).
+- **`VantageMainMenu`**:
+  - Every text sits on one left edge (`Left`), and row highlights hang out to its left.
+  - All lists start at `ListTop` 440 with pitch 68, so Back no longer crowds the tagline.
+  - The red rule is measured to the title's width.
+  - Settings values are centred in one column between fixed arrows.
+  - Credits get amber `#` headings, one entry per line, no wrapping. The field is renamed `CreditsText` so the new default replaces the scene's stored text.
+- **Bot**:
+  - Handback pictures follow the beats.
+  - The deserter check looks for the sentry in frame as its shot opens (by its body bounds) and for the deserter at the kill.
+  - The climb's inside-the-tower count starts after the roof shot.
+- **Docs**: CLAUDE.md, README.md, concept doc (text and a Revisions row), `Audio_Production/README.md` (`MUS_Intro` length note).
+- Removed the 10 playtest reports the bot runs wrote.
+**Verified:** offline compile OK. `-vantageOnly intro` ALL PASSED (deserter shot in the warning band, sentry in frame, dead after; climb never inside the tower; skip; banner). `-vantageOnly handback` ALL PASSED (39.5 s, quiet hand-back). Screenshots checked: menu main/settings/credits, every intro beat.
+**Open:**
+- By eye in Play mode: the zoom's speed (0.8 s) and whether the deserter is readable at that size; the captions' reading time.
+- In the bot's narrow-lens frame the subtitle didn't render. It is a ScreenSpaceCamera conversion in the bot snapshot; the game uses an Overlay canvas, so check that the caption shows in the sentry shot.
+- `MUS_Intro`: the intro is now ~40 s, and the track fades 15 s after the hand-back (`IntroTail`).
+- Nothing committed.
+
+## 2026-11-16: Sound bank refreshed in batch mode (Claude session)
+**Asked:** "Run Vantage → Audio → Refresh Sound Bank i cant run this i dont see it in the tool editor make sure you applied the changes."
+**Done:** The menu item exists (`VantageAudioSetup.cs:86`, top menu bar **Vantage → Audio**, not under Tools); the last editor log had no compile errors. Unity was closed, so ran `VantageAudioSetup.RefreshBatch` in batch mode: bank 20 / 52 filled, footsteps on the rig and soldier prefabs, `VANTAGE Audio` updated (no mixer yet). Import settings applied: the 4 music tracks, `BOSS_Reveal`, `DRONE_Hum`, `GUIDE_Radio` metas changed; bank asset and scene saved.
+**Verified:** batch run exit 0, project compiled without errors, log lines above.
+**Open:** the user's play test by ear (menu → intro, boss track, end track, the SFX cuts). Nothing committed.
+
 ## 2026-11-12: New music tracks checked and wired (Claude session)
 **Asked:** "ok i replace the Music audios please check them out"
 **Done:**

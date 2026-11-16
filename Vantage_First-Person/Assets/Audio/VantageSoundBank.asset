@@ -73,11 +73,11 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 8381c8581593c754fb155287e70b2239, type: 3}
     - {fileID: 8300000, guid: b72da18bf1a1bf84b87fceff7c8f1731, type: 3}
     - {fileID: 8300000, guid: 06101ca08a1e5df44ad89d6885827c80, type: 3}
-    Volume: 1
-    Pitch: {x: 0.95, y: 1.05}
+    Volume: 0.8
+    Pitch: {x: 0.9, y: 1.08}
     Spatial: 1
     MinDistance: 1
-    MaxDistance: 20
+    MaxDistance: 15
     Loop: 0
     Group: SFX
   - Name: FS_Metal
@@ -95,11 +95,11 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 4d3926424943dd547a334004fe9d66ae, type: 3}
     - {fileID: 8300000, guid: 3de842a217ed4a74195d81ff3a97904a, type: 3}
     - {fileID: 8300000, guid: 8626fce6e74e567488bf0504e80c8f8e, type: 3}
-    Volume: 1
-    Pitch: {x: 0.95, y: 1.05}
+    Volume: 0.8
+    Pitch: {x: 0.9, y: 1.08}
     Spatial: 1
     MinDistance: 1
-    MaxDistance: 20
+    MaxDistance: 15
     Loop: 0
     Group: SFX
   - Name: ALARM_Siren
@@ -215,11 +215,11 @@ MonoBehaviour:
   - Name: DRONE_Hum
     Clips:
     - {fileID: 8300000, guid: 0667034c896caea4c95b683f7a485313, type: 3}
-    Volume: 1
+    Volume: 0.7
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
-    MinDistance: 2
-    MaxDistance: 25
+    MinDistance: 1.5
+    MaxDistance: 14
     Loop: 1
     Group: SFX
   - Name: HELI_Rotor
@@ -419,8 +419,7 @@ MonoBehaviour:
     Loop: 0
     Group: SFX
   - Name: STG_BossFight
-    Clips:
-    - {fileID: 8300000, guid: 43768b9aaa3ea49478693d076d7c39fa, type: 3}
+    Clips: []
     Volume: 1
     Pitch: {x: 1, y: 1}
     Spatial: 0
@@ -488,3 +487,69 @@ MonoBehaviour:
     MaxDistance: 40
     Loop: 0
     Group: SFX
+  - Name: MUS_BossFight
+    Clips:
+    - {fileID: 8300000, guid: 942e6eee5861db744ae047b79da1c09b, type: 3}
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 1
+    Group: Music
+  - Name: MUS_End
+    Clips:
+    - {fileID: 8300000, guid: 09007811daf1ee74e9baf0cfd7ad22a1, type: 3}
+    Volume: 1
+    Pitch: {x: 1, y: 1}
+    Spatial: 0
+    MinDistance: 1
+    MaxDistance: 50
+    Loop: 0
+    Group: Music
+  - Name: DRONE_Fire
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 50
+    Loop: 0
+    Group: SFX
+  - Name: TURRET_Fire
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 4
+    MaxDistance: 60
+    Loop: 0
+    Group: SFX
+  - Name: HELI_Gun
+    Clips: []
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 10
+    MaxDistance: 150
+    Loop: 0
+    Group: SFX
+  Tuning:
+    PoolSize: 24
+    TemplateSoundDistance: {x: 1, y: 500}
+    DroneFirePitch: {x: 1.35, y: 1.5}
+    TurretFirePitch: {x: 0.72, y: 0.8}
+    HeliGunPitch: {x: 0.55, y: 0.62}
+    BossShotPitch: 0.75
+    BossServoPitch: 0.7
+    ServoFade: 0.3
+    RobotHitGap: 0.25
+    BodyFallDelay: 0.5
+    BarkGap: 3
+    SentryVoiceDistance: {x: 8, y: 120}
+    WarningCallVolume: 0.9
+    SentryRadioDistance: {x: 2, y: 25}
+    SentryRadioVolume: 0.25
+    SirenFade: 1.5
+    RevealFade: 2.5
+    MenuRotorFade: 1

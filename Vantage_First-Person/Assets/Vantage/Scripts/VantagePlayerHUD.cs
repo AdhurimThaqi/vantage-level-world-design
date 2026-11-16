@@ -17,7 +17,8 @@ namespace Vantage
     /// - top-centre under the level: the goal of the moment (find a weapon, lockdown, reach the helipad …) and the
     ///   coins found, once there is one;
     /// - full screen: damage flash, low-health vignette, the death screen and the end screen (time, deaths, coins,
-    ///   achievements).
+    ///   achievements);
+    /// - the goal arrow (VantageGoalArrow): over the next goal, or at the screen edge pointing to it.
     /// </summary>
     public class VantagePlayerHUD : MonoBehaviour
     {
@@ -428,6 +429,10 @@ namespace Vantage
             _vignette = VantageUI.Image(VantageUI.Stretch("Low Health Vignette", _canvas), Color.clear, VantageUI.Vignette);
             _flash = VantageUI.Image(VantageUI.Stretch("Damage Flash", _canvas), Color.clear);
             _hud = VantageUI.Stretch("HUD", _canvas);
+            // The goal arrow (2026-11-16) lives under the HUD root, so it hides with it.
+            var arrow = GetComponent<VantageGoalArrow>();
+            if (arrow == null) arrow = gameObject.AddComponent<VantageGoalArrow>();
+            arrow.Build(_hud);
 
             // Soft shading behind the corner clusters keeps them readable on bright walls and sky.
             VantageUI.Image(VantageUI.Rect("Shade", _hud, Vector2.zero, new Vector2(-260, -170), new Vector2(980, 440)), new Color(0, 0, 0, 0.4f), VantageUI.Shade);

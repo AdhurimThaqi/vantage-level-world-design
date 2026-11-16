@@ -66,7 +66,6 @@ namespace Vantage
         private AudioSource _source;
         private float _baseVolume = 1f, _nextPoll, _floorSince;
         private int _floor = int.MinValue, _rawFloor = int.MinValue;
-        private AudioClip _pulse;
         private VantageArsenal _arsenal;
         private VantageInteract _slot;
         private VantageTrigger _openArea;
@@ -75,7 +74,6 @@ namespace Vantage
         private void Awake()
         {
             Instance = this;
-            _pulse = VantageProceduralAudio.Create(VantageProceduralAudio.Kind.GuidePulse, 0);
         }
 
         private void OnDestroy()
@@ -160,7 +158,11 @@ namespace Vantage
             Current = step;
             Changes++;
             if (step < 0 || Steps[step].Anchor == null) return;
-            _source = VantageAudio.PlayLoop(Steps[step].Event, Steps[step].Anchor, _pulse);
+            // An empty step plays the user's radio (GUIDE_Radio) from its anchor until its own sound exists (2026-11-16:
+            // the synthesised two-tone pulse in its place sounded like a heart monitor, all through level 1); with no
+            // radio either, it is silent.
+            var radio = VantageAudio.Clips(VantageSounds.GuideRadio);
+            _source = VantageAudio.PlayLoop(Steps[step].Event, Steps[step].Anchor, radio != null && radio.Length > 0 ? radio[0] : null);
             if (_source == null) return;
             _baseVolume = _source.volume;
             _source.volume = 0f;   // fades in (Update), also when it starts off-floor

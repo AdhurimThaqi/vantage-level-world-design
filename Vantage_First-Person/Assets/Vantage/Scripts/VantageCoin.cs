@@ -22,26 +22,6 @@ namespace Vantage
         public static int Total => all.Count;
 
         private Vector3 _home;
-        private static AudioClip _chime;
-
-        /// <summary>A bright two-note chime, synthesised once (no audio file needed).</summary>
-        private static AudioClip chime()
-        {
-            if (_chime != null) return _chime;
-            const int rate = 22050;
-            var data = new float[(int)(rate * 0.45f)];
-            for (int i = 0; i < data.Length; i++)
-            {
-                var t = i / (float)rate;
-                var note = t < 0.09f ? 1318.5f : 1975.5f;            // E6, then B6
-                var start = t < 0.09f ? 0f : 0.09f;
-                var envelope = Mathf.Exp(-(t - start) * 9f);
-                data[i] = (Mathf.Sin(t * note * Mathf.PI * 2f) * 0.6f + Mathf.Sin(t * note * 2f * Mathf.PI * 2f) * 0.15f) * envelope;
-            }
-            _chime = AudioClip.Create("Coin", data.Length, 1, rate, false);
-            _chime.SetData(data, 0);
-            return _chime;
-        }
 
         private void Awake()
         {
@@ -74,8 +54,7 @@ namespace Vantage
         public void Collect()
         {
             if (!gameObject.activeSelf || !VantageRun.Coins.Add(Id)) return;
-            if (VantageAudio.Play(VantageSounds.CoinCollect, transform.position) == null)
-                AudioSource.PlayClipAtPoint(PickupSound != null ? PickupSound : chime(), transform.position, 0.8f);
+            VantageAudio.Play(VantageSounds.CoinCollect, transform.position, PickupSound);   // empty and no clip: silent
             VantageEvents.RaiseCoinCollected(VantageRun.Coins.Count, Total);
             gameObject.SetActive(false);
         }

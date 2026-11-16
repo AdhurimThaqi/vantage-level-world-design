@@ -695,8 +695,11 @@ namespace Vantage.EditorTools
                 var edge = s * piece.width / 2f;
                 Vector3 at(float k, float across, float y) { var p = piece.bottom + dir * k + side * across; p.y = y; return t.TransformPoint(p); }
 
-                // The landing over the lowest steps, then the side steps down to the floor (k, across, y ranges).
-                var boxes = new List<(Vector3 min, Vector3 max)> { (new Vector3(wallK, -piece.width / 2f, floor), new Vector3(end, piece.width / 2f, top)) };
+                // The landing over the lowest steps, then the side steps down to the floor (k, across, y ranges). The
+                // landing's visible box stands a little proud of the model's tread and sides (Proud): flush, the two
+                // surfaces z-fought (flickering texture, 2026-11-16). Walking uses the separate box and ramp below.
+                const float Proud = 0.012f;
+                var boxes = new List<(Vector3 min, Vector3 max)> { (new Vector3(wallK, -piece.width / 2f - Proud, floor), new Vector3(end, piece.width / 2f + Proud, top + Proud)) };
                 for (int i = 1; i < count; i++)
                 {
                     float c0 = edge + s * (count - 1 - i) * depth, c1 = edge + s * (count - i) * depth;
@@ -1614,6 +1617,22 @@ namespace Vantage.EditorTools
 
         #endregion
 
+        /// <summary>
+        /// Batch: adds the boss-fight helicopter (VantageHelicopterSupport) to the scene's Extraction object without a
+        /// full Setup, so its values show in the Inspector (2026-11-16). Setup adds it too.
+        /// </summary>
+        public static void HelicopterSupportBatch()
+        {
+            var scene = EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath);
+            var extraction = Object.FindAnyObjectByType<VantageExtraction>();
+            if (extraction == null) { Debug.LogError("[Vantage] No Extraction in the scene: run Set Up Tower."); EditorApplication.Exit(1); return; }
+            if (extraction.GetComponent<VantageHelicopterSupport>() == null) extraction.gameObject.AddComponent<VantageHelicopterSupport>();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("[Vantage] Helicopter support on " + extraction.name + ".");
+            EditorApplication.Exit(0);
+        }
+
         /// <summary>The ending: the helicopter lands on the middle of the helipad, flying in from the side away from the tower.</summary>
         private static void extraction(Transform tower, Transform parent, VantageTowerLevels levels)
         {
@@ -1625,6 +1644,7 @@ namespace Vantage.EditorTools
             landing.SetParent(go.transform, false);
             landing.position = new Vector3(pb.center.x, pb.max.y, pb.center.z);
             var e = go.AddComponent<VantageExtraction>();
+            go.AddComponent<VantageHelicopterSupport>();   // the helicopter in the boss fight (2026-11-16)
             e.Pad = landing;
             e.HelicopterPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(VantagePlaceholders.HelicopterPrefabPath);
             var away = landing.position - levels.TowerArea.center; away.y = 0;

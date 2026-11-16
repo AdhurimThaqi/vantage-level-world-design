@@ -72,6 +72,9 @@ namespace Vantage.EditorTools
                 { VantageSounds.PlayerJump, ("SFX", 1, false, 1, 20) },
                 { VantageSounds.RobotFire, ("SFX", 1, false, 5, 80) },
                 { VantageSounds.RobotHit, ("SFX", 1, false, 3, 40) },
+                { VantageSounds.DroneFire, ("SFX", 1, false, 3, 50) },
+                { VantageSounds.TurretFire, ("SFX", 1, false, 4, 60) },
+                { VantageSounds.HeliGun, ("SFX", 1, false, 10, 150) },
                 { VantageSounds.GuidePa, ("SFX", 1, true, 2, 30) },
                 { VantageSounds.GuideStairs, ("SFX", 1, true, 2, 30) },
                 { VantageSounds.GuideRadio, ("SFX", 1, true, 2, 30) },
@@ -209,7 +212,7 @@ namespace Vantage.EditorTools
             var audio = go.GetComponent<VantageAudio>();
             if (audio == null) audio = go.AddComponent<VantageAudio>();
             audio.Bank = bank;
-            audio.Mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(MixerPath);
+            audio.Mixer = VantageMixerBuilder.Build();   // built once when missing, never overwritten
             EditorUtility.SetDirty(audio);
             if (go.GetComponent<VantageAudioZones>() == null) go.AddComponent<VantageAudioZones>();   // its presets are the user's once added
             if (go.GetComponent<VantageMusic>() == null) go.AddComponent<VantageMusic>();

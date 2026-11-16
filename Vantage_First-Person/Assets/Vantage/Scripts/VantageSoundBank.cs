@@ -27,13 +27,63 @@ namespace Vantage
     }
 
     /// <summary>
+    /// The audio numbers that belong to no single event (2026-11-16: they were written into the scripts). Read through
+    /// VantageAudio.Tuning; edited in the Sound Board (Vantage → Audio → Sound Board) or on the bank asset.
+    /// </summary>
+    [Serializable]
+    public class SoundTuning
+    {
+        [Header("Playback")]
+        [Tooltip("One-shot sources shared by every sound; when all are busy the oldest 3D one is taken over.")]
+        [Min(4)] public int PoolSize = 24;
+        [Tooltip("Min and max distance of the template's own sounds (gunshots, hits) played through the pool.")]
+        public Vector2 TemplateSoundDistance = new Vector2(1f, 500f);
+
+        [Header("Machines")]
+        [Tooltip("Pitch range of a drone's shot while DRONE_Fire is empty (it then borrows ROBOT_Fire).")]
+        public Vector2 DroneFirePitch = new Vector2(1.35f, 1.5f);
+        [Tooltip("Pitch range of a turret's shot while TURRET_Fire is empty (it then borrows ROBOT_Fire).")]
+        public Vector2 TurretFirePitch = new Vector2(0.72f, 0.8f);
+        [Tooltip("Pitch range of the helicopter's cannon while HELI_Gun is empty (it then borrows ROBOT_Fire).")]
+        public Vector2 HeliGunPitch = new Vector2(0.55f, 0.62f);
+        [Tooltip("The boss's shot and servo against the robot's (same events, pitched down).")]
+        [Range(0.3f, 1.5f)] public float BossShotPitch = 0.75f;
+        [Range(0.3f, 1.5f)] public float BossServoPitch = 0.7f;
+        [Tooltip("Seconds the robot's servo loop fades when it stops walking or dies.")]
+        public float ServoFade = 0.3f;
+        [Tooltip("At most one ROBOT_Hit clank this often (the rifle fires fast).")]
+        public float RobotHitGap = 0.25f;
+
+        [Header("People")]
+        [Tooltip("BODY_Fall plays this long after a death (the body reaching the ground).")]
+        public float BodyFallDelay = 0.5f;
+        [Tooltip("At most one VO_Contact bark this often across all soldiers.")]
+        public float BarkGap = 3f;
+        [Tooltip("The sentries' own voice source (the warning call, the shot crack without a SENTRY_Crack): min / max distance.")]
+        public Vector2 SentryVoiceDistance = new Vector2(8f, 120f);
+        [Range(0f, 1f)] public float WarningCallVolume = 0.9f;
+        [Tooltip("A sentry's radio loop (its RadioLoop clip, if set): min / max distance and volume.")]
+        public Vector2 SentryRadioDistance = new Vector2(2f, 25f);
+        [Range(0f, 1f)] public float SentryRadioVolume = 0.25f;
+
+        [Header("Fades (seconds)")]
+        public float SirenFade = 1.5f;
+        [Tooltip("BOSS_Reveal fading out as the fight starts.")]
+        public float RevealFade = 2.5f;
+        [Tooltip("The title screen helicopter's rotor after Play.")]
+        public float MenuRotorFade = 1f;
+    }
+
+    /// <summary>
     /// Every sound event of the game (Assets/Audio/VantageSoundBank.asset). Built and filled from the WAVs in
-    /// Assets/Audio by Vantage → Audio → Refresh Sound Bank; the settings per event are edited here.
+    /// Assets/Audio by Vantage → Audio → Refresh Sound Bank; the settings per event and the Tuning are edited here or
+    /// in the Sound Board (Vantage → Audio → Sound Board).
     /// </summary>
     [CreateAssetMenu(menuName = "Vantage/Sound Bank")]
     public class VantageSoundBank : ScriptableObject
     {
         public List<SoundEvent> Events = new List<SoundEvent>();
+        public SoundTuning Tuning = new SoundTuning();
 
         private Dictionary<string, SoundEvent> _byName;
 

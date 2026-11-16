@@ -77,6 +77,46 @@ namespace Vantage
 
         public bool Engaging => !IsDead && _canSee;
 
+        // The helicopter in the boss fight (VantageHelicopterSupport, 2026-11-16).
+        private Transform _distraction;
+        private float _distractedUntil;
+        /// <summary>Turned to the helicopter: fires at it, not at the player, and doesn't charge.</summary>
+        public bool Distracted => !IsDead && _distraction != null && Time.time < _distractedUntil;
+        /// <summary>Damage taken from the helicopter so far (for the bot).</summary>
+        public float SupportDamageTaken { get; private set; }
+        /// <summary>Bursts fired at the helicopter (for the bot).</summary>
+        public int ShotsAtDistraction { get; private set; }
+
+        /// <summary>Turns the machine to something else for a while (the helicopter's pass): a window for the player.</summary>
+        public void Distract(Transform by, float seconds)
+        {
+            if (IsDead || by == null) return;
+            _distraction = by;
+            _distractedUntil = Time.time + seconds;
+            _windUpStart = -1f;
+            if (_chargeWindUp >= 0) { _chargeWindUp = -1f; setEye(0f); if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = false; }
+        }
+
+        /// <summary>
+        /// Damage the armour doesn't stop (the helicopter's cannon), but never below <paramref name="floorFraction"/> of
+        /// its health: the kill stays the player's. Returns the damage dealt.
+        /// </summary>
+        public float SupportDamage(float amount, float floorFraction, Vector3 at)
+        {
+            if (IsDead || _health == null) return 0f;
+            var dealt = Mathf.Min(amount, Mathf.Max(0f, _health.Health - MaxHealth * Mathf.Clamp01(floorFraction)));
+            if (dealt <= 0f) return 0f;
+            _health.Deal(dealt);
+            SupportDamageTaken += dealt;
+            if (Time.time >= _nextHitSound)
+            {
+                _nextHitSound = Time.time + VantageAudio.Tuning.RobotHitGap;
+                VantageAudio.Play(VantageSounds.RobotHit, at);
+            }
+            if (HitEffect != null) Destroy(Instantiate(HitEffect, at, Quaternion.identity), 3f);
+            return dealt;
+        }
+
         private AudioSource _servo;
 
         /// <summary>The servo loop while it walks (the boss lower and slower).</summary>
@@ -86,9 +126,9 @@ namespace Vantage
             if (moving && _servo == null)
             {
                 _servo = VantageAudio.PlayLoop(VantageSounds.RobotServo, transform);
-                if (_servo != null && IsBoss) _servo.pitch *= 0.7f;
+                if (_servo != null && IsBoss) _servo.pitch *= VantageAudio.Tuning.BossServoPitch;
             }
-            else if (!moving && _servo != null) { VantageAudio.Stop(_servo, 0.3f); _servo = null; }
+            else if (!moving && _servo != null) { VantageAudio.Stop(_servo, VantageAudio.Tuning.ServoFade); _servo = null; }
         }
 
         private void Awake()
@@ -131,7 +171,7 @@ namespace Vantage
             if (_target == null) return;
 
             if (IsBoss && charge()) return;
-            face(_canSee ? _target.transform.position : _lastKnown);
+            face(Distracted ? _distraction.position : _canSee ? _target.transform.position : _lastKnown);
             shoot();
         }
 
@@ -145,7 +185,7 @@ namespace Vantage
             _held = true;
             if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
             if (Animator != null) Animator.SetFloat(SpeedParam, 0f);
-            if (_servo != null) { VantageAudio.Stop(_servo, 0.3f); _servo = null; }
+            if (_servo != null) { VantageAudio.Stop(_servo, VantageAudio.Tuning.ServoFade); _servo = null; }
             _shotsLeft = 0;
             _windUpStart = -1f;
             _chargeLeft = 0f;
@@ -199,13 +239,14 @@ namespace Vantage
                 if (_shotsLeft == 0) setEye(0f);
                 return;
             }
-            if (!_canSee || Time.time < _nextBurst) { _windUpStart = -1f; setEye(0f); return; }
+            if ((!_canSee && !Distracted) || Time.time < _nextBurst) { _windUpStart = -1f; setEye(0f); return; }
             if (_windUpStart < 0) { _windUpStart = Time.time; VantageAudio.Play(VantageSounds.RobotTelegraph, transform.position); }
             var charge = (Time.time - _windUpStart) / Mathf.Max(0.01f, WindUp);
             setEye(charge);
             if (charge < 1f) return;
             _windUpStart = -1f;
             _shotsLeft = BurstShots;
+            if (Distracted) ShotsAtDistraction++;
             _nextShotInBurst = Time.time;
             _nextBurst = Time.time + FireInterval * Random.Range(0.85f, 1.15f);
         }
@@ -213,7 +254,7 @@ namespace Vantage
         private void fire()
         {
             var origin = Muzzle != null ? Muzzle.position : transform.position + Vector3.up * 1.4f;
-            var point = VantagePhysics.AimPoint(_target);
+            var point = Distracted ? _distraction.position : VantagePhysics.AimPoint(_target);
             var distance = Vector3.Distance(origin, point);
             var chance = Accuracy * Mathf.Clamp01(1.3f - distance / Range);
             var target = Random.value < chance ? point : point + Random.onUnitSphere * Random.Range(0.6f, 1.4f);
@@ -241,7 +282,7 @@ namespace Vantage
                 Destroy(Instantiate(MuzzleFlash, Muzzle.position, Muzzle.rotation, Muzzle), 1.5f);
             // ROBOT_Fire (the prefab's FireSound until it has clips); the boss sounds heavier.
             var shot = VantageAudio.Play(VantageSounds.RobotFire, origin, FireSound);
-            if (shot != null) shot.pitch *= IsBoss ? 0.75f : 1f;
+            if (shot != null && IsBoss) shot.pitch *= VantageAudio.Tuning.BossShotPitch;
         }
 
         /// <summary>Boss only: wind-up (eye full red, standing still), then a dash at the player. True while charging.</summary>
@@ -276,7 +317,7 @@ namespace Vantage
                 _nextCharge = Time.time + ChargeInterval;
                 return true;
             }
-            if (_canSee && _shotsLeft == 0 && Time.time >= _nextCharge)
+            if (_canSee && !Distracted && _shotsLeft == 0 && Time.time >= _nextCharge)
             {
                 _chargeWindUp = Time.time;
                 _windUpStart = -1f;
@@ -322,7 +363,7 @@ namespace Vantage
             _health.Deal(hit.Damage);
             if (Time.time >= _nextHitSound)
             {
-                _nextHitSound = Time.time + 0.25f;   // the rifle fires fast: one armour clank per quarter second
+                _nextHitSound = Time.time + VantageAudio.Tuning.RobotHitGap;   // the rifle fires fast: one armour clank per gap
                 VantageAudio.Play(VantageSounds.RobotHit, hit.Position);
             }
             if (HitEffect != null) Destroy(Instantiate(HitEffect, hit.Position, Quaternion.LookRotation(hit.Normal)), 3f);
@@ -345,7 +386,7 @@ namespace Vantage
         private void die()
         {
             IsDead = true;
-            VantageAudio.Stop(_servo, 0.3f);
+            VantageAudio.Stop(_servo, VantageAudio.Tuning.ServoFade);
             _servo = null;
             setEye(0f);
             if (_eyeMaterial != null) _eyeMaterial.SetColor(EmissionColor, Color.black);
@@ -353,7 +394,7 @@ namespace Vantage
             if (Tracer != null) Tracer.enabled = false;
             if (_agent != null) _agent.enabled = false;
             if (DeathExplosion != null) Destroy(Instantiate(DeathExplosion, transform.position + Vector3.up, Quaternion.identity), 5f);
-            if (DeathSound != null) AudioSource.PlayClipAtPoint(DeathSound, transform.position, 1f);
+            if (DeathSound != null) VantageAudio.PlayClip(DeathSound, transform.position, "SFX");
             _diedAt = Time.time;
             _deathFrom = transform.rotation;
             _deathPos = transform.position;

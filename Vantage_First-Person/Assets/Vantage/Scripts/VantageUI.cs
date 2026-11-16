@@ -131,7 +131,16 @@ namespace Vantage
             return i;
         }
 
-        private static Sprite _pixel, _circle, _shade, _vignette;
+        private static Sprite _pixel, _circle, _shade, _vignette, _arrow;
+
+        /// <summary>An arrowhead pointing up (+v), with a notch at the back (the goal arrow).</summary>
+        public static Sprite Arrow => _arrow != null ? _arrow : _arrow = make(64, (u, v) =>
+        {
+            // Distance inside the shape: the two outer edges from the tip, and the notch's two edges.
+            var outer = Mathf.Min(0.85f - v - 2.1f * Mathf.Abs(u), v + 0.7f);
+            var notch = v + 0.25f + 0.6f * Mathf.Abs(u);
+            return Mathf.Clamp01(Mathf.Min(outer, notch) * 24f);
+        });
 
         /// <summary>Plain white sprite (needed for filled images).</summary>
         public static Sprite Pixel => _pixel != null ? _pixel : _pixel = make(4, (u, v) => 1f);

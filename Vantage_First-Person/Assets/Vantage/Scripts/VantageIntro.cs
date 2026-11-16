@@ -7,8 +7,9 @@ namespace Vantage
     /// <summary>
     /// The intro cutscene, once at the start of a run (not after a death), and the mission briefing at the same time:
     ///   1. high over the base in on the tower ("VANTAGE");
-    ///   2. a deserter walks out past the tower plot; the slab sentry fires a warning shot, he runs, the next shot
-    ///      kills him (the warning ring shown, not told: "Rule: stay at the tower");
+    ///   2. a deserter walks out past the tower plot; the slab sentry fires a warning shot, he runs; a cut over the
+    ///      sentry's shoulder (zoomed in) as the next shot kills him; a cut to his body with the rule ("Stay close to
+    ///      the tower"): the warning ring shown before it is told;
     ///   3. the climb: the camera circles up the outside of the tower, one stop per level at its floor height with
     ///      that level's task (level 3 with the slab sentry in frame), and ends on the helipad (the boss, the way out);
     ///   4. down to the pistol on the ground ("First: grab the pistol"), then into the player's own camera; the HUD
@@ -24,7 +25,7 @@ namespace Vantage
         public Transform Helipad;
         [Tooltip("Ground point of the main entrance and its outward direction (set by Setup).")]
         public Vector3 EntrancePoint, EntranceFacing = Vector3.back;
-        [Header("Sound (empty: synthesized). The music is the sound bank's MUS_Intro, played by VantageMusic.")]
+        [Header("Sound (empty: none). The music is the sound bank's MUS_Intro, played by VantageMusic.")]
         public AudioClip Whoosh;
 
         public static VantageIntro Instance { get; private set; }
@@ -38,29 +39,40 @@ namespace Vantage
         /// <summary>Raised when it ends: skipped or not, and at which second.</summary>
         public static event Action<bool, float> Finished;
 
-        // Shot ends (seconds) and the deserter's beats. The climb has one beat per stop (three floors, the helipad).
-        public const float Shot1 = 3.5f, ShotDeserter = 9.5f, Beat = 2.6f;
-        public const float ShotClimb = ShotDeserter + 4 * Beat, ShotPistol = ShotClimb + 2.6f, Length = ShotPistol + 1.4f;
-        public const float WalkAt = 2.5f, AimAt = 5.4f, WarnAt = 6f, KillAt = 8f;
-        /// <summary>When the camera holds at climb stop i (0-2 the floors, 3 the helipad).</summary>
-        public static float StopAt(int i) => ShotDeserter + i * Beat + 1.7f;
-        private const float SkipAfter = 0.5f, GlintTime = 0.4f;
+        // Shot ends (seconds) and the deserter's beats (2026-11-16: slower, about 39 s; was 23 s). The deserter shot is
+        // three shots: he walks toward the camera (warning shot, he runs), over the sentry's shoulder as it kills him,
+        // then his body with the rule. The walk (3.5 s) and the run (2 s) keep their old lengths, so he stays in the
+        // warning band. The climb has one beat per stop (three floors, the helipad): a move, then a hold.
+        public const float Shot1 = 5f;
+        public const float WalkAt = Shot1, AimAt = WarnAt - 0.6f, WarnAt = WalkAt + 3.5f, KillAt = WarnAt + 2f;
+        public const float SentryCut = WarnAt + 0.6f, BodyCut = KillAt + 1.4f, ShotDeserter = BodyCut + 3.4f;
+        public const float Travel = 2f, Hold = 2.4f, Beat = Travel + Hold;
+        public const float ShotClimb = ShotDeserter + 4 * Beat, ShotPistol = ShotClimb + 2.2f + 2.4f, Length = ShotPistol + 2f;
+        /// <summary>When the camera arrives at climb stop i (0-2 the floors, 3 the helipad); it holds there for Hold.</summary>
+        public static float StopAt(int i) => ShotDeserter + i * Beat + Travel;
+        private const float SkipAfter = 0.5f, GlintTime = 0.4f, SentryWide = 42f, MinZoom = 12f, ShotHeight = 95f, ZoomFrom = SentryCut + 0.4f, ZoomTo = KillAt - 0.25f;
         private const string SlabSentry = "SENTRY_Slab";
+        // Subtitles in order; captionTime says when each shows.
         private static readonly string[] Kickers =
         {
-            "Military training base", "Rule", "Level 1: Ground floor", "Level 2: Armory", "Level 3: Destroyed floor",
-            "Finale: Helipad", "First",
+            "Military training base", "Outside the tower", "Sentry on the roof", "Rule",
+            "Level 1: Ground floor", "Level 2: Armory", "Level 3: Destroyed floor", "Finale: Helipad", "Your first step",
         };
         private static readonly string[] Captions =
         {
-            "VANTAGE", "Stay at the tower: the sentries shoot deserters", "A trap locks you in: clear the floor",
-            "Find the rifle and the key", "Only the rifle hurts the machine", "Kill the boss: the helicopter is your way out",
-            "Grab the pistol",
+            "VANTAGE", "A soldier tries to walk away", "Anyone who leaves the tower gets shot", "Stay close to the tower",
+            "An alarm locks you in. Kill every soldier to open the stairs",
+            "Take the rifle and the key, then use the key slot (E)",
+            "The robot is armoured: only the rifle hurts it",
+            "Kill the boss. The helicopter is your way out",
+            "Pick up the pistol in front of the entrance",
         };
+        private const int FirstStopCaption = 4, PistolCaption = 8;
 
         private Camera _camera;
         private Vector3 _endPosition;
         private Quaternion _endRotation;
+        private float _fov = 60f;
         private float _startTime, _endedAt;
         private Vector3 _towerCentre, _p0, _p1;
         private Vector3 _heading, _across, _fallen;
@@ -71,7 +83,6 @@ namespace Vantage
         private Vector3 _pad;
         private bool _walking, _killed;
         private VantageLetterbox _overlay;
-        private static AudioClip _swoosh;
 
         private void Awake() => Instance = this;
 
@@ -103,6 +114,7 @@ namespace Vantage
             if (_camera == null) { finish(false); yield break; }
             _endPosition = _camera.transform.position;
             _endRotation = _camera.transform.rotation;
+            _fov = _camera.fieldOfView;
             VantageCinematic.Begin();
 
             var levels = VantageTowerLevels.Instance;
@@ -151,6 +163,10 @@ namespace Vantage
             runDeserter(t);
             pose(t, out var position, out var rotation);
             _camera.transform.SetPositionAndRotation(position, rotation);
+            // The sentry shot opens wide (the sentry aiming over its shoulder), then zooms in on the deserter for the kill.
+            _camera.fieldOfView = t >= SentryCut && t < BodyCut && Deserter != null
+                ? Mathf.Lerp(SentryWide, sentryZoom(position), zoomAt(t))
+                : _fov;
             updateOverlay(t);
         }
 
@@ -165,11 +181,31 @@ namespace Vantage
                 rotation = Quaternion.LookRotation(_towerCentre - position);
                 return;
             }
-            if (t < ShotDeserter)
+            if (t < SentryCut)
             {
-                var k = Mathf.SmoothStep(0, 1, (t - Shot1) / 1.6f);
+                var k = Mathf.SmoothStep(0, 1, (t - Shot1) / 2f);
                 position = Vector3.Lerp(_p1, watchAt, k);
                 rotation = Quaternion.Slerp(Quaternion.LookRotation(_towerCentre - _p1), Quaternion.LookRotation(watch - watchAt), k);
+                return;
+            }
+            if (t < BodyCut && Deserter != null)
+            {
+                // Cut: over the sentry's shoulder, zoomed in on the running man, as it fires.
+                var zoom = zoomAt(t);
+                sentryShoulder(sentry, zoom, out position, out var target);
+                // Wide, the view turns a third of the way toward the sentry (by angle) so it stays in frame; zoomed in,
+                // only the deserter.
+                rotation = Quaternion.Slerp(Quaternion.LookRotation(target - position), Quaternion.LookRotation(sentry - position), 0.35f * (1f - zoom));
+                return;
+            }
+            if (t < ShotDeserter)
+            {
+                // Cut back to his body on the ground, the tower and the sentry behind it, a slow push-in while the
+                // rule is told.
+                var k = Mathf.SmoothStep(0, 1, (t - BodyCut) / (ShotDeserter - BodyCut));
+                bodyView(sentry, watchAt, watch, out var from, out var at);
+                position = Vector3.Lerp(from, at, k * 0.25f);
+                rotation = Quaternion.LookRotation(at - position);
                 return;
             }
             if (t >= ShotPistol)
@@ -209,14 +245,20 @@ namespace Vantage
             var padRadius = Mathf.Max(_safeRadius, flat(pad - _towerCentre).magnitude + 10f);
             var centre = new Vector3(_towerCentre.x, 0, _towerCentre.z);
             pistolView(out var pistolFrom, out var pistolAt);
+            bodyView(sentry, watchAt, watch, out var bodyFrom, out var bodyAt);
+            var level1 = (clear(entrance, _safeRadius, floor(0) + 2.2f), centre + Vector3.up * (floor(0) + 1.6f));
+            var level2 = (clear(middle, _safeRadius, floor(1) + 2.2f), centre + Vector3.up * (floor(1) + 1.6f));
+            var level3 = (clear(slab, _safeRadius, floor(2) + 2.8f), Vector3.Lerp(centre + Vector3.up * (floor(2) + 1.6f), sentry, 0.5f));
+            var helipad = (clear(angleOf(pad), padRadius, pad.y + 7f), pad);
+            // Each stop twice: arrive, hold (the caption is read), move on.
             return new[]
             {
-                (ShotDeserter, watchAt, watch),
-                (StopAt(0), clear(entrance, _safeRadius, floor(0) + 2.2f), centre + Vector3.up * (floor(0) + 1.6f)),
-                (StopAt(1), clear(middle, _safeRadius, floor(1) + 2.2f), centre + Vector3.up * (floor(1) + 1.6f)),
-                (StopAt(2), clear(slab, _safeRadius, floor(2) + 2.8f), Vector3.Lerp(centre + Vector3.up * (floor(2) + 1.6f), sentry, 0.5f)),
-                (StopAt(3), clear(angleOf(pad), padRadius, pad.y + 7f), pad),
-                (ShotClimb + 1.8f, pistolFrom, pistolAt),
+                (ShotDeserter, Vector3.Lerp(bodyFrom, bodyAt, 0.25f), bodyAt),
+                (StopAt(0), level1.Item1, level1.Item2), (StopAt(0) + Hold, level1.Item1, level1.Item2),
+                (StopAt(1), level2.Item1, level2.Item2), (StopAt(1) + Hold, level2.Item1, level2.Item2),
+                (StopAt(2), level3.Item1, level3.Item2), (StopAt(2) + Hold, level3.Item1, level3.Item2),
+                (StopAt(3), helipad.Item1, helipad.Item2), (ShotClimb, helipad.Item1, helipad.Item2),
+                (ShotClimb + 2.2f, pistolFrom, pistolAt),
                 (ShotPistol, pistolFrom, pistolAt),
             };
         }
@@ -297,10 +339,13 @@ namespace Vantage
             var slab = slabSentry();
             if (slab != null) slab.Glint(0f);
             if (Deserter != null) Deserter.Kill(slab != null ? slab.gameObject : null);
-            if (_camera != null) _camera.transform.SetPositionAndRotation(_endPosition, _endRotation);
+            if (_camera != null)
+            {
+                _camera.transform.SetPositionAndRotation(_endPosition, _endRotation);
+                _camera.fieldOfView = _fov;
+            }
             VantageCinematic.End();
-            var whoosh = Whoosh != null ? Whoosh : swoosh();
-            if (whoosh != null && _camera != null) VantageAudio.PlayClip(whoosh, _camera.transform.position, "SFX");
+            if (Whoosh != null && _camera != null) VantageAudio.PlayClip(Whoosh, _camera.transform.position, "SFX");
             _overlay?.Destroy();
             _overlay = null;
             Finished?.Invoke(skipped, _endedAt);
@@ -406,6 +451,58 @@ namespace Vantage
             look = Vector3.Lerp(_fallen + chest, sentry, 0.35f);
         }
 
+        /// <summary>
+        /// Over the sentry's shoulder: behind it and a little above and to the side, looking past it at the deserter
+        /// (wide, then zoomed in: sentryZoom), pulled in when the slab or the tower is in the way.
+        /// </summary>
+        private void sentryShoulder(Vector3 sentry, float zoom, out Vector3 position, out Vector3 target)
+        {
+            target = Deserter != null && !_killed ? Deserter.AimPoint : _fallen + (Deserter != null ? (Deserter.AimPoint - Deserter.transform.position) * 0.4f : Vector3.zero);
+            var to = flat(target - sentry);
+            to = to.sqrMagnitude > 0.01f ? to.normalized : EntranceFacing;
+            // Behind and beside it, a little above: in the wide frame the sentry fills the lower corner; zoomed in, only
+            // the deserter is left. Low beside it while wide; rising as it zooms, high enough to look past the slab's
+            // edge. The side with more room is chosen once, as the shot opens (a wall or crate on one side pulled the
+            // camera in so close that the sentry fell out of the frame).
+            Vector3 want(float side) => sentry - to * 2.1f + Vector3.Cross(Vector3.up, to) * side + Vector3.up * Mathf.Lerp(0.5f, 1.4f, zoom);
+            if (_shoulderSide == 0f) _shoulderSide = room(sentry, want(1f)) >= room(sentry, want(-1f)) ? 1f : -1f;
+            var spot = want(_shoulderSide);
+            var d = spot - sentry;
+            position = sentry + d.normalized * Mathf.Min(d.magnitude, room(sentry, spot));
+        }
+
+        /// <summary>How far the camera can go from the sentry toward a spot before something solid is in the way.</summary>
+        private static float room(Vector3 from, Vector3 to)
+        {
+            var d = to - from;
+            return Physics.SphereCast(from, 0.3f, d.normalized, out var hit, d.magnitude, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)
+                ? Mathf.Max(0.4f, hit.distance - 0.3f) : d.magnitude;
+        }
+
+        private float _shoulderSide;
+
+        private static float zoomAt(float t) => Mathf.SmoothStep(0, 1, Mathf.InverseLerp(ZoomFrom, ZoomTo, t));
+
+        /// <summary>The long lens of the sentry shot: the deserter about ShotHeight pixels tall (of 1080), however far.</summary>
+        private float sentryZoom(Vector3 from)
+        {
+            if (Deserter == null) return _fov;
+            var distance = Mathf.Max(1f, Vector3.Distance(from, Deserter.AimPoint));
+            var fov = 2f * Mathf.Atan(1.8f * 1080f / ShotHeight / (2f * distance)) * Mathf.Rad2Deg;
+            return Mathf.Clamp(fov, MinZoom, SentryWide);
+        }
+
+        /// <summary>His body from a little above, close: it in the lower third, the tower and the sentry behind.</summary>
+        private void bodyView(Vector3 sentry, Vector3 watchAt, Vector3 watch, out Vector3 position, out Vector3 look)
+        {
+            if (Deserter == null) { position = watchAt; look = watch; return; }
+            var toSentry = flat(sentry - _fallen);
+            toSentry = toSentry.sqrMagnitude > 0.01f ? toSentry.normalized : -_heading;
+            position = _fallen - toSentry * 4.5f + _across * 1.6f + Vector3.up * 1.7f;
+            if (ground(position, out var floor)) position.y = Mathf.Max(position.y, floor.y + 1.4f);
+            look = _fallen + toSentry * 2.5f + Vector3.up * 0.7f;
+        }
+
         #endregion
 
         private VantageSentry slabSentry()
@@ -449,10 +546,13 @@ namespace Vantage
         /// <summary>Which caption shows when: (start, end) per caption, inside its shot.</summary>
         private static (float start, float end) captionTime(int shot) => shot switch
         {
-            0 => (0f, Shot1),
-            1 => (Shot1 + 1.2f, ShotDeserter),
-            6 => (ShotClimb, Length - 0.7f),   // gone before the bars slide out
-            _ => (ShotDeserter + (shot - 2) * Beat + 0.5f, ShotDeserter + (shot - 1) * Beat + 0.5f),   // a climb stop, as the camera arrives
+            0 => (0.3f, Shot1 - 0.3f),
+            1 => (Shot1 + 0.6f, SentryCut),
+            2 => (SentryCut + 0.1f, BodyCut),
+            3 => (BodyCut + 0.3f, ShotDeserter + 0.4f),
+            PistolCaption => (ShotClimb + 1.2f, Length - 0.7f),   // gone before the bars slide out
+            // A climb stop: shown as the camera slows into it, through the hold, gone as it moves on.
+            _ => (StopAt(shot - FirstStopCaption) - 0.7f, StopAt(shot - FirstStopCaption) + Hold + 0.3f),
         };
 
         private void updateOverlay(float t)
@@ -470,26 +570,6 @@ namespace Vantage
             var a = 0f;
             if (shot >= 0) { var (start, end) = captionTime(shot); a = VantageLetterbox.Fade(t, start, end); }
             _overlay.Subtitle(shot, shot >= 0 ? Kickers[shot] : "", shot >= 0 ? Captions[shot] : "", a, shot == 0);
-        }
-
-        /// <summary>A short rising noise sweep for the hand-back (made once).</summary>
-        private static AudioClip swoosh()
-        {
-            if (_swoosh != null) return _swoosh;
-            const int rate = 44100;
-            var samples = new float[rate / 2];
-            var random = new System.Random(5);
-            float low = 0f;
-            for (int i = 0; i < samples.Length; i++)
-            {
-                var t = (float)i / samples.Length;
-                var cut = Mathf.Lerp(0.02f, 0.35f, t);
-                low += cut * ((float)(random.NextDouble() * 2 - 1) - low);
-                samples[i] = low * Mathf.Sin(t * Mathf.PI) * 0.8f;
-            }
-            _swoosh = AudioClip.Create("Intro Whoosh", samples.Length, 1, rate, false);
-            _swoosh.SetData(samples, 0);
-            return _swoosh;
         }
 
         #endregion

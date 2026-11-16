@@ -11,6 +11,9 @@ namespace Vantage
     ///   patrol route    → walk it back and forth (the L3 outside patrols);
     ///   otherwise       → keep guarding.
     /// It also turns down the template's urge to retreat, so soldiers hold their floor instead of running off.
+    /// Attack turns (lecturer's feedback, 2026-11-16): at most <see cref="VantageTowerLevels.AttackSlots"/> soldiers fire
+    /// at once. The others keep aiming and reload but hold fire until a turn comes free; a turn is handed on after
+    /// <see cref="VantageTowerLevels.AttackTurn"/> seconds when someone waits, or as soon as its holder loses sight.
     /// Until it has fought, a soldier doesn't notice a player outside the tower or anyone during a cutscene (its own
     /// and the template's senses off): the tower is quiet on the approach, and nobody walks out of the open entrance
     /// to shoot a player who has just been handed control after the intro. A hit wakes it at once.
@@ -27,8 +30,6 @@ namespace Vantage
         public float FloorTolerance = 2.6f;
         [Tooltip("Seconds between decisions.")]
         public float ThinkInterval = 0.5f;
-        /// <summary>At most one bark this often, across all soldiers.</summary>
-        private const float BarkGap = 3f;
 
         [Tooltip("Set by the level brain: this soldier comes for the player (alarm, alert trigger).")]
         public bool Alerted;
@@ -47,12 +48,30 @@ namespace Vantage
         private float _nextThink;
         private float _lastOrder = -10f;
 
+        // Attack turns, shared by every level soldier in the scene.
+        private static readonly List<VantageEnemyAggression> Turns = new List<VantageEnemyAggression>();
+        private static int _waitingCount;
+        /// <summary>Soldiers holding an attack turn now (for the bot).</summary>
+        public static int AttackersNow => Turns.Count;
+        /// <summary>Soldiers that see the player but wait for a turn (for the bot).</summary>
+        public static int WaitingNow => _waitingCount;
+        /// <summary>This soldier may fire (holds a turn, or turns are off).</summary>
+        public bool HasTurn => Turns.Contains(this);
+        /// <summary>Sees the player but holds fire until a turn comes free.</summary>
+        public bool Waiting { get; private set; }
+        private const float LostSightRelease = 1.5f;
+        private float _turnSince, _turnAgainAt, _lastSawPlayer = -10f;
+        private AIFire _fire;
+        private CharacterMotor _motor;
+
         private void Awake()
         {
             _brain = GetComponent<FighterBrain>();
             _actor = GetComponent<BaseActor>();
             _sight = GetComponent<AISight>();
             _listener = GetComponent<AIListener>();
+            _fire = GetComponent<AIFire>();
+            _motor = GetComponent<CharacterMotor>();
             setSenses(false);   // until the first decision: the template's sight would lock on in the first frame
 
             // Guard the spawn room instead of wandering ("searchAround" is the template's default).
@@ -76,9 +95,18 @@ namespace Vantage
             }
         }
 
+        private void OnDisable()
+        {
+            releaseTurn();
+            setWaiting(false);
+        }
+
         private void Update()
         {
-            if (Time.time < _nextThink || _actor == null || !_actor.IsAlive)
+            if (_actor == null) return;
+            if (!_actor.IsAlive) { releaseTurn(); return; }
+            if (Waiting && _motor != null) _motor.InputAim();   // keeps the gun up on the player while holding fire
+            if (Time.time < _nextThink)
                 return;
             _nextThink = Time.time + ThinkInterval;
 
@@ -91,9 +119,16 @@ namespace Vantage
             var quiet = !_engaged && (VantageCinematic.Active || (levels != null && !levels.PlayerOnCurrentLevel && !Alerted));
             setSenses(!quiet);
             if (quiet)
+            {
+                releaseTurn();
+                setWaiting(false);
                 return;
+            }
 
-            if (canSee(player))
+            var sees = canSee(player);
+            if (sees) _lastSawPlayer = Time.time;
+            else if (Time.time - _lastSawPlayer > LostSightRelease) { releaseTurn(); setWaiting(false); }
+            if (sees)
                 attack(player);
             else if (levels != null && levels.PlayerOnCurrentLevel && (Alerted || levels.Hunting))
                 hunt(player);
@@ -135,12 +170,59 @@ namespace Vantage
         {
             _engaged = true;
             if (Time.time < _nextBark) return;
-            _nextBark = Time.time + BarkGap;
+            _nextBark = Time.time + VantageAudio.Tuning.BarkGap;
             VantageAudio.Play(VantageSounds.VoContact, VantagePhysics.Eye(_actor));
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void clearOnPlay() => _nextBark = 0f;
+        private static void clearOnPlay()
+        {
+            _nextBark = 0f;
+            Turns.Clear();
+            _waitingCount = 0;
+        }
+
+        /// <summary>
+        /// Takes or keeps an attack turn and lets the gun fire only with one. Without a turn the template's AIFire is
+        /// switched off (it fires by itself whenever the brain says "open fire"), the soldier reloads and keeps aiming.
+        /// </summary>
+        private void updateTurn()
+        {
+            var levels = VantageTowerLevels.Instance;
+            var slots = levels != null ? levels.AttackSlots : 0;
+            var turn = levels != null ? levels.AttackTurn : 5f;
+            if (slots <= 0) { setWaiting(false); return; }
+            Turns.RemoveAll(t => t == null || t._actor == null || !t._actor.IsAlive);
+            if (HasTurn && _waitingCount > 0 && Time.time - _turnSince > turn)
+            {
+                releaseTurn();
+                _turnAgainAt = Time.time + turn * 0.5f;   // let the waiting ones go first
+            }
+            if (!HasTurn && Turns.Count < slots && Time.time >= _turnAgainAt)
+            {
+                Turns.Add(this);
+                _turnSince = Time.time;
+            }
+            setWaiting(!HasTurn);
+        }
+
+        private void releaseTurn()
+        {
+            Turns.Remove(this);
+            if (!_actor || !_actor.IsAlive) setWaiting(false);
+        }
+
+        private void setWaiting(bool waiting)
+        {
+            if (_fire != null && _fire.enabled == waiting)
+            {
+                _fire.enabled = !waiting;
+                if (waiting && _motor != null && _motor.IsAlive) _motor.InputReload();   // use the pause: reload
+            }
+            if (waiting == Waiting) return;
+            Waiting = waiting;
+            _waitingCount += waiting ? 1 : -1;
+        }
 
         /// <summary>The template's own sight and hearing, which lock on without asking this component.</summary>
         private void setSenses(bool on)
@@ -165,6 +247,7 @@ namespace Vantage
         /// <summary>Lock on and fire. Re-issued only when the brain lost the player or every few seconds.</summary>
         private void attack(BaseActor player)
         {
+            updateTurn();
             var engaged = _brain.Threat == player && _brain.CanSeeTheThreat;
             if (engaged && Time.time - _lastOrder < ReorderInterval)
                 return;

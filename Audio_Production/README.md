@@ -2,9 +2,20 @@
 
 This folder holds your REAPER projects and raw recordings. It is outside the Unity project on purpose: only the rendered WAVs go into `Vantage_First-Person/Assets/Audio/`.
 
-**Whose part is what (for SOUNDCREA).** The sound design, recording, editing, music, the mixer, the reverb presets and the final mix are **yours**. Claude built the code that plays the sounds: the sound bank, the zones, the music states, footsteps, the event hooks and the settings menu. Declare that help in your hand-in.
+**Whose part is what (for SOUNDCREA).** The sound design, recording, editing, music, the reverb presets and the final mix are **yours**. Claude built the code that plays the sounds: the sound bank, the zones, the music states, footsteps, the event hooks, the settings menu, the Sound Board and (at your request, 2026-11-16) the mixer's structure; the levels in it are yours to set. Declare that help in your hand-in.
 
-**Cuts made by Claude (2026-11-12, at your request, to be replaced by your REAPER renders if you want):** from your takes in `Source_SFX/` Claude cut, looped (equal-power crossfade), mixed to mono and levelled: `FS_Concrete_01-04` (run steps 0.38/0.98/1.34/1.97 s), `FS_Dirt_01-04` (grass steps 1.41/1.95/2.60/3.24 s), `BODY_Fall` (2.25–3.6 s of the fall), `SHUTTER_Slam` (heavy object falling), `ALARM_Siren` (0.02–4.02 s loop), `GUIDE_Radio` (11.1–19.1 s loop), `DRONE_Hum` (4–14 s loop, +19 dB), `GUN_Pistol`, `GUN_Empty`, `PLAYER_Jump`, `ROBOT_Fire` (laser gun), `ROBOT_Hit` (robot damage), and trimmed silence from `UI_Select`, `UI_Move` and `BOSS_Roar`. Declare these in the hand-in, or render your own versions with the same names (the refresh picks them up).
+**Cuts made by Claude (2026-11-12, at your request, to be replaced by your REAPER renders if you want):** from your takes in `Source_SFX/` Claude cut, looped (equal-power crossfade), mixed to mono and levelled: `FS_Concrete_01-04` (run steps 0.38/0.98/1.34/1.97 s), `FS_Dirt_01-04` (grass steps 1.41/1.95/2.60/3.24 s), `BODY_Fall` (2.25–3.6 s of the fall), `SHUTTER_Slam` (heavy object falling), `ALARM_Siren` (0.02–4.02 s loop), `GUIDE_Radio` (11.1–19.1 s loop), `DRONE_Hum` (4–14 s loop, +19 dB), `GUN_Pistol`, `GUN_Empty`, `PLAYER_Jump`, `ROBOT_Fire` (laser gun), `ROBOT_Hit` (robot damage), and trimmed silence from `UI_Select`, `UI_Move` and `BOSS_Roar`. **2026-11-16 (after your playtest):** the footsteps were too scratchy and loud, so they were low-passed (concrete 4 kHz, dirt 3 kHz, 4th order) and levelled to −12 / −14 dBFS (bank volume 0.8, pitch 0.9–1.08). `DRONE_Hum` was a high whine, so it was low-passed at 1.2 kHz (filtered as a loop, seamless) to a motor hum at −12 dBFS (bank volume 0.7, heard to 14 m). Declare these in the hand-in, or render your own versions with the same names (the refresh picks them up).
+
+## Where everything is (in Unity)
+
+- **Vantage → Audio → Sound Board**: every sound of the game in one window.
+  - **Events** tab: grouped (Music, Interface, Ambience, Guide, Player and soldiers, Machines and boss, Level), with where each plays (e.g. `MUS_Menu`: title screen, until Play), its WAV files (*Show* finds the file in the Project window), ▶ to listen, and volume, pitch, 2D/3D, distances, loop and mixer group. Empty events are red and silent.
+  - **Mix** tab: the mixer (*Open Audio Mixer*), the five zones' reverb, the music states (fades, stinger dip, intro tail) and the guide steps.
+  - **Tuning** tab: the remaining numbers (machine shot pitches, fades, the sentries' radio, the body-fall delay …).
+- **Files**: `Assets/Audio/Music`, `SFX`, `UI`, `Ambience`, `Voice`. The file name is the event name (`MUS_Menu.wav` is the title screen music). After adding or renaming files: **Vantage → Audio → Refresh Sound Bank** (or the button in the Sound Board).
+- **Mixer**: `Assets/Audio/VantageMixer.mixer`. Double-click it, or use *Open Audio Mixer* in the Sound Board.
+- **Settings data**: `Assets/Audio/VantageSoundBank.asset` (events and tuning) and the `VANTAGE Audio` object in `SampleScene` (zones, music, guide). The Sound Board edits both.
+- **Rule since 2026-11-16**: nothing is synthesised any more. An empty event is silent, except that empty guide steps borrow your `GUIDE_Radio` and empty drone/turret shots borrow `ROBOT_Fire` (pitched); the drone hum and siren have a generated last resort only if their files are deleted.
 
 ---
 
@@ -56,9 +67,10 @@ Put each file in its folder: `Ambience/`, `SFX/`, `Voice/`, `Music/`, `UI/` unde
 | `GUN_Pistol`, `GUN_Empty` | 1+ each | the player's pistol shot; the empty click on any gun (replace the template's clips) | SFX | 3D | 1 |
 | `PLAYER_Jump` | 1+ | the player's jump (replaces the template's clip) | SFX | 3D | 2 |
 | `ROBOT_Fire`, `ROBOT_Hit` | 1+ each | the robot's and boss's shot (the boss pitched down); a rifle round hitting their armour | SFX | 3D | 1 |
+| `DRONE_Fire`, `TURRET_Fire` | 1+ each | a drone's shot (small, sharp, a light zap) and a turret's (a heavier cannon thump). Until they exist, `ROBOT_Fire` plays pitched up (drone, ×1.35–1.5) or down (turret, ×0.72–0.8). The turret fires every 0.45 s: keep it short (< 0.4 s) | SFX | 3D | 1 |
 | `MUS_BossFight` | 1 loop | the boss fight's track: from the end of the boss reveal until the boss dies (the other music is silent under it; faded 2 s at the death) | Music | 2D | 1 |
 | `MUS_End` | 1 (not looped) | the ending: from the boss's death through the extraction and the end screen | Music | 2D | 1 |
-| `MUS_Intro` | 1 (not looped) | the intro flyover's track: starts on Play as the menu theme fades (1.5 s), plays to its own end after the intro (23 s) and rings out into the ambience; `MUS_Explore` fades in after it. End it on a long fade or a sustained tone that sits under the exterior bed. A fight cuts it short with a 3 s fade | Music | 2D | 1 |
+| `MUS_Intro` | 1 (not looped) | the intro flyover's track: starts on Play as the menu theme fades (1.5 s), the intro lasts about 40 s (since 2026-11-16); the track is faded 15 s after the hand-back over 8 s (`VantageMusic.IntroTail` / `IntroTailFade`), so about 55–63 s of it is heard if the player waits; `MUS_Explore` fades in after it. End it on a long fade or a sustained tone that sits under the exterior bed. A fight cuts it short with a 3 s fade | Music | 2D | 1 |
 | `GUIDE_PA` | 1 loop | L1 lockdown: a PA speaker crackling a looped lockdown announcement at the end of the route (turret hallway) | SFX | 3D | 1 |
 | `GUIDE_Stairs` | 1 loop | the way up: a draft and a low hum from the open stairwell (used three times) | SFX | 3D | 1 |
 | `GUIDE_Radio` | 1 loop | L2: a field radio murmuring next to the rifle in the Armory | SFX | 3D | 1 |
@@ -67,7 +79,7 @@ Put each file in its folder: `Ambience/`, `SFX/`, `Voice/`, `Music/`, `UI/` unde
 | `GUIDE_Wind` | 1 loop | L3: wind howling through the breach in the robot room's wall | Ambience | 3D | 1 |
 | `GUIDE_HeliRadio` | 1 loop | finale: the helicopter's radio calling from the pad ("...on approach, clear the pad...") | SFX | 3D | 1 |
 
-**The guide sounds** (`GUIDE_*`, `KEYSLOT_Beep`) are the level's wayfinding: only one plays at a time, from the player's next goal, and only on that floor (`VantageGoalSound`). Make each a seamless loop of 4–10 s with a clear rhythm or voice that is easy to locate, a little brighter than the ambience bed; it is heard from about 30 m and should be clearly audible across a room at the default volume 0.8. Until a guide file exists a soft two-tone pulse plays in its place.
+**The guide sounds** (`GUIDE_*`, `KEYSLOT_Beep`) are the level's wayfinding: only one plays at a time, from the player's next goal, and only on that floor (`VantageGoalSound`). Make each a seamless loop of 4–10 s with a clear rhythm or voice that is easy to locate, a little brighter than the ambience bed; it is heard from about 30 m and should be clearly audible across a room at the default volume 0.8. Until a guide file exists, your radio loop (`GUIDE_Radio`) plays from that step's anchor in its place (since 2026-11-16; the synthesised two-tone pulse before sounded like a heart monitor).
 
 Any event without files keeps its placeholder (the synthesised siren, drone hum, wind, coin chime) or stays silent. Guns, hits and grunts are the template's own sounds and stay as they are.
 
@@ -76,33 +88,25 @@ Any event without files keeps its placeholder (the synthesised siren, drone hum,
 1. Save the WAVs into `Assets/Audio/<folder>/` with the right names.
 2. In Unity: **Vantage → Audio → Refresh Sound Bank.** It fills every event from the files and sets 3D/2D, loop and group. Its log line tells you which events are still empty.
 3. Fine-tune an event in `Assets/Audio/VantageSoundBank.asset` (volume, pitch range, min/max distance). The refresh keeps your values; it only replaces the clip list.
-4. Press Play. The Console prints `[Vantage] Sound bank: n / 52 events filled (missing: …)`.
+4. Press Play. The Console prints `[Vantage] Sound bank: n / 55 events filled (missing: …)`; the Sound Board shows the same in red.
 
-## 5. Build the mixer (your part)
+## 5. The mixer
 
-Unity can't create a mixer from a script, so you build it once. Then the code finds it by these names.
+**Vantage → Audio → Refresh Sound Bank** builds `Assets/Audio/VantageMixer.mixer` when it is missing (`VantageMixerBuilder`, 2026-11-16, at your request) and connects it to `VANTAGE Audio`. It never overwrites an existing mixer: tune it in **Window → Audio → Audio Mixer**.
 
-1. **Create** `Assets/Audio/VantageMixer.mixer` (Project window → right click → Create → Audio Mixer). The name and place matter.
-2. **Groups** under Master: `Music`, `Ambience`, `SFX`, `Voice`, `UI`, `Reverb`. Use these exact names.
-3. **Reverb:** on `Reverb`, add an **SFX Reverb** effect. On `SFX` and `Voice`, add a **Send** to `Reverb`.
-4. **Volume settings:** on `Master`, `Music`, `Ambience`, `SFX` and `Voice`, add an extra **Attenuation** effect. Right-click its *Volume* → *Expose to script*. That way the menu sliders sit on top of your mix: your group faders and the snapshots stay yours.
-5. **Exposed parameters:** in the Audio Mixer window → *Exposed Parameters* (top right), rename them exactly like this. The names are the contract with the code:
+```
+Master                          exposed MasterVolume (menu: Master)
+├ Music Volume    → Music       MusicVolume on the bus (menu: Music)
+├ Ambience Volume → Ambience    AmbienceVolume (menu: Effects)
+├ SFX Volume      → SFX         SfxVolume (menu: Effects); Send to Reverb = ReverbWet (set per zone)
+├ Voice Volume    → Voice       VoiceVolume (menu: Effects); Send to Reverb fixed at −10 dB
+├ UI
+└ Reverb                        Receive → SFX Reverb (ReverbRoom, ReverbDecay, set per zone)
+```
 
-   | Name | What it is |
-   |---|---|
-   | `MasterVolume` | the Attenuation volume on Master |
-   | `MusicVolume` | the Attenuation volume on Music |
-   | `AmbienceVolume` | the Attenuation volume on Ambience |
-   | `SfxVolume` | the Attenuation volume on SFX |
-   | `VoiceVolume` | the Attenuation volume on Voice |
-   | `ReverbRoom` | SFX Reverb → Room (mB) |
-   | `ReverbDecay` | SFX Reverb → Decay Time (s) |
-   | `ReverbWet` | the Send level from SFX to Reverb (dB). Expose Voice's send too if you want it to follow (it can share the name only if you link them; otherwise leave Voice's send fixed) |
-
-6. **Snapshots:** `Explore` (the default; right-click → *Set as start snapshot*), `Combat` (Ambience group fader about −6 dB), `Cinematic` (SFX lower, Music forward). Snapshots move the **group faders**, not the exposed parameters (a parameter set from script no longer follows snapshots).
-7. **Hook it up:** select the `VANTAGE Audio` object in `SampleScene` and drag `VantageMixer` into *Mixer* on `VantageAudio`, or just run **Vantage → Audio → Refresh Sound Bank**: it assigns the mixer when it finds the file. Save the scene.
-
-Without the mixer everything still plays, straight to the output. Only the Master slider works then.
+- **Snapshots** move the faders of `Music`, `Ambience`, `SFX`, `Voice` (not the buses): `Explore` (start; Music −2 dB), `Combat` (Ambience −6 dB), `Cinematic` (SFX −6, Ambience −3, Voice −3, Music 0). Change them in the Audio Mixer window: select a snapshot, move the faders.
+- **Why the buses:** a parameter set from a script stops following snapshots, so the menu's sliders sit on the `… Volume` buses and the snapshots on the groups below. (The earlier advice to add a second Attenuation effect doesn't work: Unity allows one per group.)
+- **Names are the contract** with the code: the six group names, the three snapshot names and the eight exposed parameters. Renaming one silently turns that part off; the audio test (`-vantageOnly audio`) checks them.
 
 ## 6. Tune the spaces and the music
 

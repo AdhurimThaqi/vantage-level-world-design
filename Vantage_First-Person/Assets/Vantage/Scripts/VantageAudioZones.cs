@@ -85,8 +85,8 @@ namespace Vantage
             if (_fading != null) VantageAudio.Stop(_fading);
             _fading = _bed;
             _fadingFrom = _fading != null ? _fading.volume : 0f;
-            var fallback = zone == 0 ? VantageProceduralAudio.Create(VantageProceduralAudio.Kind.Wind, 3) : null;
-            _bed = VantageAudio.PlayLoop(_to.Bed, null, fallback);
+            // No synthesised stand-in (2026-11-16): the filtered-noise wind outside sounded like a broken speaker.
+            _bed = VantageAudio.PlayLoop(_to.Bed, null);
             _bedTarget = VantageAudio.Has(_to.Bed) ? VantageAudio.Instance.Bank.Find(_to.Bed).Volume : 0.5f;
             if (_bed != null) _bed.volume = 0f;
             _fadeStart = Time.time;

@@ -11,7 +11,7 @@ namespace Vantage
     {
         public string EnemyName = "Soldier";
         /// <summary>Seconds from the death to the body hitting the ground (BODY_Fall).</summary>
-        public const float BodyFallDelay = 0.5f;
+        public static float BodyFallDelay => VantageAudio.Tuning.BodyFallDelay;
 
         private CharacterHealth _health;
         private bool _reported;
