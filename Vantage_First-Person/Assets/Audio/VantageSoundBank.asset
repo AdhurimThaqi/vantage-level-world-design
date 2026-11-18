@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Events:
   - Name: AMB_Exterior_Dusk
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: 266fb5415e89fe94ca9dc5549cc3ab2d, type: 3}
     Volume: 1
     Pitch: {x: 1, y: 1}
     Spatial: 0
@@ -123,7 +124,8 @@ MonoBehaviour:
     Loop: 0
     Group: SFX
   - Name: SHUTTER_Roll
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: 23d86464e8e2c7c4586835cef20b3f8c, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -204,7 +206,11 @@ MonoBehaviour:
     Loop: 1
     Group: SFX
   - Name: ROBOT_Telegraph
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: 2a2c068908788a6429210566ddf1f2c3, type: 3}
+    - {fileID: 8300000, guid: 37bffe3a4b8ca084da785f0ca2c25977, type: 3}
+    - {fileID: 8300000, guid: 922bd7869fe930c48b3554cdb8270885, type: 3}
+    - {fileID: 8300000, guid: 099eb97b006505645a1de54c94ce761d, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -223,7 +229,8 @@ MonoBehaviour:
     Loop: 1
     Group: SFX
   - Name: HELI_Rotor
-    Clips: []
+    Clips:
+    - {fileID: 8300000, guid: e6d8957acbc723e418ea498ee226d20d, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -409,8 +416,7 @@ MonoBehaviour:
     Loop: 0
     Group: SFX
   - Name: BOSS_Roar
-    Clips:
-    - {fileID: 8300000, guid: 25f8307bca21d7e49ae443ab58ef2ca7, type: 3}
+    Clips: []
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
@@ -532,6 +538,19 @@ MonoBehaviour:
     Spatial: 1
     MinDistance: 10
     MaxDistance: 150
+    Loop: 0
+    Group: SFX
+  - Name: GUN_Rifle
+    Clips:
+    - {fileID: 8300000, guid: 804b234633741a74a87728127e5644a4, type: 3}
+    - {fileID: 8300000, guid: 014eb0eb8997274469fab6a9c4fb8ec4, type: 3}
+    - {fileID: 8300000, guid: e6964a582f17c7f4384f3fb9ca89ebff, type: 3}
+    - {fileID: 8300000, guid: a822c631b88912142ba74c9303342469, type: 3}
+    Volume: 1
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 1
+    MaxDistance: 500
     Loop: 0
     Group: SFX
   Tuning:

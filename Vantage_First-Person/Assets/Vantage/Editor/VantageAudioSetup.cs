@@ -68,6 +68,7 @@ namespace Vantage.EditorTools
                 { VantageSounds.MusEnd, ("Music", 0, false, 1, 50) },
                 { VantageSounds.BodyFall, ("SFX", 1, false, 2, 30) },
                 { VantageSounds.GunPistol, ("SFX", 1, false, 1, 500) },
+                { VantageSounds.GunRifle, ("SFX", 1, false, 1, 500) },
                 { VantageSounds.GunEmpty, ("SFX", 1, false, 1, 20) },
                 { VantageSounds.PlayerJump, ("SFX", 1, false, 1, 20) },
                 { VantageSounds.RobotFire, ("SFX", 1, false, 5, 80) },

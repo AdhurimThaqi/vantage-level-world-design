@@ -53,6 +53,8 @@ namespace Vantage
         // clips on the player (VantageArsenal); the rest play from our code.
         public const string BodyFall = "BODY_Fall";
         public const string GunPistol = "GUN_Pistol";
+        /// <summary>The player's drum rifle, one shot per clip (2026-11-18; cut from the user's DRUMGUN_Fireshot render).</summary>
+        public const string GunRifle = "GUN_Rifle";
         public const string GunEmpty = "GUN_Empty";
         public const string PlayerJump = "PLAYER_Jump";
         public const string RobotFire = "ROBOT_Fire";
@@ -76,7 +78,7 @@ namespace Vantage
             AmbExterior, AmbL1, AmbL2, AmbL3, AmbHelipad, AmbDebris, FsConcrete, FsMetal, FsDirt, AlarmSiren, ShutterSlam,
             ShutterRoll, KeyPickup, KeySlotTurn, SentryGlint, SentryCrack, SentryWarningCall, VoContact, RobotDeflect,
             RobotServo, RobotTelegraph, DroneHum, HeliRotor, UiMove, UiSelect, CoinCollect, PickupWeapon, MusExplore,
-            MusCombat, StgLockdown, StgCleared, StgExtraction, MusMenu, MusIntro, BossReveal, BossRoar, StgBossFight, MusBossFight, MusEnd, BodyFall, GunPistol, GunEmpty, PlayerJump, RobotFire, RobotHit, GuidePa, GuideStairs, GuideRadio, GuidePhone,
+            MusCombat, StgLockdown, StgCleared, StgExtraction, MusMenu, MusIntro, BossReveal, BossRoar, StgBossFight, MusBossFight, MusEnd, BodyFall, GunPistol, GunRifle, GunEmpty, PlayerJump, RobotFire, RobotHit, GuidePa, GuideStairs, GuideRadio, GuidePhone,
             KeySlotBeep, GuideWind, GuideHeliRadio, DroneFire, TurretFire, HeliGun,
         };
     }

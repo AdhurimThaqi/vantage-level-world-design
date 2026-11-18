@@ -46,6 +46,7 @@ namespace Vantage.EditorTools
             { VantageSounds.FsMetal, "Footsteps on metal (grates, rails); concrete plays while empty" },
             { VantageSounds.FsDirt, "Footsteps on the terrain outside" },
             { VantageSounds.GunPistol, "The player's pistol shot" },
+            { VantageSounds.GunRifle, "The player's drum rifle, one clip per shot" },
             { VantageSounds.GunEmpty, "Firing an empty gun (player)" },
             { VantageSounds.PlayerJump, "The player's jump" },
             { VantageSounds.BodyFall, "A body hitting the ground after a death" },

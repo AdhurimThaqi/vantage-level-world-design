@@ -6,6 +6,8 @@ This folder holds your REAPER projects and raw recordings. It is outside the Uni
 
 **Cuts made by Claude (2026-11-12, at your request, to be replaced by your REAPER renders if you want):** from your takes in `Source_SFX/` Claude cut, looped (equal-power crossfade), mixed to mono and levelled: `FS_Concrete_01-04` (run steps 0.38/0.98/1.34/1.97 s), `FS_Dirt_01-04` (grass steps 1.41/1.95/2.60/3.24 s), `BODY_Fall` (2.25–3.6 s of the fall), `SHUTTER_Slam` (heavy object falling), `ALARM_Siren` (0.02–4.02 s loop), `GUIDE_Radio` (11.1–19.1 s loop), `DRONE_Hum` (4–14 s loop, +19 dB), `GUN_Pistol`, `GUN_Empty`, `PLAYER_Jump`, `ROBOT_Fire` (laser gun), `ROBOT_Hit` (robot damage), and trimmed silence from `UI_Select`, `UI_Move` and `BOSS_Roar`. **2026-11-16 (after your playtest):** the footsteps were too scratchy and loud, so they were low-passed (concrete 4 kHz, dirt 3 kHz, 4th order) and levelled to −12 / −14 dBFS (bank volume 0.8, pitch 0.9–1.08). `DRONE_Hum` was a high whine, so it was low-passed at 1.2 kHz (filtered as a loop, seamless) to a motor hum at −12 dBFS (bank volume 0.7, heard to 14 m). Declare these in the hand-in, or render your own versions with the same names (the refresh picks them up).
 
+**Your renders, trimmed by Claude (2026-11-18):** the five files you dropped into `Assets/Audio/SFX` were full-timeline REAPER renders (the sound sat after up to 83 s of silence), so the originals moved to `Renders/` and Claude cut them, levels and EQ untouched: `DRUMGUN_Fireshot` → `GUN_Rifle_01-04` (four single shots from inside the 13-shots/s burst, 0.16 s each, played per shot by the drum rifle), `GATE_Opening` → `SHUTTER_Roll` (1.0 s), `HELICOPTER_SFX` → `HELI_Rotor` (85.0–101.5 s, looped with a 1 s crossfade), `ROBOT_Noise` → `ROBOT_Telegraph_01-04` (its four takes, the robots' wind-up), `SFX_Ambient` → `Ambience/AMB_Exterior_Dusk` (looped with a 3 s crossfade). Tip: in REAPER render with *Bounds: Time selection* or *Selected media items* to skip the trimming.
+
 ## Where everything is (in Unity)
 
 - **Vantage → Audio → Sound Board**: every sound of the game in one window.
@@ -53,6 +55,7 @@ Put each file in its folder: `Ambience/`, `SFX/`, `Voice/`, `Music/`, `UI/` unde
 | `ROBOT_Deflect` | 2 | pistol round bouncing off the robot / boss | SFX | 3D | 1 |
 | `ROBOT_Servo` | 1 loop | robot and boss walking (the boss plays it lower) | SFX | 3D | 1 |
 | `HELI_Rotor` | 1 loop | menu and extraction helicopter | SFX | 3D | 1 |
+| `GUN_Rifle` | 1+ (one shot each) | the player's drum rifle, played per shot at 13 shots/s, so keep each clip short | SFX | 3D | 1 |
 | `UI_Move`, `UI_Select` | 1 + 1 | title screen | UI | 2D | 1 |
 | `MUS_Explore`, `MUS_Combat` | 1 + 1 loop | drone; percussion layer (same tempo, key, length) | Music | 2D | 1 |
 | `STG_Lockdown`, `STG_Cleared`, `STG_Extraction` | 1 each | stingers: trap springs, level cleared, boss dead | Music | 2D | 1 |
@@ -88,7 +91,7 @@ Any event without files keeps its placeholder (the synthesised siren, drone hum,
 1. Save the WAVs into `Assets/Audio/<folder>/` with the right names.
 2. In Unity: **Vantage → Audio → Refresh Sound Bank.** It fills every event from the files and sets 3D/2D, loop and group. Its log line tells you which events are still empty.
 3. Fine-tune an event in `Assets/Audio/VantageSoundBank.asset` (volume, pitch range, min/max distance). The refresh keeps your values; it only replaces the clip list.
-4. Press Play. The Console prints `[Vantage] Sound bank: n / 55 events filled (missing: …)`; the Sound Board shows the same in red.
+4. Press Play. The Console prints `[Vantage] Sound bank: n / 56 events filled (missing: …)`; the Sound Board shows the same in red.
 
 ## 5. The mixer
 

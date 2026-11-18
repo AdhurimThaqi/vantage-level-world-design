@@ -14,6 +14,23 @@ Entry format:
 
 ---
 
+## 2026-11-18: What audio is still missing (Claude session)
+**Asked:** "what is still missing for the audio?"
+**Done:** compared the 56 `VantageSounds` names with the WAVs in `Assets/Audio`: 32 events have no file (listed to the user by priority, with which ones borrow a stand-in). No files changed.
+**Verified:** script check of names vs files.
+**Open:** the user records the missing sounds; the mixer levels by ear.
+
+## 2026-11-18: The user's new sounds in the game (Claude session)
+**Asked:** "i added some new sound please implement thatin the game". Choices (asked): `ROBOT_Noise` → the robot telegraph; `SFX_Ambient` → outside only.
+**Done:**
+- The five new WAVs in `Assets/Audio/SFX` were full-timeline REAPER renders (78–83 s of silence before the sound, 24-bit 44.1 kHz stereo). Originals moved to `Audio_Production/Renders/` (outside Unity, their Unity metas removed); trimmed cuts with event names made, levels and EQ untouched: `GUN_Rifle_01-04` (single shots from the 13/s burst, 0.16 s), `SHUTTER_Roll` (1.0 s), `HELI_Rotor` (16.5 s section looped, 1 s crossfade), `ROBOT_Telegraph_01-04` (the four takes), `Ambience/AMB_Exterior_Dusk` (177 s, 3 s loop crossfade).
+- New event `GUN_Rifle` (56 events): `VantageSounds`, defaults in `VantageAudioSetup` (as the pistol), Sound Board row; `VantageArsenal` puts it on the rifle's `GunSounds.Fire`.
+- `BOSS_Roar.wav` was deleted by the user: the event is empty, the boss reveal has no roar.
+- Audio → Refresh Sound Bank run in batch (scene saved; backup in the session scratch folder).
+- Docs: CLAUDE.md (event count, Arsenal, Assets/Audio row, sound gap), `Audio_Production/README.md` (cuts, `GUN_Rifle` row, REAPER render-bounds tip).
+**Verified:** offline compile succeeded; RefreshBatch exit 0, `Sound bank refreshed: 24 / 56 events filled`, no errors in the log. Not heard in Play mode.
+**Open:** listen in Play mode: the rifle at full auto (clip overlap, the 24-source pool in big fights), the rotor loop seam (title screen, extraction), the gate roll on the L1→L2 stair gate and the shutter, the robot wind-up, the exterior bed: it's very quiet (about −51 dB RMS); raise its volume in the Sound Board if it can't be heard. Record a new `BOSS_Roar` if the reveal should roar.
+
 ## 2026-11-16: Cleanup: playtest bot, playtest reports and unused assets removed (Claude session)
 **Asked:** "if the .meta files are not necessary remove them and also make sure you delete the unneccessary stuff we dont use in the project and optimize everything"; "erase the playtest you did before since we wont really use it anymore i will be testing actively myself". Choices (asked): reports **and** the bot; all three unused groups (pack leftovers, `Assets/Textures`, unused world-pack files).
 **Done:**
