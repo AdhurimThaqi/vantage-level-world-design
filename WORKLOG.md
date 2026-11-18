@@ -14,6 +14,12 @@ Entry format:
 
 ---
 
+## 2026-11-18: Where the mixer and audio code live, how to add sounds (Claude session)
+**Asked:** "so we have developed a sound mixer for the sound and how to add them right? Where is the codebase"
+**Done:** explained the mixer, the Sound Board, the add-a-sound steps and the audio scripts' paths (from CLAUDE.md). No files changed.
+**Verified:** nothing to verify.
+**Open:** none.
+
 ## 2026-11-18: What audio is still missing (Claude session)
 **Asked:** "what is still missing for the audio?"
 **Done:** compared the 56 `VantageSounds` names with the WAVs in `Assets/Audio`: 32 events have no file (listed to the user by priority, with which ones borrow a stand-in). No files changed.
