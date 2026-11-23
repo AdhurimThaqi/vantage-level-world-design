@@ -131,6 +131,11 @@ namespace Vantage
             else if (!moving && _servo != null) { VantageAudio.Stop(_servo, VantageAudio.Tuning.ServoFade); _servo = null; }
         }
 
+        /// <summary>The robots in the scene (the L3 robot, the boss): read by the HUD's health bar (VantageBossBar).</summary>
+        public static readonly System.Collections.Generic.List<VantageHeavyRobot> All = new System.Collections.Generic.List<VantageHeavyRobot>();
+        private void OnEnable() { if (!All.Contains(this)) All.Add(this); }
+        private void OnDisable() => All.Remove(this);
+
         private void Awake()
         {
             _health = GetComponent<CharacterHealth>();

@@ -178,6 +178,34 @@ namespace Vantage
             return source;
         }
 
+        /// <summary>
+        /// A cutscene swoosh (CAM_Swoosh) whose peak lands 'toCut' seconds from now: started early when the cut is
+        /// ahead, or from inside the clip when the cut is now (Tuning.SwooshPeak says where each clip peaks).
+        /// </summary>
+        public static AudioSource Swoosh(float toCut = 0f, float volume = 1f)
+        {
+            var source = Play2D(VantageSounds.CamSwoosh);
+            if (source == null || source.clip == null) return source;
+            source.volume *= volume;
+            var lead = Tuning.SwooshPeak - toCut;   // seconds of the clip already past at the cut
+            if (lead > 0f) source.time = Mathf.Min(lead, source.clip.length - 0.05f);
+            else { source.Stop(); source.PlayDelayed(-lead); }
+            return source;
+        }
+
+        /// <summary>
+        /// In a cutscene, a sound from a character the camera watches (the intro's deserter walking, running, falling)
+        /// carries Tuning.CinematicReach times further, so the shot is heard from where the camera stands. No-op in play.
+        /// </summary>
+        public static AudioSource Carry(AudioSource source)
+        {
+            if (source == null || !VantageCinematic.Active) return source;
+            var reach = Mathf.Max(1f, Tuning.CinematicReach);
+            source.minDistance *= reach;
+            source.maxDistance *= reach;
+            return source;
+        }
+
         /// <summary>The event's clips (to hand to a template component), or null when it has none.</summary>
         public static AudioClip[] Clips(string name)
         {

@@ -1544,9 +1544,24 @@ namespace Vantage.EditorTools
             Transform finaleArrival = null;
             if (exit != null && landing != null && WorldBounds(exit, out var eb) && WorldBounds(landing, out var lb))
             {
-                var outward = lb.center - eb.center; outward.y = 0;
-                outward = Mathf.Abs(outward.x) > Mathf.Abs(outward.z) ? new Vector3(Mathf.Sign(outward.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(outward.z));
-                finaleArrival = arrival("Arrival Helipad", new Vector3(eb.center.x, eb.min.y, eb.center.z) + outward * 1.2f, outward);
+                // Out through the door: along the door's thin axis (its wall's normal), toward the landing. (2026-11-23:
+                // it took the axis toward the landing's centre, which lies along the wall, so the arrival sat inside the
+                // wall's pillar next to the door.) Then further out until the player's capsule is clear.
+                var toLanding = lb.center - eb.center;
+                var outward = eb.size.x < eb.size.z ? new Vector3(Mathf.Sign(toLanding.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(toLanding.z));
+                var foot = new Vector3(eb.center.x, eb.min.y, eb.center.z);
+                var at = foot + outward * 1.2f;
+                for (float d = 1.2f; d <= 3.2f; d += 0.2f)
+                {
+                    at = foot + outward * d;
+                    if (!Physics.CheckCapsule(at + Vector3.up * 0.4f, at + Vector3.up * 1.6f, 0.32f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore)) break;
+                }
+                // Facing the way up: toward the landing stairs (the landing's far end), else straight out.
+                var up = lb.center - at; up.y = 0;
+                var facing = up.magnitude > 1f ? up.normalized : outward;
+                finaleArrival = arrival("Arrival Helipad", at, facing, 0.8f);
+                if (Physics.CheckCapsule(finaleArrival.position + Vector3.up * 0.4f, finaleArrival.position + Vector3.up * 1.6f, 0.32f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                    Debug.LogWarning($"[Vantage] FAIL: the helipad arrival at {finaleArrival.position:F1} overlaps geometry.");
             }
 
             levels.Levels = new List<VantageTowerLevels.Level>
@@ -1943,6 +1958,52 @@ namespace Vantage.EditorTools
                 if (placedHere)
                     tower = PlaceTower();   // only in memory: the scene is not saved
                 Report(tower.transform);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                exitCode = 1;
+            }
+            EditorApplication.Exit(exitCode);
+        }
+
+        /// <summary>
+        /// Batch, read-only: what surrounds each level's arrival (ground hit, NavMesh distance, colliders the player's
+        /// capsule overlaps, the nearest door) and, with -vantageShots dir, a view from behind it and one from above.
+        /// </summary>
+        public static void ArrivalReportBatch()
+        {
+            var exitCode = 0;
+            try
+            {
+                EditorSceneManager.OpenScene(VantageEditorUtil.ScenePath, OpenSceneMode.Single);
+                var levels = UnityEngine.Object.FindFirstObjectByType<VantageTowerLevels>();
+                var shots = VantageEditorUtil.Arg("-vantageShots");
+                foreach (var lv in levels.Levels)
+                {
+                    if (lv.Arrival == null) continue;
+                    var p = lv.Arrival.position;
+                    var sb = new StringBuilder($"[Vantage] Arrival {lv.Name} at {p:F2} facing {lv.Arrival.forward:F2}:");
+                    if (Physics.Raycast(p + Vector3.up * 1.5f, Vector3.down, out var hit, 3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                        sb.Append($" ground '{hit.collider.name}' {hit.point.y:F2} slope {Vector3.Angle(hit.normal, Vector3.up):F0}°;");
+                    sb.Append(UnityEngine.AI.NavMesh.SamplePosition(p, out var nav, 3f, UnityEngine.AI.NavMesh.AllAreas) ? $" navmesh {Vector3.Distance(nav.position, p):F2} m away;" : " NO navmesh within 3 m;");
+                    var overlaps = Physics.OverlapCapsule(p + Vector3.up * 0.35f, p + Vector3.up * 1.6f, 0.3f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore);
+                    sb.Append(" capsule overlaps: " + (overlaps.Length == 0 ? "none" : string.Join(", ", overlaps.Select(c => c.name))) + ";");
+                    foreach (var dir in new[] { Vector3.forward, Vector3.back, Vector3.left, Vector3.right })
+                        if (Physics.Raycast(p + Vector3.up * 1f, dir, out var wall, 4f, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
+                            sb.Append($" {dir:F0} → '{wall.collider.name}' {wall.distance:F2} m;");
+                    VantageDoor door = null;
+                    foreach (var d in UnityEngine.Object.FindObjectsByType<VantageDoor>(FindObjectsSortMode.None))
+                        if (door == null || Vector3.Distance(d.transform.position, p) < Vector3.Distance(door.transform.position, p)) door = d;
+                    if (door != null && WorldBounds(door.transform, out var db)) sb.Append($" nearest door '{door.name}' centre {db.center:F2} size {db.size:F2}.");
+                    Debug.Log(sb.ToString());
+                    if (!string.IsNullOrEmpty(shots))
+                    {
+                        var f = lv.Arrival.forward;
+                        VantageEditorUtil.Shot(shots, $"arrival_{lv.Prefix.TrimEnd('_')}_behind", p - f * 3f + Vector3.up * 2.2f, p + f * 3f + Vector3.up * 1f, false, 0);
+                        VantageEditorUtil.Shot(shots, $"arrival_{lv.Prefix.TrimEnd('_')}_above", p + Vector3.up * 14f - f * 0.01f, p, true, 7f);
+                    }
+                }
             }
             catch (Exception e)
             {

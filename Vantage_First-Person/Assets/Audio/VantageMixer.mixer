@@ -240,9 +240,22 @@ AudioMixerController:
     name: ReverbWet
   - guid: 95b2a5c47488cd046b2612eb67ce9979
     name: VoiceVolume
-  m_AudioMixerGroupViews: []
+  m_AudioMixerGroupViews:
+  - guids:
+    - b92a43e224b88c747b6f6bdd44ea53c4
+    - 78c745c6418e1544482aee83584dac45
+    - c6134b4612836c04c867ccf8cace4700
+    - 38acd50f2bc05a4419d3b5051ad20379
+    - 85d2bdfdf11f10a43a03b2bd18ab2cdb
+    - a5f2c352be948fb4389a99d07fa17681
+    - f946d743555735c4bb4e03a2ab780b38
+    - a8346a541fbad604faaa1de5b88f7056
+    - 0745847e818f4024fa31f363097a652c
+    - 4c72e032af496e7438537d996a3fb566
+    - ce6ead7b17926fb4686edd7a607891f5
+    name: View
   m_CurrentViewIndex: 0
-  m_TargetSnapshot: {fileID: 24500006}
+  m_TargetSnapshot: {fileID: 7726675060945693743}
 --- !u!243 &24300002
 AudioMixerGroupController:
   m_ObjectHideFlags: 0

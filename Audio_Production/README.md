@@ -8,6 +8,24 @@ This folder holds your REAPER projects and raw recordings. It is outside the Uni
 
 **Your renders, trimmed by Claude (2026-11-18):** the five files you dropped into `Assets/Audio/SFX` were full-timeline REAPER renders (the sound sat after up to 83 s of silence), so the originals moved to `Renders/` and Claude cut them, levels and EQ untouched: `DRUMGUN_Fireshot` → `GUN_Rifle_01-04` (four single shots from inside the 13-shots/s burst, 0.16 s each, played per shot by the drum rifle), `GATE_Opening` → `SHUTTER_Roll` (1.0 s), `HELICOPTER_SFX` → `HELI_Rotor` (85.0–101.5 s, looped with a 1 s crossfade), `ROBOT_Noise` → `ROBOT_Telegraph_01-04` (its four takes, the robots' wind-up), `SFX_Ambient` → `Ambience/AMB_Exterior_Dusk` (looped with a 3 s crossfade). Tip: in REAPER render with *Bounds: Time selection* or *Selected media items* to skip the trimming.
 
+**Cut by Claude to their scenes (2026-11-23, your request: "cut them perfectly for their provided scene or area only"):** your new renders were 105 s files with the sound at the start (originals in `Renders/`). Cut, levels and EQ untouched unless noted: `BOSS_Roar` (2.35 s), `COIN_Collect`, `KEY_Pickup`, `KEYSLOT_Turn`, `PICKUP_Weapon`, `ROBOT_Deflect`, `ROBOT_Hit`, `ROBOT_Servo` (0.77 s, repeats while it walks), `SENTRY_Crack`, `SENTRY_WarningCall`, `VO_Contact`; `FS_Metal` → `FS_Metal_01-04` (four steps, levelled to −12 dBFS like the concrete ones); `HELI_Gun` (one burst per helicopter pass: the first 8 rounds and the last one with its tail, 0.92 s); `BOSS_Reveal` (the 8 s reveal + its 2.5 s fade); `STG_Cleared` (leading silence off). The stingers were whole tracks (`STG_Lockdown` was the same file as `MUS_Combat`, `STG_BossFight` 11 min), so each is now one 5–5.6 s hit with a 2 s fade: `STG_Lockdown` from 16.0 s, `STG_BossFight` from 20.9 s (where it kicks in), `STG_Extraction` from its start. `CAM_SwitchSwoosheEffects` → `CAM_Swoosh_01-04` (new event: every cutscene cut, the peak 0.6 s into each file lands on the cut). `MUS_Explore` and `MUS_Combat` moved to `Music/`, cut to the same 176 s (88 bars of the 120 BPM combat track) with a 2 s loop crossfade: their fade-out tails dipped the music every loop, and they must be the same length. Note: the two layers have different tempos (120 / about 146 BPM), so they can't lock beat to beat.
+
+**Made by Claude (2026-11-23, your request: "this is in your hand you can generate"):** the 11 missing sounds, from your own recordings where one fits plus generated air, hum and tones. Replace any of them with your own render of the same name.
+
+| File | Made from |
+|---|---|
+| `AMB_L1_Interior` (45 s loop) | ventilation air and a 100 Hz fluorescent buzz (generated), your exterior bed far behind (low-passed) |
+| `AMB_L2_Armory` (50 s loop) | darker hall air, metal ticks from your empty-gun click and a metal step (pitched down), your radio take far off, a 2.4 s hall reverb |
+| `AMB_L3_Destroyed` (50 s loop) | wind through the breach (generated), two structure groans from your gate render (pitched down), your exterior bed louder |
+| `AMB_Helipad` (50 s loop) | strong gusting wind (generated) over your exterior bed |
+| `AMB_Debris_01-03` | your heavy-object and falling takes (pitched up, smaller) with a pebble trickle made of your dirt footstep transients, dust and a room |
+| `GUIDE_PA` (8.5 s loop) | a two-tone chime and "Lockdown in effect. All units, west hallway." (Windows TTS voice "Microsoft George": check the licence before selling the game) through a tannoy: band-limited, driven, a slap off the walls |
+| `GUIDE_Stairs` (8 s loop) | a draft swelling twice, a 50 Hz motor hum, a vent flap (your metal step, pitched up) on each swell |
+| `GUIDE_Phone` (6 s loop) | an office phone's double ring (generated warble) through a small speaker in a small room |
+| `KEYSLOT_Beep` (4 s loop) | a rising double chirp every 2 s over the reader's faint hum (a different shape from the old single beep) |
+| `GUIDE_Wind` (12 s loop) | wind with a resonant howl (generated) |
+| `GUIDE_HeliRadio` (9.9 s loop) | two passages of your radio take (not the ones in `GUIDE_Radio`) with your rotor under them, squelch on each key-up, through a radio band |
+
 ## Where everything is (in Unity)
 
 - **Vantage → Audio → Sound Board**: every sound of the game in one window.
@@ -80,6 +98,7 @@ Put each file in its folder: `Ambience/`, `SFX/`, `Voice/`, `Music/`, `UI/` unde
 | `GUIDE_Phone` | 1 loop | L2: a desk phone ringing in the office where the key lies (ring, pause, ring) | SFX | 3D | 1 |
 | `KEYSLOT_Beep` | 1 loop | L2: the key slot by the stairwell gate beeping, waiting for the key | SFX | 3D | 1 |
 | `GUIDE_Wind` | 1 loop | L3: wind howling through the breach in the robot room's wall | Ambience | 3D | 1 |
+| `CAM_Swoosh` | 1+ | a swoosh on each cutscene camera cut (its peak 0.6 s in: `Tuning.SwooshPeak`) | SFX | 2D | 1 |
 | `GUIDE_HeliRadio` | 1 loop | finale: the helicopter's radio calling from the pad ("...on approach, clear the pad...") | SFX | 3D | 1 |
 
 **The guide sounds** (`GUIDE_*`, `KEYSLOT_Beep`) are the level's wayfinding: only one plays at a time, from the player's next goal, and only on that floor (`VantageGoalSound`). Make each a seamless loop of 4–10 s with a clear rhythm or voice that is easy to locate, a little brighter than the ambience bed; it is heard from about 30 m and should be clearly audible across a room at the default volume 0.8. Until a guide file exists, your radio loop (`GUIDE_Radio`) plays from that step's anchor in its place (since 2026-11-16; the synthesised two-tone pulse before sounded like a heart monitor).
@@ -91,7 +110,7 @@ Any event without files keeps its placeholder (the synthesised siren, drone hum,
 1. Save the WAVs into `Assets/Audio/<folder>/` with the right names.
 2. In Unity: **Vantage → Audio → Refresh Sound Bank.** It fills every event from the files and sets 3D/2D, loop and group. Its log line tells you which events are still empty.
 3. Fine-tune an event in `Assets/Audio/VantageSoundBank.asset` (volume, pitch range, min/max distance). The refresh keeps your values; it only replaces the clip list.
-4. Press Play. The Console prints `[Vantage] Sound bank: n / 56 events filled (missing: …)`; the Sound Board shows the same in red.
+4. Press Play. The Console prints `[Vantage] Sound bank: n / 57 events filled (missing: …)`; the Sound Board shows the same in red.
 
 ## 5. The mixer
 

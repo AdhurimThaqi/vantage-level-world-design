@@ -66,6 +66,14 @@ namespace Vantage
         public Vector2 SentryRadioDistance = new Vector2(2f, 25f);
         [Range(0f, 1f)] public float SentryRadioVolume = 0.25f;
 
+        [Header("Cutscenes")]
+        [Tooltip("Seconds into each CAM_Swoosh clip where its peak sits: a swoosh starts this long before its camera cut.")]
+        public float SwooshPeak = 0.6f;
+        [Tooltip("Volume of the swooshes on the intro's climb moves (the hard cuts play at full volume).")]
+        [Range(0f, 1f)] public float SwooshSoftVolume = 0.55f;
+        [Tooltip("In a cutscene, footsteps and a body falling carry this many times further (the intro's deserter is heard from the camera).")]
+        [Min(1f)] public float CinematicReach = 5f;
+
         [Header("Fades (seconds)")]
         public float SirenFade = 1.5f;
         [Tooltip("BOSS_Reveal fading out as the fight starts.")]

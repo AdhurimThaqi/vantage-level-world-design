@@ -64,6 +64,8 @@ namespace Vantage
         public const string TurretFire = "TURRET_Fire";
         // The helicopter's cannon in the boss fight (2026-11-16). Empty: ROBOT_Fire pitched down, see VantageHelicopterSupport.
         public const string HeliGun = "HELI_Gun";
+        /// <summary>A swoosh on a cutscene's camera cut (2026-11-23; VantageAudio.Swoosh: its peak lands on the cut).</summary>
+        public const string CamSwoosh = "CAM_Swoosh";
         // The guide sounds: one at a time, at the player's next goal (VantageGoalSound).
         public const string GuidePa = "GUIDE_PA";
         public const string GuideStairs = "GUIDE_Stairs";
@@ -79,7 +81,7 @@ namespace Vantage
             ShutterRoll, KeyPickup, KeySlotTurn, SentryGlint, SentryCrack, SentryWarningCall, VoContact, RobotDeflect,
             RobotServo, RobotTelegraph, DroneHum, HeliRotor, UiMove, UiSelect, CoinCollect, PickupWeapon, MusExplore,
             MusCombat, StgLockdown, StgCleared, StgExtraction, MusMenu, MusIntro, BossReveal, BossRoar, StgBossFight, MusBossFight, MusEnd, BodyFall, GunPistol, GunRifle, GunEmpty, PlayerJump, RobotFire, RobotHit, GuidePa, GuideStairs, GuideRadio, GuidePhone,
-            KeySlotBeep, GuideWind, GuideHeliRadio, DroneFire, TurretFire, HeliGun,
+            KeySlotBeep, GuideWind, GuideHeliRadio, DroneFire, TurretFire, HeliGun, CamSwoosh,
         };
     }
 }

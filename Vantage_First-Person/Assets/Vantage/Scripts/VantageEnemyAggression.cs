@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CoverShooter;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Vantage
 {
@@ -38,6 +39,13 @@ namespace Vantage
 
         private const float ReorderInterval = 3f;
         private const float PatrolReach = 1.2f;
+        // Walking fixes (2026-11-23, the user: soldiers slid, walked into walls, stopped and started). A soldier ordered
+        // somewhere that stands still this long is ordered again at once (not after ReorderInterval); one that moves
+        // but gets less than StuckDistance further in StuckTime is stuck (a wall, a desk, a friend) and goes elsewhere.
+        private const float RestartAfter = 0.6f, StuckTime = 2f, StuckDistance = 0.4f, NavSearch = 2.5f;
+        private float _stillSince = -1f, _progressAt;
+        private Vector3 _progressFrom;
+        private bool _ordered;
         private int _patrolIndex, _patrolStep = 1;
 
         private FighterBrain _brain;
@@ -105,7 +113,9 @@ namespace Vantage
         {
             if (_actor == null) return;
             if (!_actor.IsAlive) { releaseTurn(); return; }
-            if (Waiting && _motor != null) _motor.InputAim();   // keeps the gun up on the player while holding fire
+            // Keeps the gun up on the player while holding fire, but not on the move: aiming while walking plays the
+            // strafe and backpedal animations with the body locked on the player (it looked like sliding).
+            if (Waiting && _motor != null && !_motor.IsMoving) _motor.InputAim();
             if (Time.time < _nextThink)
                 return;
             _nextThink = Time.time + ThinkInterval;
@@ -147,12 +157,17 @@ namespace Vantage
                 if (_patrolIndex + _patrolStep < 0 || _patrolIndex + _patrolStep >= PatrolPoints.Count) _patrolStep = -_patrolStep;
                 _patrolIndex += _patrolStep;
             }
-            if (!arrived && Time.time - _lastOrder < ReorderInterval)
+            if (!arrived && stuck())
+            {
+                // Can't get there (a wall, a desk, a friend in the way): on to the next point instead of pushing.
+                if (_patrolIndex + _patrolStep < 0 || _patrolIndex + _patrolStep >= PatrolPoints.Count) _patrolStep = -_patrolStep;
+                _patrolIndex += _patrolStep;
+                arrived = true;
+            }
+            if (!arrived && !standingStill() && Time.time - _lastOrder < ReorderInterval)
                 return;
-            _lastOrder = Time.time;
             // Broadcast like the template's brains do: AIMovement walks; FighterBrain.ToWalkTo alone only records it.
-            _brain.Message("ToWalkTo", PatrolPoints[_patrolIndex]);
-            _brain.Message("ToFaceWalkDirection");
+            order("ToWalkTo", onNavMesh(PatrolPoints[_patrolIndex]));
         }
 
         /// <summary>Shot: awake for good (the template's brain turns to the attacker itself).</summary>
@@ -252,6 +267,7 @@ namespace Vantage
             if (engaged && Time.time - _lastOrder < ReorderInterval)
                 return;
             _lastOrder = Time.time;
+            _ordered = false;   // the template's fight states move it now
             if (!_engaged) wake();
             _brain.ToAttack(player);
             _brain.ToOpenFire();
@@ -263,14 +279,64 @@ namespace Vantage
         /// </summary>
         private void hunt(BaseActor player)
         {
-            if (Time.time - _lastOrder < ReorderInterval)
+            var target = onNavMesh(player.transform.position);
+            var isStuck = stuck();
+            if (isStuck)
+            {
+                // Blocked: try a reachable point a few metres around the player instead of the same wall.
+                var side = Quaternion.Euler(0, Random.Range(0f, 360f), 0) * Vector3.forward * 3f;
+                target = onNavMesh(player.transform.position + side);
+            }
+            if (!isStuck && !standingStill() && Time.time - _lastOrder < ReorderInterval)
                 return;
-            _lastOrder = Time.time;
             var state = _brain.State;
             if (state != FighterState.idleButAlerted && state != FighterState.process)
                 _brain.SetIdleAlertedState();
-            _brain.Message("ToRunTo", player.transform.position);
+            order("ToRunTo", target);
+        }
+
+        /// <summary>Orders a walk or run (broadcast: AIMovement acts on it) and starts watching its progress.</summary>
+        private void order(string move, Vector3 to)
+        {
+            _lastOrder = Time.time;
+            _brain.Message(move, to);
             _brain.Message("ToFaceWalkDirection");
+            _ordered = true;
+            _stillSince = -1f;
+            _progressAt = Time.time;
+            _progressFrom = transform.position;
+        }
+
+        /// <summary>
+        /// The point on the NavMesh nearest to 'p' at this soldier's floor (the player on a crate, a stair or a desk
+        /// isn't on it: a path there ended short, against a wall, and AIMovement gave up a target 1 m above or below).
+        /// </summary>
+        private Vector3 onNavMesh(Vector3 p)
+        {
+            var at = new Vector3(p.x, Mathf.Lerp(p.y, transform.position.y, 0.5f), p.z);
+            if (NavMesh.SamplePosition(at, out var hit, NavSearch, NavMesh.AllAreas) && Mathf.Abs(hit.position.y - transform.position.y) < FloorTolerance)
+                return hit.position;
+            return NavMesh.SamplePosition(p, out hit, NavSearch, NavMesh.AllAreas) ? hit.position : p;
+        }
+
+        /// <summary>Ordered to move but has stood still for RestartAfter: AIMovement dropped the order, give a new one.</summary>
+        private bool standingStill()
+        {
+            if (!_ordered || _motor == null) return false;
+            if (_motor.IsMoving) { _stillSince = -1f; return false; }
+            if (_stillSince < 0f) _stillSince = Time.time;
+            return Time.time - _stillSince >= RestartAfter;
+        }
+
+        /// <summary>Moving, but less than StuckDistance further in StuckTime: walking into something.</summary>
+        private bool stuck()
+        {
+            if (!_ordered || _motor == null || !_motor.IsMoving) return false;
+            if (Time.time - _progressAt < StuckTime) return false;
+            var moved = transform.position - _progressFrom; moved.y = 0;
+            _progressAt = Time.time;
+            _progressFrom = transform.position;
+            return moved.sqrMagnitude < StuckDistance * StuckDistance;
         }
     }
 }

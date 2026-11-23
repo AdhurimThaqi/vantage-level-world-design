@@ -85,10 +85,14 @@ namespace Vantage
             _overlay = new VantageLetterbox("VANTAGE Boss Reveal", 60);
             _sound = VantageAudio.PlayLoop(VantageSounds.BossReveal, null);
             if (_sound != null) _sound.loop = false;
+            VantageAudio.Swoosh(0.15f);   // into the cutscene (2026-11-23)
+            _swooshArc = _swooshBack = false;
             _startTime = Time.time;
             _playing = true;
             Debug.Log($"[Vantage] Boss reveal: {_height:0.0} m tall, {_radius:0.0} m wide.");
         }
+
+        private bool _swooshArc, _swooshBack;
 
         private void Update()
         {
@@ -96,6 +100,10 @@ namespace Vantage
             var t = Elapsed;
             if (_boss == null || _boss.IsDead || VantageEvents.ActivePlayer() == null || t >= Length) { finish(); return; }
             if (t >= SkipAfter && (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Escape))) { finish(); return; }
+            // Swooshes on the cut to the arc and on the way back to the player (their peaks on the cuts).
+            var peak = VantageAudio.Tuning.SwooshPeak;
+            if (!_swooshArc && t >= ShotLow - peak) { _swooshArc = true; VantageAudio.Swoosh(ShotLow - t); }
+            if (!_swooshBack && t >= ShotArc - peak) { _swooshBack = true; VantageAudio.Swoosh(ShotArc - t, VantageAudio.Tuning.SwooshSoftVolume); }
             if (!_roared && t >= RoarAt)
             {
                 _roared = true;

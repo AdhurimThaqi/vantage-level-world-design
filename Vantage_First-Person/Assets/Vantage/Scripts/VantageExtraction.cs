@@ -110,6 +110,7 @@ namespace Vantage
         private void freezePlayer()
         {
             VantageCinematic.Begin();
+            VantageAudio.Swoosh(0.4f, VantageAudio.Tuning.SwooshSoftVolume);   // the camera pulls back (2026-11-23)
             _camera = Camera.main;
             if (_camera == null) return;
             _camFrom = _camera.transform.position;

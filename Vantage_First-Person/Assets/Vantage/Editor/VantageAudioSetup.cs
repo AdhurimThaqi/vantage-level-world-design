@@ -76,6 +76,7 @@ namespace Vantage.EditorTools
                 { VantageSounds.DroneFire, ("SFX", 1, false, 3, 50) },
                 { VantageSounds.TurretFire, ("SFX", 1, false, 4, 60) },
                 { VantageSounds.HeliGun, ("SFX", 1, false, 10, 150) },
+                { VantageSounds.CamSwoosh, ("SFX", 0, false, 1, 50) },
                 { VantageSounds.GuidePa, ("SFX", 1, true, 2, 30) },
                 { VantageSounds.GuideStairs, ("SFX", 1, true, 2, 30) },
                 { VantageSounds.GuideRadio, ("SFX", 1, true, 2, 30) },

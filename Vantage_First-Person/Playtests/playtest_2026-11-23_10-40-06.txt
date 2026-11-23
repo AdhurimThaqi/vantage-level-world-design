@@ -1,0 +1,51 @@
+VANTAGE playtest  2026-11-23_10-40-06
+Enemy placement seed: 26031
+Session length: 133s (run 114s, deaths 1)  Completed: no   Furthest: Level 2 (armory)   Backtracks: 4
+
+Time per space
+  Military Base      65s   deaths 0
+  Level 1 (ground floor)     61s   deaths 0
+  Level 2 (armory)      4s   deaths 1
+  Level 3 (destroyed floor)      0s   deaths 0
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Soldier        5
+  Turret         1
+  Drone          2
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 26031
+[    0.0s] Session started
+[   58.6s] Intro watched
+[   61.7s] Picked up Pistol
+[   61.7s] Military Base -> Level 1 (ground floor)
+[   63.0s] Level 1 (ground floor) -> Military Base
+[   63.0s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   65.0s] Military Base -> Level 1 (ground floor)
+[   66.6s] Level 1 (ground floor) -> Military Base
+[   66.6s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   68.0s] Military Base -> Level 1 (ground floor)
+[   74.8s] Alarm raised by the trigger
+[   76.4s] Killed Soldier in Level 1 (ground floor)
+[   80.1s] Killed Soldier in Level 1 (ground floor)
+[   81.4s] Killed Soldier in Level 1 (ground floor)
+[   89.6s] Killed Soldier in Level 1 (ground floor)
+[   92.8s] Killed Soldier in Level 1 (ground floor)
+[  102.1s] Coin 1/5
+[  109.0s] Killed Turret in Level 1 (ground floor)
+[  120.1s] Killed Drone in Level 2 (armory)
+[  122.6s] Level 1 (ground floor) -> Level 2 (armory)
+[  125.0s] Level 2 (armory) -> Level 1 (ground floor)
+[  125.0s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  126.2s] Level 1 (ground floor) -> Level 2 (armory)
+[  126.2s] Level 2 (armory) -> Level 1 (ground floor)
+[  126.2s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  126.9s] Killed Drone in Level 2 (armory)
+[  128.3s] Level 1 (ground floor) -> Level 2 (armory)
+[  130.3s] DEATH in Level 2 (armory) at (2.7, 8.3, -68.4) (health reached zero)

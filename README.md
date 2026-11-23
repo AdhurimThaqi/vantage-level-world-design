@@ -66,6 +66,7 @@ The tower is my own Blender model (`Assets/VANTAGE_Tower`). Its rooms, doors, tr
 - **HUD.** Kept to what you act on:
   - Top centre: the level, its name, one marker per enemy (it dims when that enemy dies), the goal of the moment (*FIND A WEAPON*, *LOCKDOWN · CLEAR THE FLOOR*, *REACH THE HELIPAD*, *DESTROY THE MACHINE*) and the coins found.
   - Bottom left: health, with a tick where regeneration stops. Bottom right: weapon and ammo.
+  - Bottom centre, in the two armoured fights: the heavy robot's or the boss's health, with "rifle only" and, on the boss, a tick at 30 % (the helicopter can't take it lower: the rest is yours).
   - Centre: the enemy you aim at, short messages, and "[E] …" when you stand at the key slot.
   - Top left: the minimap, with nearby enemies, the distance to the tower, the level you are on and the warning ring (its inner edge as a line, the warning band tinted red).
 

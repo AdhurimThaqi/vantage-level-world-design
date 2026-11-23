@@ -115,6 +115,32 @@ namespace Vantage.EditorTools
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         }
 
+        /// <summary>
+        /// Batch, read-only: every tree and detail prototype of the world's terrain and whether its model exists
+        /// (2026-11-23: the 2026-11-16 cleanup deleted nine tree models and the grass the binary terrain data still used).
+        /// -executeMethod Vantage.EditorTools.VantageMilitaryBase.TerrainCheckBatch
+        /// </summary>
+        public static void TerrainCheckBatch()
+        {
+            var td = AssetDatabase.LoadAssetAtPath<TerrainData>(OutFolder + "/MilitaryBase_TerrainData.asset");
+            var missing = 0;
+            var trees = td.treePrototypes;
+            for (int i = 0; i < trees.Length; i++)
+            {
+                if (trees[i].prefab == null) missing++;
+                Debug.Log($"[Vantage] Terrain tree {i}: {(trees[i].prefab != null ? AssetDatabase.GetAssetPath(trees[i].prefab) : "MISSING")}");
+            }
+            var details = td.detailPrototypes;
+            for (int i = 0; i < details.Length; i++)
+            {
+                var model = details[i].usePrototypeMesh ? (Object)details[i].prototype : details[i].prototypeTexture;
+                if (model == null) missing++;
+                Debug.Log($"[Vantage] Terrain detail {i}: {(model != null ? AssetDatabase.GetAssetPath(model) : "MISSING")}");
+            }
+            Debug.Log($"[Vantage] Terrain check: {trees.Length} tree and {details.Length} detail prototypes, {missing} missing.");
+            EditorApplication.Exit(missing == 0 ? 0 : 1);
+        }
+
         /// <summary>-executeMethod Vantage.EditorTools.VantageMilitaryBase.MinimapBatch</summary>
         public static void MinimapBatch()
         {

@@ -26,7 +26,7 @@ namespace Vantage
             var surface = SurfaceAt(position + Vector3.up * 0.3f);
             // Until metal steps exist, metal floors use the concrete ones (not silence).
             if (surface == VantageSounds.FsMetal && !VantageAudio.Has(VantageSounds.FsMetal)) surface = VantageSounds.FsConcrete;
-            VantageAudio.Play(surface, position);
+            VantageAudio.Carry(VantageAudio.Play(surface, position));   // heard from a cutscene's camera too
         }
         public void OnLand() { }
         public void OnJump() { }

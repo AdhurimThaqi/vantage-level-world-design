@@ -214,11 +214,25 @@ namespace Vantage
 
         private bool _glintOn;
 
-        /// <summary>A ring shot's look and sound (tracer, crack, dust when it misses), no damage.</summary>
+        /// <summary>
+        /// A scripted shot (the intro's deserter), no damage: since 2026-11-23 a real shot's look and sound. The
+        /// sentry's own rifle fires its template effects (muzzle flash, shell) and its report, the tracer leaves the
+        /// muzzle, and the crack also plays where the bullet arrives, so a camera next to the target hears the snap.
+        /// The template's gun alerts are left out: the tower's soldiers must not hear the intro.
+        /// </summary>
         public void ScriptedShot(Vector3 to, bool miss)
         {
             Glint(0f);
-            shotEffects(VantagePhysics.Eye(_motor), to, miss);
+            var item = _motor != null ? _motor.Weapon.RightItem : null;
+            var gun = item != null ? item.GetComponent<BaseGun>() : null;
+            var from = gun != null && gun.Aim != null ? gun.Aim.transform.position : VantagePhysics.Eye(_motor);
+            if (gun != null)
+            {
+                foreach (var effects in gun.GetComponents<GunEffects>()) effects.OnFire(0f);
+                foreach (var sounds in gun.GetComponents<GunSounds>()) sounds.OnFire(0f);
+            }
+            shotEffects(from, to, miss, true);
+            VantageAudio.Carry(VantageAudio.Play(VantageSounds.SentryCrack, to));
         }
 
         #endregion
@@ -231,19 +245,21 @@ namespace Vantage
             _lastOrder = -10f;   // resume the route at once
         }
 
-        private void shotEffects(Vector3 from, Vector3 to, bool dust)
+        private void shotEffects(Vector3 from, Vector3 to, bool dust, bool cinematic = false)
         {
             if (_tracer != null)
             {
                 _tracer.SetPosition(0, from);
                 _tracer.SetPosition(1, to);
                 _tracer.enabled = true;
-                _tracerUntil = Time.time + 0.08f;
+                // A cutscene's camera is far off: a thicker tracer that stays a little longer.
+                _tracer.widthMultiplier = cinematic ? 0.14f : 0.05f;
+                _tracerUntil = Time.time + (cinematic ? 0.14f : 0.08f);
             }
             if (dust && _dust != null)
             {
                 _dust.transform.position = to;
-                _dust.Emit(14);
+                _dust.Emit(cinematic ? 40 : 14);
             }
             if (VantageAudio.Play(VantageSounds.SentryCrack, from) == null) play(_voice, ShotCrack, 1f);
         }

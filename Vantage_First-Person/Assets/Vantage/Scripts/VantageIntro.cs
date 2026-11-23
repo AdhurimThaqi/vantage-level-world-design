@@ -83,6 +83,9 @@ namespace Vantage
         private Vector3 _pad;
         private bool _walking, _killed;
         private VantageLetterbox _overlay;
+        // The swooshes (2026-11-23): each (cut time, volume), its peak on the cut; built once the deserter is placed.
+        private System.Collections.Generic.List<(float at, float volume)> _swooshes;
+        private int _nextSwoosh;
 
         private void Awake() => Instance = this;
 
@@ -160,6 +163,7 @@ namespace Vantage
         {
             if (!Playing || _camera == null) return;
             var t = Time.time - _startTime;
+            swooshes(t);
             runDeserter(t);
             pose(t, out var position, out var rotation);
             _camera.transform.SetPositionAndRotation(position, rotation);
@@ -345,10 +349,37 @@ namespace Vantage
                 _camera.fieldOfView = _fov;
             }
             VantageCinematic.End();
-            if (Whoosh != null && _camera != null) VantageAudio.PlayClip(Whoosh, _camera.transform.position, "SFX");
+            // Skipped: one swoosh into the player's camera (played out, the last scheduled one already covers it).
+            if (skipped) VantageAudio.Swoosh(0.1f);
+            if (Whoosh != null && _camera != null && !VantageAudio.Has(VantageSounds.CamSwoosh)) VantageAudio.PlayClip(Whoosh, _camera.transform.position, "SFX");
             _overlay?.Destroy();
             _overlay = null;
             Finished?.Invoke(skipped, _endedAt);
+        }
+
+        /// <summary>
+        /// A swoosh on every camera cut: away from the title screen, over the sentry's shoulder, to the body, each
+        /// move of the climb (softer), down to the pistol (softer) and into the player's camera. Each starts
+        /// Tuning.SwooshPeak before its cut, so its peak lands on it.
+        /// </summary>
+        private void swooshes(float t)
+        {
+            if (_swooshes == null)
+            {
+                var soft = VantageAudio.Tuning.SwooshSoftVolume;
+                _swooshes = new System.Collections.Generic.List<(float, float)>();
+                if (_fromMenu) _swooshes.Add((0.3f, soft));
+                if (Deserter != null) { _swooshes.Add((SentryCut, 1f)); _swooshes.Add((BodyCut, 1f)); }
+                for (int i = 0; i < 4; i++) _swooshes.Add((ShotDeserter + i * Beat + Travel * 0.5f, soft));
+                _swooshes.Add((ShotClimb + 1.1f, soft));
+                _swooshes.Add((Length, 1f));
+            }
+            var peak = VantageAudio.Tuning.SwooshPeak;
+            while (_nextSwoosh < _swooshes.Count && t >= _swooshes[_nextSwoosh].at - peak)
+            {
+                var s = _swooshes[_nextSwoosh++];
+                VantageAudio.Swoosh(Mathf.Max(0f, s.at - t), s.volume);
+            }
         }
 
         #region The deserter

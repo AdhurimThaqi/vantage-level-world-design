@@ -213,7 +213,8 @@ namespace Vantage
                 _tracerOff = Time.time + 0.05f;
             }
             // HELI_Gun; while it has no recording, the user's robot shot (ROBOT_Fire) pitched down like a heavy cannon.
-            if (VantageAudio.Has(VantageSounds.HeliGun)) { VantageAudio.Play(VantageSounds.HeliGun, origin); return; }
+            // HELI_Gun is the user's whole burst (2026-11-23, cut to about 0.9 s for the 5 rounds): once per pass, on its first round.
+            if (VantageAudio.Has(VantageSounds.HeliGun)) { if (_shotsLeft >= Mathf.Max(1, BurstShots)) VantageAudio.Play(VantageSounds.HeliGun, origin); return; }
             var laser = VantageAudio.Clips(VantageSounds.RobotFire);
             var source = VantageAudio.Play(VantageSounds.HeliGun, origin, laser != null && laser.Length > 0 ? laser[0] : null);
             var pitch = VantageAudio.Tuning.HeliGunPitch;

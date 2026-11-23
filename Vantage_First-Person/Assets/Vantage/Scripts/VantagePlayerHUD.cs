@@ -433,6 +433,10 @@ namespace Vantage
             var arrow = GetComponent<VantageGoalArrow>();
             if (arrow == null) arrow = gameObject.AddComponent<VantageGoalArrow>();
             arrow.Build(_hud);
+            // The robot / boss health bar (2026-11-23), bottom-centre, also under the HUD root.
+            var bossBar = GetComponent<VantageBossBar>();
+            if (bossBar == null) bossBar = gameObject.AddComponent<VantageBossBar>();
+            bossBar.Build(_hud);
 
             // Soft shading behind the corner clusters keeps them readable on bright walls and sky.
             VantageUI.Image(VantageUI.Rect("Shade", _hud, Vector2.zero, new Vector2(-260, -170), new Vector2(980, 440)), new Color(0, 0, 0, 0.4f), VantageUI.Shade);

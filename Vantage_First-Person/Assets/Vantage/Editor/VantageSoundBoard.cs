@@ -63,6 +63,7 @@ namespace Vantage.EditorTools
             { VantageSounds.DroneFire, "A drone's shot (empty: ROBOT_Fire pitched up)" },
             { VantageSounds.TurretFire, "A turret's shot (empty: ROBOT_Fire pitched down)" },
             { VantageSounds.HeliGun, "The helicopter's cannon firing at the boss (empty: ROBOT_Fire pitched down)" },
+            { VantageSounds.CamSwoosh, "Cutscene camera cuts: the intro (Play, the sentry and body cuts, each climb move, the hand-back), the boss reveal's cuts, the extraction's start; its peak lands on the cut (Tuning: Swoosh Peak)" },
             { VantageSounds.RobotFire, "The L3 robot's and the boss's shot" },
             { VantageSounds.RobotHit, "A rifle round hitting the robot or boss" },
             { VantageSounds.RobotDeflect, "A pistol round bouncing off the robot" },
@@ -85,7 +86,7 @@ namespace Vantage.EditorTools
         private static readonly (string title, Func<string, bool> match)[] Categories =
         {
             ("Music", n => n.StartsWith("MUS_") || n.StartsWith("STG_")),
-            ("Interface", n => n.StartsWith("UI_")),
+            ("Interface and cutscenes", n => n.StartsWith("UI_") || n.StartsWith("CAM_")),
             ("Ambience", n => n.StartsWith("AMB_")),
             ("Guide (wayfinding)", n => n.StartsWith("GUIDE_") || n == VantageSounds.KeySlotBeep),
             ("Player and soldiers", n => n.StartsWith("FS_") || n.StartsWith("GUN_") || n.StartsWith("PLAYER_") || n.StartsWith("BODY_") || n.StartsWith("VO_")),
