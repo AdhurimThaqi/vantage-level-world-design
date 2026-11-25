@@ -14,6 +14,20 @@ Entry format:
 
 ---
 
+## 2026-11-25 (6): Soldiers aiming at the ceiling (root cause), audio zones checked (Claude session)
+**Asked:** "The soldiers are still not fixed check the logs for more"; mid-task: "make sure the sound board mixer replaces the area correctly and its synced perfectly fine."
+**Done:**
+- The `aims high` lines in Editor.log and Player.log: L2 soldiers aimed at points at y 12.7 (the L3 floor), L1 soldiers at y 8.4 (the L2 floor); the same points for several soldiers (the tops of the stair flights), no threat, moving. Cause: `VantageEnemyAggression.onNavMesh` fell back to the nearest NavMesh at all when the player stood on a flight (kept off the soldiers' NavMesh), the top of the flight one floor up; soldiers were sent there and faced it. Now the target is searched at the soldier's height only, radius widening, else the soldier holds.
+- Audio zones: code, mixer exposed parameters (ReverbRoom/Decay/Wet, volume buses) and the bank's beds (Ambience group, 2D) checked: consistent. Added a log line per zone change (zone, time, bed, reverb) for the user's audio test.
+**Verified:** offline compile succeeded. Not played.
+**Open:** Play mode: no `aims high` lines any more (run around and up the stairs on L1 and L2 during a hunt); the audio test: read the `Audio zone:` lines against what is heard.
+
+## 2026-11-25 (5): Reading the Editor log after Unity closes (Claude session)
+**Asked:** "Can you check the log editor if i close unity?"
+**Done:** explained: `%LOCALAPPDATA%/Unity/Editor/Editor.log` stays after Unity closes (moved to `Editor-prev.log` on the next start); builds write `%USERPROFILE%/AppData/LocalLow/Adhurim Thaqi/VANTAGE/Player.log`. No files changed.
+**Verified:** both paths read earlier this session.
+**Open:** none.
+
 ## 2026-11-25 (4): Grenades found and taught on level 3 (Claude session)
 **Asked:** "we never show how can we use the granades. Maybe on the third level where the open room is add a bucket filled with grenades and make the user or player use them and show them how." After my proposal: "grenades also deal damage besides the rifle. Build it however you think is best".
 **Done:** grenades were unlimited from the start (template rig) and never shown. New `VantageGrenades` (count in `VantageRun.Grenades`, gate via a marked template edit `ThirdPersonInput.CanTakeGrenade`, one per throw, how-to hint until the first throw) and `VantageGrenadeCrate` (bucket with the rig's own grenade models, fills to 3). `VantageTowerLevels`: `GrenadeCrateAt`/`GrenadeCount`, bucket spawned when the level begins (L3: the robot room's marker, the passage to the breach; the patrols behind the rubble are the first use). HUD: grenade count above the weapon, the how-to line. `VantageHeavyRobot`: explosions hurt the robot and boss (60 %, once per explosion). Setup run. Docs: CLAUDE.md, README controls, concept doc revision row.

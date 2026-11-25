@@ -42,7 +42,7 @@ namespace Vantage
         // Walking fixes (2026-11-23, the user: soldiers slid, walked into walls, stopped and started). A soldier ordered
         // somewhere that stands still this long is ordered again at once (not after ReorderInterval); one that moves
         // but gets less than StuckDistance further in StuckTime is stuck (a wall, a desk, a friend) and goes elsewhere.
-        private const float RestartAfter = 0.6f, StuckTime = 2f, StuckDistance = 0.4f, NavSearch = 2.5f;
+        private const float RestartAfter = 0.6f, StuckTime = 2f, StuckDistance = 0.4f, NavSearch = 2.5f, FloorStep = 1f;
         private float _stillSince = -1f, _progressAt;
         private Vector3 _progressFrom;
         private bool _ordered;
@@ -324,12 +324,17 @@ namespace Vantage
         /// The point on the NavMesh nearest to 'p' at this soldier's floor (the player on a crate, a stair or a desk
         /// isn't on it: a path there ended short, against a wall, and AIMovement gave up a target 1 m above or below).
         /// </summary>
+        /// Only ever on this floor (2026-11-25): with the player on a stair flight (kept off the soldiers' NavMesh) the old
+        /// fallback took the nearest NavMesh at all, the top of the flight one floor up, and soldiers stood under it
+        /// aiming at the ceiling. Searched at the soldier's height, wider each try; nothing on this floor: stay put.
         private Vector3 onNavMesh(Vector3 p)
         {
-            var at = new Vector3(p.x, Mathf.Lerp(p.y, transform.position.y, 0.5f), p.z);
-            if (NavMesh.SamplePosition(at, out var hit, NavSearch, NavMesh.AllAreas) && Mathf.Abs(hit.position.y - transform.position.y) < FloorTolerance)
-                return hit.position;
-            return NavMesh.SamplePosition(p, out hit, NavSearch, NavMesh.AllAreas) ? hit.position : p;
+            var floor = transform.position.y;
+            var at = new Vector3(p.x, floor, p.z);
+            for (float radius = NavSearch; radius <= NavSearch * 4f; radius *= 2f)
+                if (NavMesh.SamplePosition(at, out var hit, radius, NavMesh.AllAreas) && Mathf.Abs(hit.position.y - floor) < FloorStep)
+                    return hit.position;
+            return transform.position;
         }
 
         /// <summary>Ordered to move but has stood still for RestartAfter: AIMovement dropped the order, give a new one.</summary>

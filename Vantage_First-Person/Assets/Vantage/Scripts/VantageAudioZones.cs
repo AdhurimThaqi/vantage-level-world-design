@@ -91,6 +91,7 @@ namespace Vantage
             if (_bed != null) _bed.volume = 0f;
             _fadeStart = Time.time;
             _blending = true;
+            Debug.Log($"[Vantage] Audio zone: {_to.Name} at {Time.timeSinceLevelLoad:F1} s (bed {(_bed != null ? _to.Bed : "none")}, reverb room {_to.Room} decay {_to.Decay} wet {_to.Wet}, {Fade} s blend).");
         }
 
         /// <summary>The bed crossfade and the reverb ease, while a change is under way.</summary>
