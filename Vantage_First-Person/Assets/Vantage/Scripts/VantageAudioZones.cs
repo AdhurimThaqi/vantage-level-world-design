@@ -99,7 +99,7 @@ namespace Vantage
         {
             if (!_blending) return;
             var k = Mathf.Clamp01((Time.time - _fadeStart) / Mathf.Max(0.01f, Fade));
-            if (_bed != null) _bed.volume = _bedTarget * k;
+            if (_bed != null) _bed.volume = (VantageAudio.Has(_to.Bed) ? VantageAudio.EventVolume(_to.Bed) : _bedTarget) * k;   // live Sound Board volume
             if (_fading != null) _fading.volume = _fadingFrom * (1f - k);
             var s = Mathf.SmoothStep(0f, 1f, k);
             VantageAudio.SetParameter("ReverbRoom", Mathf.Lerp(_from.Room, _to.Room, s));

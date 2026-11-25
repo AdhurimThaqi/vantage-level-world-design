@@ -65,6 +65,7 @@ namespace Vantage
 
         private AudioSource _source;
         private float _baseVolume = 1f, _nextPoll, _floorSince;
+        private string _sourceEvent;
         private int _floor = int.MinValue, _rawFloor = int.MinValue;
         private VantageArsenal _arsenal;
         private VantageInteract _slot;
@@ -98,6 +99,8 @@ namespace Vantage
             }
             if (_source != null)
             {
+                // The step's Sound Board volume, live (2026-11-25: a change while it played was pulled back).
+                if (_sourceEvent != null) _baseVolume = VantageAudio.EventVolume(_sourceEvent);
                 var target = Audible ? _baseVolume : 0f;
                 _source.volume = Mathf.MoveTowards(_source.volume, target, _baseVolume * Time.deltaTime / Mathf.Max(0.01f, FloorFade));
             }
@@ -165,6 +168,7 @@ namespace Vantage
             _source = VantageAudio.PlayLoop(Steps[step].Event, Steps[step].Anchor, radio != null && radio.Length > 0 ? radio[0] : null);
             if (_source == null) return;
             _baseVolume = _source.volume;
+            _sourceEvent = Steps[step].Event;
             _source.volume = 0f;   // fades in (Update), also when it starts off-floor
         }
     }

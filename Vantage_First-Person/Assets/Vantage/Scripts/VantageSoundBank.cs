@@ -69,6 +69,10 @@ namespace Vantage
         [Header("Cutscenes")]
         [Tooltip("Seconds into each CAM_Swoosh clip where its peak sits: a swoosh starts this long before its camera cut.")]
         public float SwooshPeak = 0.6f;
+        [Tooltip("Hard cuts: where the swoosh peaks, in seconds after the cut (negative: before it). 0 = on the cut.")]
+        public float SwooshCutOffset = 0f;
+        [Tooltip("Camera moves: where the swoosh peaks, in seconds after the move starts. Smaller: the swoosh comes earlier.")]
+        [Min(0f)] public float SwooshMovePeakAt = 0.6f;
         [Tooltip("Volume of the swooshes on the intro's climb moves (the hard cuts play at full volume).")]
         [Range(0f, 1f)] public float SwooshSoftVolume = 0.55f;
         [Tooltip("In a cutscene, footsteps and a body falling carry this many times further (the intro's deserter is heard from the camera).")]

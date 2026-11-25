@@ -53,7 +53,8 @@ namespace Vantage.EditorTools
             { VantageSounds.VoContact, "A soldier spotting the player (bark)" },
             { VantageSounds.AlarmSiren, "L1 alarm siren loop" },
             { VantageSounds.ShutterSlam, "The maintenance shutter slamming down (alarm)" },
-            { VantageSounds.ShutterRoll, "A shutter or stair gate rolling up" },
+            { VantageSounds.ShutterRoll, "A shutter or a locked door opening (maintenance shutter, robot room, SE room, L3 exit, the L2 Office)" },
+            { VantageSounds.GateOpen, "The L2 stairwell gate rolling up (key in, floor clear); the gate rises as long as the sound lasts" },
             { VantageSounds.KeyPickup, "Picking up the key (L2)" },
             { VantageSounds.KeySlotTurn, "The key turning in the slot (L2)" },
             { VantageSounds.SentryGlint, "A sentry's scope glinting before a shot" },
@@ -109,6 +110,8 @@ namespace Vantage.EditorTools
         private void OnDisable()
         {
             stopPreview();
+            if (_preview != null) DestroyImmediate(_preview.gameObject);
+            _preview = null;
             foreach (var e in _editors.Values) if (e != null) DestroyImmediate(e);
             _editors.Clear();
         }
@@ -139,6 +142,7 @@ namespace Vantage.EditorTools
             }
             EditorGUILayout.EndScrollView();
             _bankObject.ApplyModifiedProperties();
+            followPreview();
         }
 
         #region Events
@@ -190,7 +194,7 @@ namespace Vantage.EditorTools
                 GUI.color = color;
                 EditorGUILayout.LabelField(e.Filled ? describe(e.Name) : "EMPTY (silent) · " + describe(e.Name), EditorStyles.miniLabel);
                 using (new EditorGUI.DisabledScope(!e.Filled))
-                    if (GUILayout.Button("▶ Play", GUILayout.Width(56))) preview(e.Pick(), e.Loop);
+                    if (GUILayout.Button("▶ Play", GUILayout.Width(56))) preview(e.Pick(), e);
             }
             if (!_open.Contains(e.Name)) return;
             EditorGUI.indentLevel++;
@@ -199,7 +203,7 @@ namespace Vantage.EditorTools
                 {
                     EditorGUILayout.ObjectField($"File {i + 1}", e.Clips[i], typeof(AudioClip), false);
                     if (GUILayout.Button("Show", GUILayout.Width(50))) ping(e.Clips[i]);
-                    if (GUILayout.Button("▶", GUILayout.Width(26))) preview(e.Clips[i], e.Loop);
+                    if (GUILayout.Button("▶", GUILayout.Width(26))) preview(e.Clips[i], e);
                 }
             if (e.Clips.Count == 0)
                 EditorGUILayout.LabelField($"No file. Add Assets/Audio/…/{e.Name}.wav (or {e.Name}_01.wav, _02 … for variations), then Refresh Sound Bank.", EditorStyles.wordWrappedMiniLabel);
@@ -263,19 +267,44 @@ namespace Vantage.EditorTools
 
         #region Preview (the editor's own clip preview, by reflection)
 
-        private static readonly Type AudioUtil = typeof(Editor).Assembly.GetType("UnityEditor.AudioUtil");
+        // Preview through a hidden source at the event's own volume, pitch (middle of its range) and mixer group
+        // (2026-11-25: the editor's clip preview played every file at full volume, so a Volume change was never heard).
+        private static AudioSource _preview;
+        private static SoundEvent _previewing;
 
-        private static void preview(AudioClip clip, bool loop)
+        private static void preview(AudioClip clip, SoundEvent e)
         {
-            if (clip == null || AudioUtil == null) return;
+            if (clip == null) return;
             stopPreview();
-            var play = AudioUtil.GetMethod("PlayPreviewClip", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
-                null, new[] { typeof(AudioClip), typeof(int), typeof(bool) }, null);
-            play?.Invoke(null, new object[] { clip, 0, loop });
+            if (_preview == null)
+            {
+                var go = EditorUtility.CreateGameObjectWithHideFlags("Sound Board Preview", HideFlags.HideAndDontSave, typeof(AudioSource));
+                _preview = go.GetComponent<AudioSource>();
+                _preview.playOnAwake = false;
+                _preview.spatialBlend = 0f;
+            }
+            _previewing = e;
+            _preview.clip = clip;
+            _preview.loop = e.Loop;
+            _preview.volume = e.Volume;
+            _preview.pitch = (e.Pitch.x + e.Pitch.y) * 0.5f;
+            var mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(VantageMixerBuilder.Path);
+            var groups = mixer != null ? mixer.FindMatchingGroups(e.Group) : null;
+            _preview.outputAudioMixerGroup = groups != null && groups.Length > 0 ? groups[0] : null;
+            _preview.Play();
         }
 
-        private static void stopPreview() =>
-            AudioUtil?.GetMethod("StopAllPreviewClips", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.Invoke(null, null);
+        private static void stopPreview()
+        {
+            if (_preview != null) _preview.Stop();
+            _previewing = null;
+        }
+
+        /// <summary>A Volume moved while its preview plays: heard at once.</summary>
+        private static void followPreview()
+        {
+            if (_preview != null && _previewing != null && _preview.isPlaying) _preview.volume = _previewing.Volume;
+        }
 
         private static void ping(UnityEngine.Object o)
         {

@@ -26,7 +26,7 @@ MonoBehaviour:
   - Name: AMB_L1_Interior
     Clips:
     - {fileID: 8300000, guid: e81b8a15f7614ba41bed8095920ebc73, type: 3}
-    Volume: 1
+    Volume: 0.776
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -36,7 +36,7 @@ MonoBehaviour:
   - Name: AMB_L2_Armory
     Clips:
     - {fileID: 8300000, guid: ab256e618b9e42c4384bdbeaa28d4ede, type: 3}
-    Volume: 1
+    Volume: 0.479
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -46,7 +46,7 @@ MonoBehaviour:
   - Name: AMB_L3_Destroyed
     Clips:
     - {fileID: 8300000, guid: 869e8b3fe4e148541b041d0caa6f79b8, type: 3}
-    Volume: 1
+    Volume: 0.347
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -56,7 +56,7 @@ MonoBehaviour:
   - Name: AMB_Helipad
     Clips:
     - {fileID: 8300000, guid: 3f96c2b6f5b755f45a1de7d29bc73e60, type: 3}
-    Volume: 1
+    Volume: 0.226
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -68,7 +68,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 01116e6642fd7ae4ba01b003ee222214, type: 3}
     - {fileID: 8300000, guid: 2e28c1d39a8e6e64a9b3412c6be79adc, type: 3}
     - {fileID: 8300000, guid: 57e68428514a68b45b2b789696a542eb, type: 3}
-    Volume: 1
+    Volume: 0.671
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 3
@@ -137,7 +137,7 @@ MonoBehaviour:
   - Name: SHUTTER_Roll
     Clips:
     - {fileID: 8300000, guid: 23d86464e8e2c7c4586835cef20b3f8c, type: 3}
-    Volume: 1
+    Volume: 0.785
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 3
@@ -147,7 +147,7 @@ MonoBehaviour:
   - Name: KEY_Pickup
     Clips:
     - {fileID: 8300000, guid: e44dcb96d1177d5468c67df862c696f8, type: 3}
-    Volume: 1
+    Volume: 0.562
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 1
@@ -167,7 +167,7 @@ MonoBehaviour:
   - Name: SENTRY_Glint
     Clips:
     - {fileID: 8300000, guid: f7e37feacee183745a58307e8c6ec10d, type: 3}
-    Volume: 1
+    Volume: 0.146
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 0
     MinDistance: 1
@@ -177,7 +177,7 @@ MonoBehaviour:
   - Name: SENTRY_Crack
     Clips:
     - {fileID: 8300000, guid: 074d0a4183da9e84080de129d8aa29a7, type: 3}
-    Volume: 1
+    Volume: 0.841
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 20
@@ -197,7 +197,7 @@ MonoBehaviour:
   - Name: VO_Contact
     Clips:
     - {fileID: 8300000, guid: c2fd880a92abce8498a35b89f5eae5f9, type: 3}
-    Volume: 1
+    Volume: 0.219
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 3
@@ -207,7 +207,7 @@ MonoBehaviour:
   - Name: ROBOT_Deflect
     Clips:
     - {fileID: 8300000, guid: e1b9669339969fa478b210a66f8a9ed3, type: 3}
-    Volume: 1
+    Volume: 0.389
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 3
@@ -217,7 +217,7 @@ MonoBehaviour:
   - Name: ROBOT_Servo
     Clips:
     - {fileID: 8300000, guid: 33dae5d4202f46741b3354f363926622, type: 3}
-    Volume: 1
+    Volume: 0.129
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 3
@@ -230,7 +230,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 37bffe3a4b8ca084da785f0ca2c25977, type: 3}
     - {fileID: 8300000, guid: 922bd7869fe930c48b3554cdb8270885, type: 3}
     - {fileID: 8300000, guid: 099eb97b006505645a1de54c94ce761d, type: 3}
-    Volume: 1
+    Volume: 0.756
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 4
@@ -250,7 +250,7 @@ MonoBehaviour:
   - Name: HELI_Rotor
     Clips:
     - {fileID: 8300000, guid: e6d8957acbc723e418ea498ee226d20d, type: 3}
-    Volume: 1
+    Volume: 0.569
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 15
@@ -260,7 +260,7 @@ MonoBehaviour:
   - Name: UI_Move
     Clips:
     - {fileID: 8300000, guid: 7bb4f2603afa77f4f838c0ae6a37209b, type: 3}
-    Volume: 0.15
+    Volume: 0.153
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 0
     MinDistance: 1
@@ -270,7 +270,7 @@ MonoBehaviour:
   - Name: UI_Select
     Clips:
     - {fileID: 8300000, guid: ebca886d84930284c97e44fa2d657bf9, type: 3}
-    Volume: 1
+    Volume: 0.759
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 0
     MinDistance: 1
@@ -280,7 +280,7 @@ MonoBehaviour:
   - Name: COIN_Collect
     Clips:
     - {fileID: 8300000, guid: d2e16d1b70fc6514789b749a4dcb2f93, type: 3}
-    Volume: 1
+    Volume: 0.407
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 1
@@ -320,7 +320,7 @@ MonoBehaviour:
   - Name: STG_Lockdown
     Clips:
     - {fileID: 8300000, guid: 9ba5df5e80192b04b9f4f5edeac9ba13, type: 3}
-    Volume: 0.145
+    Volume: 0.232
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -330,7 +330,7 @@ MonoBehaviour:
   - Name: STG_Cleared
     Clips:
     - {fileID: 8300000, guid: 459b4f3836b0b274bb3b04fad42d5e36, type: 3}
-    Volume: 0.5
+    Volume: 0.16
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -340,7 +340,7 @@ MonoBehaviour:
   - Name: STG_Extraction
     Clips:
     - {fileID: 8300000, guid: c0bd94dbf8d5a594fae12fda71e4c637, type: 3}
-    Volume: 0.143
+    Volume: 0.254
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -350,7 +350,7 @@ MonoBehaviour:
   - Name: MUS_Menu
     Clips:
     - {fileID: 8300000, guid: f073ae0e953ecec42886324e453abb06, type: 3}
-    Volume: 0.3
+    Volume: 0.269
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -360,7 +360,7 @@ MonoBehaviour:
   - Name: GUIDE_PA
     Clips:
     - {fileID: 8300000, guid: 7bb72c06ec921fb478f59dc1d954eb52, type: 3}
-    Volume: 0.8
+    Volume: 0.519
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 2
@@ -370,7 +370,7 @@ MonoBehaviour:
   - Name: GUIDE_Stairs
     Clips:
     - {fileID: 8300000, guid: 0d013d965119823439604fe29e96d4b0, type: 3}
-    Volume: 0.8
+    Volume: 1
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 2
@@ -380,7 +380,7 @@ MonoBehaviour:
   - Name: GUIDE_Radio
     Clips:
     - {fileID: 8300000, guid: 643af68677f209645b320272bc15f1aa, type: 3}
-    Volume: 0.8
+    Volume: 0.912
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 2
@@ -390,7 +390,7 @@ MonoBehaviour:
   - Name: GUIDE_Phone
     Clips:
     - {fileID: 8300000, guid: 0e13da2ffa841ea4db4c2af5f92e3cfa, type: 3}
-    Volume: 0.8
+    Volume: 0.226
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 2
@@ -400,7 +400,7 @@ MonoBehaviour:
   - Name: KEYSLOT_Beep
     Clips:
     - {fileID: 8300000, guid: 5dc80c186255a7c47a8edacd8ac584c3, type: 3}
-    Volume: 0.8
+    Volume: 0.417
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 2
@@ -410,7 +410,7 @@ MonoBehaviour:
   - Name: GUIDE_Wind
     Clips:
     - {fileID: 8300000, guid: ef7de67addf6dde4e88b31ce6b3687f1, type: 3}
-    Volume: 0.8
+    Volume: 0.61
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 2
@@ -420,7 +420,7 @@ MonoBehaviour:
   - Name: GUIDE_HeliRadio
     Clips:
     - {fileID: 8300000, guid: 6c0e2b59876d8c24ba73cbfa52b665f5, type: 3}
-    Volume: 0.8
+    Volume: 0.237
     Pitch: {x: 1, y: 1}
     Spatial: 1
     MinDistance: 2
@@ -430,7 +430,7 @@ MonoBehaviour:
   - Name: MUS_Intro
     Clips:
     - {fileID: 8300000, guid: f498ac90116bbec4e8d9bee949c97217, type: 3}
-    Volume: 0.25
+    Volume: 0.24
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -460,7 +460,7 @@ MonoBehaviour:
   - Name: STG_BossFight
     Clips:
     - {fileID: 8300000, guid: 6ced5186d71532245a6daf9f4bbc4c8d, type: 3}
-    Volume: 0.3
+    Volume: 0.394
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -510,7 +510,7 @@ MonoBehaviour:
   - Name: ROBOT_Fire
     Clips:
     - {fileID: 8300000, guid: a72dd141e5fdd064b8a9d31837a67c63, type: 3}
-    Volume: 1
+    Volume: 0.7
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 5
@@ -520,7 +520,7 @@ MonoBehaviour:
   - Name: ROBOT_Hit
     Clips:
     - {fileID: 8300000, guid: 8c82a6a88af58f648a753ede6223d14e, type: 3}
-    Volume: 1
+    Volume: 0.556
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 3
@@ -530,7 +530,7 @@ MonoBehaviour:
   - Name: MUS_BossFight
     Clips:
     - {fileID: 8300000, guid: 942e6eee5861db744ae047b79da1c09b, type: 3}
-    Volume: 0.2
+    Volume: 0.24
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -540,7 +540,7 @@ MonoBehaviour:
   - Name: MUS_End
     Clips:
     - {fileID: 8300000, guid: 09007811daf1ee74e9baf0cfd7ad22a1, type: 3}
-    Volume: 0.1
+    Volume: 0.216
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -550,7 +550,7 @@ MonoBehaviour:
   - Name: DRONE_Fire
     Clips:
     - {fileID: 8300000, guid: e0da524520abc294cb1b3f1bfb1d8d45, type: 3}
-    Volume: 1
+    Volume: 0.7
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 3
@@ -560,7 +560,7 @@ MonoBehaviour:
   - Name: TURRET_Fire
     Clips:
     - {fileID: 8300000, guid: eac4b27eac2f3bf4588184b1d791dc61, type: 3}
-    Volume: 1
+    Volume: 0.7
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 4
@@ -570,7 +570,7 @@ MonoBehaviour:
   - Name: HELI_Gun
     Clips:
     - {fileID: 8300000, guid: fd00181e2a340a84dad957684e0eeae3, type: 3}
-    Volume: 1
+    Volume: 0.617
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 10
@@ -594,11 +594,21 @@ MonoBehaviour:
     Clips:
     - {fileID: 8300000, guid: 49303eed1c9a848489a30d12be4e41f5, type: 3}
     - {fileID: 8300000, guid: 7c2661c1780e71d4eade8a108dd032d6, type: 3}
-    Volume: 1
-    Pitch: {x: 0.95, y: 1.05}
+    Volume: 0.71
+    Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
     MaxDistance: 50
+    Loop: 0
+    Group: SFX
+  - Name: GATE_Open
+    Clips:
+    - {fileID: 8300000, guid: ffa95f0b45d24e14a83cdfe9ecd688de, type: 3}
+    Volume: 0.794
+    Pitch: {x: 0.95, y: 1.05}
+    Spatial: 1
+    MinDistance: 3
+    MaxDistance: 35
     Loop: 0
     Group: SFX
   Tuning:
@@ -618,6 +628,8 @@ MonoBehaviour:
     SentryRadioDistance: {x: 2, y: 25}
     SentryRadioVolume: 0.25
     SwooshPeak: 0.6
+    SwooshCutOffset: 0
+    SwooshMovePeakAt: 0.6
     SwooshSoftVolume: 0.55
     CinematicReach: 5
     SirenFade: 1.5

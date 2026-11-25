@@ -50,7 +50,7 @@ namespace Vantage
         private bool _introStarted, _bossStarted;
         private float _introHandback = -1f;
         private float _exploreIn = 1f;
-        private float _exploreVolume = 1f, _combatVolume = 1f, _combatMix, _dipUntil, _lastFight = -100f, _nextCheck, _endedAt;
+        private float _combatMix, _dipUntil, _lastFight = -100f, _nextCheck, _endedAt;
         private bool _cinematic;
         private readonly Dictionary<GameObject, (CharacterMotor motor, FighterBrain brain, IVantageEnemy machine)> _parts =
             new Dictionary<GameObject, (CharacterMotor, FighterBrain, IVantageEnemy)>();
@@ -83,8 +83,8 @@ namespace Vantage
             _combat = VantageAudio.PlayLoop(VantageSounds.MusCombat, null);
             // Restart both on one DSP time, so the layers stay sample-locked for the whole game.
             var at = AudioSettings.dspTime + 0.2;
-            if (_explore != null) { _exploreVolume = _explore.volume; _explore.Stop(); _explore.PlayScheduled(at); }
-            if (_combat != null) { _combatVolume = _combat.volume; _combat.Stop(); _combat.PlayScheduled(at); _combat.volume = 0f; }
+            if (_explore != null) { _explore.Stop(); _explore.PlayScheduled(at); }
+            if (_combat != null) { _combat.Stop(); _combat.PlayScheduled(at); _combat.volume = 0f; }
             _cinematic = VantageCinematic.Active;
             VantageAudio.SetSnapshot(_cinematic ? "Cinematic" : "Explore", 0f);
         }
@@ -102,11 +102,13 @@ namespace Vantage
             var target = Combat && !_cinematic && _boss == null ? 1f : 0f;
             _combatMix = Mathf.MoveTowards(_combatMix, target, Time.deltaTime / Mathf.Max(0.01f, CombatFade));
             var dip = Time.time < _dipUntil ? Mathf.Pow(10f, StingerDip / 20f) : 1f;
-            if (_combat != null) _combat.volume = _combatVolume * _combatMix * dip;
+            // Each layer at its own Sound Board volume, read live (2026-11-25: they were copied once at the start, so a
+            // change while playing never reached them).
+            if (_combat != null) _combat.volume = VantageAudio.EventVolume(VantageSounds.MusCombat) * _combatMix * dip;
             if (_explore != null)
             {
                 var ending = Ended ? Mathf.Clamp01(1f - (Time.time - _endedAt) / Mathf.Max(0.01f, EndingFade)) : 1f;
-                _explore.volume = _exploreVolume * dip * ending * _exploreIn;
+                _explore.volume = VantageAudio.EventVolume(VantageSounds.MusExplore) * dip * ending * _exploreIn;
             }
         }
 

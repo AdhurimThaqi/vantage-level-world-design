@@ -91,6 +91,7 @@ namespace Vantage
             var r = GetComponentInChildren<Renderer>();
             Bounds b = r ? r.bounds : new Bounds(transform.position, new Vector3(1.2f, 2.3f, 0.12f));
             openPos = closedPos + Vector3.up * (b.size.y + 0.05f);
+            if (latched) transform.position = openPos;   // VANTAGE change: forced open (checkpoint) before Start: up, silently
             doorNormal = b.size.x < b.size.z ? Vector3.right : Vector3.forward;
             nextSense = Time.time + Random.value * SenseInterval;
 
@@ -132,6 +133,8 @@ namespace Vantage
             }
             pendingUnlock = false;
             locked = false;
+            // VANTAGE change (2026-11-25): a locked gate that isn't a doorway (bars rolling up) stays up once unlocked.
+            if (type == DoorType.Locked && !Doorway) latched = true;
             if (type == DoorType.Shutter) OpenShutter();
             else if (Doorway && started)
             {
@@ -164,6 +167,12 @@ namespace Vantage
             pendingUnlock = false;
             locked = false;
             killList = null;
+            if (type == DoorType.Locked && !Doorway)
+            {
+                // Checkpoint: the gate is up already, silently.
+                latched = want = true;
+                if (started) transform.position = openPos;
+            }
             if (type == DoorType.Shutter)
             {
                 shutterT = shutterTarget = 1f;
@@ -233,6 +242,7 @@ namespace Vantage
             transform.rotation = Quaternion.FromToRotation(leaf.normalized, best.Value) * transform.rotation;
         }
         Quaternion? swungFrom;
+        bool latched;
 
         /// <summary>VANTAGE change (2026-11-25): opens a door locked by Lock() now, whatever its ClearLevel, with the gate sound.</summary>
         public void OpenNow()
@@ -293,11 +303,19 @@ namespace Vantage
             if (Time.time >= nextSense)
             {
                 nextSense = Time.time + SenseInterval;
-                want = !locked && !pendingUnlock && someoneNear();
+                want = !locked && !pendingUnlock && (latched || someoneNear());
             }
             var target = want ? openPos : closedPos;
-            if (transform.position != target)
-                transform.position = Vector3.MoveTowards(transform.position, target, openSpeed * Time.deltaTime);
+            if (transform.position == target) return;
+            // VANTAGE change (2026-11-25): a locked gate (the L2 stairwell gate) is heard as it starts to rise, and rises
+            // exactly as long as its sound lasts, so the motion and the sound end together.
+            if (latched && want && transform.position == closedPos)
+            {
+                var sound = VantageAudio.Play(VantageSounds.GateOpen, transform.position);
+                if (sound != null && sound.clip != null)
+                    openSpeed = Vector3.Distance(closedPos, openPos) / Mathf.Max(0.2f, sound.clip.length / Mathf.Max(0.01f, sound.pitch));
+            }
+            transform.position = Vector3.MoveTowards(transform.position, target, openSpeed * Time.deltaTime);
         }
 
         /// <summary>An open doorway: the leaf and its colliders are switched off (or back on when shut).</summary>

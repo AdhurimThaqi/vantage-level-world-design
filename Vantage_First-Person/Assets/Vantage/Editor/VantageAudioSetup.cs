@@ -39,6 +39,7 @@ namespace Vantage.EditorTools
                 { VantageSounds.AlarmSiren, ("SFX", 1, true, 6, 70) },
                 { VantageSounds.ShutterSlam, ("SFX", 1, false, 4, 45) },
                 { VantageSounds.ShutterRoll, ("SFX", 1, false, 3, 35) },
+                { VantageSounds.GateOpen, ("SFX", 1, false, 3, 35) },
                 { VantageSounds.KeyPickup, ("SFX", 1, false, 1, 15) },
                 { VantageSounds.KeySlotTurn, ("SFX", 1, false, 1, 15) },
                 { VantageSounds.SentryGlint, ("SFX", 0, false, 1, 50) },
@@ -165,23 +166,33 @@ namespace Vantage.EditorTools
         }
 
         /// <summary>
-        /// Memory for long clips: tracks of 20 s and more stream from disk (Vorbis), except the two music layers,
-        /// which start together on one DSP time and stay compressed in memory; clips of 5–20 s are compressed in
-        /// memory; short ones keep Unity's default (decompressed, no latency). Only changed settings reimport.
+        /// Import settings for every clip, enforced on each refresh (2026-11-25: short clips kept what their long REAPER
+        /// renders had: one-shots under a second streamed from disk, with a delay and a stream each in a fight, and
+        /// no clip was preloaded, so each loaded on its first play and the camera swooshes started late):
+        /// - under 5 s: decompressed on load, preloaded (no latency; one-shots, swooshes, footsteps);
+        /// - 5 to 20 s, and the two music layers (they start together on one DSP time): compressed in memory, preloaded;
+        /// - 20 s and longer: streamed from disk (music, beds), not preloaded.
+        /// Only clips whose settings change are reimported.
         /// </summary>
         private static void importSettings(string path, string stem)
         {
             var importer = AssetImporter.GetAtPath(path) as AudioImporter;
             var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
-            if (importer == null || clip == null || clip.length < 5f) return;
+            if (importer == null || clip == null) return;
             var layer = stem == VantageSounds.MusExplore || stem == VantageSounds.MusCombat;
+            AudioClipLoadType load;
+            if (clip.length < 5f) load = AudioClipLoadType.DecompressOnLoad;
+            else if (clip.length < 20f || layer) load = AudioClipLoadType.CompressedInMemory;
+            else load = AudioClipLoadType.Streaming;
+            var preload = load != AudioClipLoadType.Streaming;
             var s = importer.defaultSampleSettings;
-            var load = clip.length >= 20f && !layer ? AudioClipLoadType.Streaming : AudioClipLoadType.CompressedInMemory;
-            if (s.loadType == load && s.compressionFormat == AudioCompressionFormat.Vorbis) return;
+            if (s.loadType == load && s.compressionFormat == AudioCompressionFormat.Vorbis && s.preloadAudioData == preload && !importer.loadInBackground) return;
             s.loadType = load;
             s.compressionFormat = AudioCompressionFormat.Vorbis;
             s.quality = 0.7f;
+            s.preloadAudioData = preload;
             importer.defaultSampleSettings = s;
+            importer.loadInBackground = false;
             importer.SaveAndReimport();
         }
 

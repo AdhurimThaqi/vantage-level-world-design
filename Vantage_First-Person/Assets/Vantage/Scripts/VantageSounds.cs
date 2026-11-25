@@ -18,6 +18,8 @@ namespace Vantage
         public const string AlarmSiren = "ALARM_Siren";
         public const string ShutterSlam = "SHUTTER_Slam";
         public const string ShutterRoll = "SHUTTER_Roll";
+        /// <summary>The L2 stairwell gate rolling up once the key is in and the floor is clear (the user's take, 2026-11-25).</summary>
+        public const string GateOpen = "GATE_Open";
         public const string KeyPickup = "KEY_Pickup";
         public const string KeySlotTurn = "KEYSLOT_Turn";
         public const string SentryGlint = "SENTRY_Glint";
@@ -78,7 +80,7 @@ namespace Vantage
         public static readonly string[] All =
         {
             AmbExterior, AmbL1, AmbL2, AmbL3, AmbHelipad, AmbDebris, FsConcrete, FsMetal, FsDirt, AlarmSiren, ShutterSlam,
-            ShutterRoll, KeyPickup, KeySlotTurn, SentryGlint, SentryCrack, SentryWarningCall, VoContact, RobotDeflect,
+            ShutterRoll, GateOpen, KeyPickup, KeySlotTurn, SentryGlint, SentryCrack, SentryWarningCall, VoContact, RobotDeflect,
             RobotServo, RobotTelegraph, DroneHum, HeliRotor, UiMove, UiSelect, CoinCollect, PickupWeapon, MusExplore,
             MusCombat, StgLockdown, StgCleared, StgExtraction, MusMenu, MusIntro, BossReveal, BossRoar, StgBossFight, MusBossFight, MusEnd, BodyFall, GunPistol, GunRifle, GunEmpty, PlayerJump, RobotFire, RobotHit, GuidePa, GuideStairs, GuideRadio, GuidePhone,
             KeySlotBeep, GuideWind, GuideHeliRadio, DroneFire, TurretFire, HeliGun, CamSwoosh,

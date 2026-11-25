@@ -31,7 +31,16 @@ namespace Vantage
         public static VantageAudio Instance { get; private set; }
 
         private readonly List<AudioSource> _pool = new List<AudioSource>();
-        private readonly List<(AudioSource source, Transform follow, bool follows)> _loops = new List<(AudioSource, Transform, bool)>();
+        /// <summary>A loop from PlayLoop: what it follows, and its bank event and the volume last applied (live volume).</summary>
+        private class Loop
+        {
+            public AudioSource Source;
+            public Transform Follow;
+            public bool Follows;
+            public SoundEvent Event;
+            public float Applied;
+        }
+        private readonly List<Loop> _loops = new List<Loop>();
         private readonly Dictionary<string, AudioMixerGroup> _groups = new Dictionary<string, AudioMixerGroup>();
         private static readonly Dictionary<string, int> _plays = new Dictionary<string, int>();
         private int _next;
@@ -74,11 +83,19 @@ namespace Vantage
         {
             for (int i = _loops.Count - 1; i >= 0; i--)
             {
-                var (source, follow, follows) = _loops[i];
-                if (source == null) { _loops.RemoveAt(i); continue; }
+                var l = _loops[i];
+                if (l.Source == null) { _loops.RemoveAt(i); continue; }
                 // A loop on something that was destroyed ends with it.
-                if (follows && follow == null) { Destroy(source.gameObject); _loops.RemoveAt(i); continue; }
-                if (follow != null) source.transform.position = follow.position;
+                if (l.Follows && l.Follow == null) { Destroy(l.Source.gameObject); _loops.RemoveAt(i); continue; }
+                if (l.Follow != null) l.Source.transform.position = l.Follow.position;
+                // Live volume (2026-11-25): an event's Volume changed in the Sound Board reaches its playing loop at
+                // once, by the ratio, so a fade or mix the owner applied on top is kept. Owners that set the volume
+                // every frame read EventVolume themselves.
+                if (l.Event != null && l.Event.Volume != l.Applied)
+                {
+                    if (l.Applied > 0.0001f) l.Source.volume *= l.Event.Volume / l.Applied;
+                    l.Applied = l.Event.Volume;
+                }
             }
         }
 
@@ -103,6 +120,13 @@ namespace Vantage
         {
             count(name);
             return Instance != null ? Instance.loop(name, follow, fallback) : null;
+        }
+
+        /// <summary>An event's current Volume from the bank (1 without a bank or event): the Sound Board's value, live.</summary>
+        public static float EventVolume(string name)
+        {
+            var e = Instance != null && Instance.Bank != null ? Instance.Bank.Find(name) : null;
+            return e != null ? e.Volume : 1f;
         }
 
         /// <summary>Stops (and removes) a loop from PlayLoop, optionally fading out.</summary>
@@ -179,19 +203,27 @@ namespace Vantage
         }
 
         /// <summary>
-        /// A cutscene swoosh (CAM_Swoosh) whose peak lands 'toCut' seconds from now: started early when the cut is
-        /// ahead, or from inside the clip when the cut is now (Tuning.SwooshPeak says where each clip peaks).
+        /// A cutscene swoosh (CAM_Swoosh) whose peak lands 'toPeak' seconds from now: started early when the peak is
+        /// ahead, or from inside the clip when it is now (Tuning.SwooshPeak says where the clips peak; a pitch other
+        /// than 1 moves the peak, and is allowed for).
         /// </summary>
-        public static AudioSource Swoosh(float toCut = 0f, float volume = 1f)
+        public static AudioSource Swoosh(float toPeak = 0f, float volume = 1f)
         {
             var source = Play2D(VantageSounds.CamSwoosh);
             if (source == null || source.clip == null) return source;
             source.volume *= volume;
-            var lead = Tuning.SwooshPeak - toCut;   // seconds of the clip already past at the cut
-            if (lead > 0f) source.time = Mathf.Min(lead, source.clip.length - 0.05f);
+            var pitch = Mathf.Max(0.01f, source.pitch);
+            var lead = Tuning.SwooshPeak / pitch - toPeak;   // real seconds of the clip already past now
+            if (lead > 0f) source.time = Mathf.Min(lead * pitch, source.clip.length - 0.05f);
             else { source.Stop(); source.PlayDelayed(-lead); }
             return source;
         }
+
+        /// <summary>The swoosh for a hard cut 'toCut' seconds from now (peak on the cut, plus Tuning.SwooshCutOffset).</summary>
+        public static AudioSource SwooshCut(float toCut, float volume = 1f) => Swoosh(Mathf.Max(0f, toCut + Tuning.SwooshCutOffset), volume);
+
+        /// <summary>The swoosh for a camera move starting 'toStart' seconds from now (peak Tuning.SwooshMovePeakAt into it).</summary>
+        public static AudioSource SwooshMove(float toStart, float volume = 1f) => Swoosh(Mathf.Max(0f, toStart + Tuning.SwooshMovePeakAt), volume);
 
         /// <summary>
         /// In a cutscene, a sound from a character the camera watches (the intro's deserter walking, running, falling)
@@ -283,7 +315,7 @@ namespace Vantage
             source.clip = clip;
             source.loop = true;
             source.Play();
-            _loops.Add((source, follow, follow != null));
+            _loops.Add(new Loop { Source = source, Follow = follow, Follows = follow != null, Event = e, Applied = e != null ? e.Volume : 0f });
             return source;
         }
 

@@ -85,7 +85,7 @@ namespace Vantage
             _overlay = new VantageLetterbox("VANTAGE Boss Reveal", 60);
             _sound = VantageAudio.PlayLoop(VantageSounds.BossReveal, null);
             if (_sound != null) _sound.loop = false;
-            VantageAudio.Swoosh(0f);   // into the cutscene: the cut is now (2026-11-25: peak on the cut)
+            VantageAudio.SwooshCut(0f);   // into the cutscene: the cut is now
             _swooshArc = _swooshBack = false;
             _startTime = Time.time;
             _playing = true;
@@ -100,10 +100,11 @@ namespace Vantage
             var t = Elapsed;
             if (_boss == null || _boss.IsDead || VantageEvents.ActivePlayer() == null || t >= Length) { finish(); return; }
             if (t >= SkipAfter && (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Escape))) { finish(); return; }
-            // Swooshes on the cut to the arc and on the way back to the player (their peaks on the cuts).
-            var peak = VantageAudio.Tuning.SwooshPeak;
-            if (!_swooshArc && t >= ShotLow - peak) { _swooshArc = true; VantageAudio.Swoosh(ShotLow - t); }
-            if (!_swooshBack && t >= ShotArc) { _swooshBack = true; VantageAudio.Swoosh(peak, VantageAudio.Tuning.SwooshSoftVolume); }   // a move: starts with it
+            // The cut to the arc (peak on the cut) and the move back to the player (peak SwooshMovePeakAt into it).
+            var tuning = VantageAudio.Tuning;
+            var arcPeak = ShotLow + tuning.SwooshCutOffset;
+            if (!_swooshArc && t >= arcPeak - tuning.SwooshPeak) { _swooshArc = true; VantageAudio.Swoosh(Mathf.Max(0f, arcPeak - t)); }
+            if (!_swooshBack && t >= ShotArc + tuning.SwooshMovePeakAt - tuning.SwooshPeak) { _swooshBack = true; VantageAudio.SwooshMove(ShotArc - t, tuning.SwooshSoftVolume); }
             if (!_roared && t >= RoarAt)
             {
                 _roared = true;
