@@ -22,6 +22,10 @@ namespace Vantage
         /// <summary>The intro has played this run (it doesn't replay after a death).</summary>
         public static bool IntroPlayed;
         public static float StartTime;
+        /// <summary>Grenades the player carries (VantageGrenades); found in the level, kept after a death.</summary>
+        public static int Grenades;
+        /// <summary>The grenade hint has done its job (the first grenade was thrown this run).</summary>
+        public static bool GrenadeTaught;
 
         public static float Elapsed => Time.realtimeSinceStartup - StartTime;
 
@@ -36,6 +40,8 @@ namespace Vantage
             DeadSentries.Clear();
             IntroPlayed = false;
             Deaths = 0;
+            Grenades = 0;
+            GrenadeTaught = false;
             StartTime = Time.realtimeSinceStartup;
         }
 

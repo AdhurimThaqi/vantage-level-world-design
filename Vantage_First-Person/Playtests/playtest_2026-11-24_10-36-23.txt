@@ -1,0 +1,62 @@
+VANTAGE playtest  2026-11-24_10-36-23
+Enemy placement seed: 40218
+Session length: 237s (run 233s, deaths 1)  Completed: no   Furthest: Level 3 (destroyed floor)   Backtracks: 3
+
+Time per space
+  Military Base      59s   deaths 0
+  Level 1 (ground floor)     87s   deaths 0
+  Level 2 (armory)     38s   deaths 0
+  Level 3 (destroyed floor)     50s   deaths 1
+  Finale (helipad)      0s   deaths 0
+
+Kills
+  Soldier        12
+  Turret         3
+  Drone          2
+  Heavy robot    1
+
+Tester notes (fill in after the session)
+  Tester: 
+  What they said: 
+  What changes as a result: 
+
+Events
+[    0.0s] Enemy placement seed 40218
+[    0.0s] Session started
+[   43.7s] Intro watched
+[   46.9s] Picked up Pistol
+[   47.0s] Military Base -> Level 1 (ground floor)
+[   48.0s] Level 1 (ground floor) -> Military Base
+[   48.0s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   49.2s] Military Base -> Level 1 (ground floor)
+[   50.8s] Level 1 (ground floor) -> Military Base
+[   50.8s] BACKTRACK to Military Base (furthest so far: Level 1 (ground floor))
+[   54.7s] Killed Soldier in Level 1 (ground floor)
+[   56.4s] Killed Soldier in Level 1 (ground floor)
+[   61.7s] Military Base -> Level 1 (ground floor)
+[   63.8s] Alarm raised by the trigger
+[   66.1s] Killed Soldier in Level 1 (ground floor)
+[   70.4s] Killed Soldier in Level 1 (ground floor)
+[   74.8s] Killed Soldier in Level 1 (ground floor)
+[   85.2s] Coin 1/5
+[   90.3s] Killed Turret in Level 1 (ground floor)
+[  109.4s] Killed Soldier in Level 2 (armory)
+[  112.0s] Killed Drone in Level 2 (armory)
+[  120.2s] Killed Drone in Level 2 (armory)
+[  122.0s] Killed Soldier in Level 2 (armory)
+[  128.4s] Killed Soldier in Level 2 (armory)
+[  131.6s] Level 1 (ground floor) -> Level 2 (armory)
+[  133.2s] Level 2 (armory) -> Level 1 (ground floor)
+[  133.2s] BACKTRACK to Level 1 (ground floor) (furthest so far: Level 2 (armory))
+[  140.0s] Killed Turret in Level 2 (armory)
+[  142.7s] Killed Soldier in Level 2 (armory)
+[  146.2s] Killed Turret in Level 2 (armory)
+[  147.6s] Level 1 (ground floor) -> Level 2 (armory)
+[  152.4s] Killed Soldier in Level 2 (armory)
+[  157.9s] Coin 2/5
+[  164.4s] Picked up Rifle
+[  182.6s] Killed Soldier in Level 3 (destroyed floor)
+[  184.2s] Level 2 (armory) -> Level 3 (destroyed floor)
+[  189.1s] Killed Soldier in Level 3 (destroyed floor)
+[  226.1s] Killed Heavy robot in Level 3 (destroyed floor)
+[  233.8s] DEATH in Level 3 (destroyed floor) at (-5.2, 12.7, -68.3) (health reached zero)

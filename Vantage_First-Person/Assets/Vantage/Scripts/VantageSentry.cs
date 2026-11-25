@@ -119,7 +119,10 @@ namespace Vantage
             var sees = player != null && player.IsAlive && canSee(player);
 
             // The player on the sentry's level: the template's combat (its own eyes and ears on).
-            var onLevel = player != null && levels != null && levels.LevelAt(player.transform.position) == _route.Level;
+            // Not while the level below the finale is still being fought (2026-11-25): the slab sentry shot the player in
+            // the back during the L3 robot fight. It joins once its level is cleared; the helipad sentry fights the finale.
+            var holds = levels != null && _route.Level < levels.Levels.Count - 1 && !levels.IsCleared(_route.Level);
+            var onLevel = !holds && player != null && levels != null && levels.LevelAt(player.transform.position) == _route.Level;
             var fight = onLevel && sees && (player.transform.position - transform.position).sqrMagnitude <= EngageRange * EngageRange;
             if (onLevel != _inCombat) { _inCombat = onLevel; setTemplateSenses(onLevel); }
 

@@ -85,7 +85,7 @@ namespace Vantage
             _overlay = new VantageLetterbox("VANTAGE Boss Reveal", 60);
             _sound = VantageAudio.PlayLoop(VantageSounds.BossReveal, null);
             if (_sound != null) _sound.loop = false;
-            VantageAudio.Swoosh(0.15f);   // into the cutscene (2026-11-23)
+            VantageAudio.Swoosh(0f);   // into the cutscene: the cut is now (2026-11-25: peak on the cut)
             _swooshArc = _swooshBack = false;
             _startTime = Time.time;
             _playing = true;
@@ -103,7 +103,7 @@ namespace Vantage
             // Swooshes on the cut to the arc and on the way back to the player (their peaks on the cuts).
             var peak = VantageAudio.Tuning.SwooshPeak;
             if (!_swooshArc && t >= ShotLow - peak) { _swooshArc = true; VantageAudio.Swoosh(ShotLow - t); }
-            if (!_swooshBack && t >= ShotArc - peak) { _swooshBack = true; VantageAudio.Swoosh(ShotArc - t, VantageAudio.Tuning.SwooshSoftVolume); }
+            if (!_swooshBack && t >= ShotArc) { _swooshBack = true; VantageAudio.Swoosh(peak, VantageAudio.Tuning.SwooshSoftVolume); }   // a move: starts with it
             if (!_roared && t >= RoarAt)
             {
                 _roared = true;

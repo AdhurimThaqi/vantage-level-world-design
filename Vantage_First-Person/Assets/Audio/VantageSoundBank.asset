@@ -16,7 +16,7 @@ MonoBehaviour:
   - Name: AMB_Exterior_Dusk
     Clips:
     - {fileID: 8300000, guid: 266fb5415e89fe94ca9dc5549cc3ab2d, type: 3}
-    Volume: 1
+    Volume: 0.55
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -117,7 +117,7 @@ MonoBehaviour:
   - Name: ALARM_Siren
     Clips:
     - {fileID: 8300000, guid: b9aa4afe7087da14b83f1af5194985f1, type: 3}
-    Volume: 1
+    Volume: 0.5
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 1
     MinDistance: 6
@@ -300,7 +300,7 @@ MonoBehaviour:
   - Name: MUS_Explore
     Clips:
     - {fileID: 8300000, guid: 3e072cd6a7389084d97d38e721f25583, type: 3}
-    Volume: 0.12
+    Volume: 0.03
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -310,7 +310,7 @@ MonoBehaviour:
   - Name: MUS_Combat
     Clips:
     - {fileID: 8300000, guid: 4adb7b41f188441489bdbce7710611ab, type: 3}
-    Volume: 0.14
+    Volume: 0.05
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -320,7 +320,7 @@ MonoBehaviour:
   - Name: STG_Lockdown
     Clips:
     - {fileID: 8300000, guid: 9ba5df5e80192b04b9f4f5edeac9ba13, type: 3}
-    Volume: 0.2
+    Volume: 0.145
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -330,7 +330,7 @@ MonoBehaviour:
   - Name: STG_Cleared
     Clips:
     - {fileID: 8300000, guid: 459b4f3836b0b274bb3b04fad42d5e36, type: 3}
-    Volume: 0.15
+    Volume: 0.5
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -340,7 +340,7 @@ MonoBehaviour:
   - Name: STG_Extraction
     Clips:
     - {fileID: 8300000, guid: c0bd94dbf8d5a594fae12fda71e4c637, type: 3}
-    Volume: 0.22
+    Volume: 0.143
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -540,7 +540,7 @@ MonoBehaviour:
   - Name: MUS_End
     Clips:
     - {fileID: 8300000, guid: 09007811daf1ee74e9baf0cfd7ad22a1, type: 3}
-    Volume: 0.3
+    Volume: 0.1
     Pitch: {x: 1, y: 1}
     Spatial: 0
     MinDistance: 1
@@ -594,8 +594,6 @@ MonoBehaviour:
     Clips:
     - {fileID: 8300000, guid: 49303eed1c9a848489a30d12be4e41f5, type: 3}
     - {fileID: 8300000, guid: 7c2661c1780e71d4eade8a108dd032d6, type: 3}
-    - {fileID: 8300000, guid: 01b3d440eaa31c34ab72b3b2d07dfb38, type: 3}
-    - {fileID: 8300000, guid: 259301aa00aa92c4f85801e73b4d0a05, type: 3}
     Volume: 1
     Pitch: {x: 0.95, y: 1.05}
     Spatial: 0

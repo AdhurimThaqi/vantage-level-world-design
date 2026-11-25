@@ -53,6 +53,18 @@ namespace Vantage
 
             if (GetComponent<VantagePlayerHUD>() == null)
                 gameObject.AddComponent<VantagePlayerHUD>();
+            if (GetComponent<VantageGrenades>() == null)
+                gameObject.AddComponent<VantageGrenades>();
+
+            // The avatar's hair and clothes are separate skinned meshes with their own (bind-pose) bounds: depending on
+            // the camera's angle, occlusion culling hid them behind the stairs and walls next to the player, and stale
+            // bounds left the frustum (2026-11-25: hair and shirt vanished while the body stayed). The player is
+            // always in view, so never cull it: exact bounds every frame, no dynamic occlusion.
+            foreach (var r in GetComponentsInChildren<Renderer>(true))
+            {
+                r.allowOcclusionWhenDynamic = false;
+                if (r is SkinnedMeshRenderer skinned) skinned.updateWhenOffscreen = true;
+            }
         }
 
         /// <summary>No damage for a few seconds (restart at a checkpoint), so the player can look around first.</summary>
@@ -61,6 +73,17 @@ namespace Vantage
             if (_health == null || seconds <= 0f) return;
             _protectedUntil = Time.time + seconds;
             _health.IsTakingDamage = false;
+        }
+
+        /// <summary>Alive and below full health (a health kit only takes itself when it helps).</summary>
+        public bool Hurt => !_dead && _health != null && _motor != null && _motor.IsAlive && _health.Health < MaxHealth - 0.5f;
+
+        /// <summary>Back to full health (VantageHealthKit).</summary>
+        public void Heal()
+        {
+            if (_health == null || _dead) return;
+            _health.Health = MaxHealth;
+            _previousHealth = MaxHealth;
         }
 
         /// <summary>True while the restart protection lasts.</summary>

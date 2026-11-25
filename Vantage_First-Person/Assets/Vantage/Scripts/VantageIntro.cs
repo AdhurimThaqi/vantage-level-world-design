@@ -350,7 +350,7 @@ namespace Vantage
             }
             VantageCinematic.End();
             // Skipped: one swoosh into the player's camera (played out, the last scheduled one already covers it).
-            if (skipped) VantageAudio.Swoosh(0.1f);
+            if (skipped) VantageAudio.Swoosh(0f);
             if (Whoosh != null && _camera != null && !VantageAudio.Has(VantageSounds.CamSwoosh)) VantageAudio.PlayClip(Whoosh, _camera.transform.position, "SFX");
             _overlay?.Destroy();
             _overlay = null;
@@ -359,20 +359,23 @@ namespace Vantage
 
         /// <summary>
         /// A swoosh on every camera cut: away from the title screen, over the sentry's shoulder, to the body, each
-        /// move of the climb (softer), down to the pistol (softer) and into the player's camera. Each starts
-        /// Tuning.SwooshPeak before its cut, so its peak lands on it.
+        /// move of the climb (softer), down to the pistol (softer) and into the player's camera. A cut's swoosh
+        /// starts Tuning.SwooshPeak before it (its peak on the cut); a move's starts with the move.
         /// </summary>
         private void swooshes(float t)
         {
             if (_swooshes == null)
             {
+                // Cuts: the peak on the cut. Moves: the swoosh starts as the camera starts moving (its peak
+                // SwooshPeak later, in the fast middle of the move) (2026-11-25, the user: "the moment the camera moves").
                 var soft = VantageAudio.Tuning.SwooshSoftVolume;
+                var move = VantageAudio.Tuning.SwooshPeak;
                 _swooshes = new System.Collections.Generic.List<(float, float)>();
-                if (_fromMenu) _swooshes.Add((0.3f, soft));
+                if (_fromMenu) _swooshes.Add((move, soft));
                 if (Deserter != null) { _swooshes.Add((SentryCut, 1f)); _swooshes.Add((BodyCut, 1f)); }
-                for (int i = 0; i < 4; i++) _swooshes.Add((ShotDeserter + i * Beat + Travel * 0.5f, soft));
-                _swooshes.Add((ShotClimb + 1.1f, soft));
-                _swooshes.Add((Length, 1f));
+                for (int i = 0; i < 4; i++) _swooshes.Add((ShotDeserter + i * Beat + move, soft));
+                _swooshes.Add((ShotClimb + move, soft));
+                _swooshes.Add((ShotPistol + move, 1f));
             }
             var peak = VantageAudio.Tuning.SwooshPeak;
             while (_nextSwoosh < _swooshes.Count && t >= _swooshes[_nextSwoosh].at - peak)

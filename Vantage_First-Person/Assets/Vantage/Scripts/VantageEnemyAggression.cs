@@ -67,6 +67,7 @@ namespace Vantage
         public bool HasTurn => Turns.Contains(this);
         /// <summary>Sees the player but holds fire until a turn comes free.</summary>
         public bool Waiting { get; private set; }
+        private bool _loggedHighAim;
         private const float LostSightRelease = 1.5f;
         private float _turnSince, _turnAgainAt, _lastSawPlayer = -10f;
         private AIFire _fire;
@@ -113,9 +114,11 @@ namespace Vantage
         {
             if (_actor == null) return;
             if (!_actor.IsAlive) { releaseTurn(); return; }
-            // Keeps the gun up on the player while holding fire, but not on the move: aiming while walking plays the
-            // strafe and backpedal animations with the body locked on the player (it looked like sliding).
-            if (Waiting && _motor != null && !_motor.IsMoving) _motor.InputAim();
+            // A soldier waiting for its turn holds its aim (the pose firing soldiers have), standing still and never
+            // through a reload (2026-11-25: aiming through the reload it was told to do bent the body back, and the
+            // pistol idle pose without aiming tilted the Low Poly body up: L2's waiting pistol soldiers stared at the
+            // ceiling either way).
+            if (Waiting && _motor != null && !_motor.IsMoving && !_motor.IsReloading) _motor.InputAim();
             if (Time.time < _nextThink)
                 return;
             _nextThink = Time.time + ThinkInterval;
@@ -123,6 +126,17 @@ namespace Vantage
             var player = VantageEvents.ActivePlayer();
             if (player == null)
                 return;
+
+            // Diagnostic (2026-11-25): a soldier aiming far above its head while the player isn't up there, once each.
+            if (!_loggedHighAim && _motor != null)
+            {
+                var eye = VantagePhysics.Eye(_actor);
+                if (_motor.AimTarget.y > eye.y + 2.5f && VantagePhysics.AimPoint(player).y < eye.y + 1f)
+                {
+                    _loggedHighAim = true;
+                    Debug.Log($"[Vantage] {name} aims high: target {_motor.AimTarget:F1}, eye {eye:F1}, threat {(_brain.Threat != null ? _brain.Threat.name : "none")} at {_brain.LastKnownThreatPosition:F1}, waiting {Waiting}, aiming {_motor.IsAiming}, moving {_motor.IsMoving}.");
+                }
+            }
 
             var levels = VantageTowerLevels.Instance;
             if (!_engaged && _brain.Threat != null) wake();   // the template found a fight on its own (a friend was hit)
@@ -199,7 +213,7 @@ namespace Vantage
 
         /// <summary>
         /// Takes or keeps an attack turn and lets the gun fire only with one. Without a turn the template's AIFire is
-        /// switched off (it fires by itself whenever the brain says "open fire"), the soldier reloads and keeps aiming.
+        /// switched off (it fires by itself whenever the brain says "open fire"), the soldier holds its aim on the player.
         /// </summary>
         private void updateTurn()
         {
@@ -232,7 +246,6 @@ namespace Vantage
             if (_fire != null && _fire.enabled == waiting)
             {
                 _fire.enabled = !waiting;
-                if (waiting && _motor != null && _motor.IsAlive) _motor.InputReload();   // use the pause: reload
             }
             if (waiting == Waiting) return;
             Waiting = waiting;

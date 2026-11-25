@@ -40,6 +40,8 @@ namespace Vantage
         public int ClearLevel = -1;
         [Tooltip("VANTAGE: an open doorway (leaf hidden) from the start, or once unlocked; no motion. Off for the shutter and gates.")]
         public bool Doorway;
+        [Tooltip("VANTAGE change (2026-11-25): an open doorway that keeps its leaf where the model has it (standing open), instead of hiding it. The tower's front doors.")]
+        public bool KeepLeaf;
 
         [Header("Shutter")]
         public float shutterDrop = 2.75f;          // open_z - closed_z from Blender
@@ -131,7 +133,13 @@ namespace Vantage
             pendingUnlock = false;
             locked = false;
             if (type == DoorType.Shutter) OpenShutter();
-            else if (Doorway && started) setDoorway(true);
+            else if (Doorway && started)
+            {
+                // VANTAGE change (2026-11-25): a locked gate opening is heard (the user's gate take); doorways that
+                // stand open from the start or are opened by a checkpoint (ForceOpen) stay silent.
+                if (!doorwayOpen) VantageAudio.Play(VantageSounds.ShutterRoll, transform.position);
+                setDoorway(true);
+            }
             updateObstacle();
         }
 
@@ -162,6 +170,82 @@ namespace Vantage
                 if (started) UpdateShutter();
             }
             else if (Doorway && started) setDoorway(true);
+            updateObstacle();
+        }
+
+        /// <summary>
+        /// VANTAGE change (2026-11-25): a level's wave door (L2 Office) shut and locked at runtime until the level brain
+        /// opens it with OpenNow(): the leaf and its colliders back, and a carving obstacle so no one paths through it.
+        /// </summary>
+        public void Lock()
+        {
+            locked = true;
+            pendingUnlock = false;
+            killList = null;
+            if (Doorway) setDoorway(false);
+            swingShut();
+            if (obstacle == null)
+            {
+                obstacle = gameObject.AddComponent<NavMeshObstacle>();
+                obstacle.shape = NavMeshObstacleShape.Box;
+                var box = GetComponent<BoxCollider>();
+                var mesh = GetComponent<MeshFilter>();
+                if (box != null) { obstacle.center = box.center; obstacle.size = box.size + new Vector3(0.1f, 0f, 0.1f); }
+                else if (mesh != null && mesh.sharedMesh != null) { obstacle.center = mesh.sharedMesh.bounds.center; obstacle.size = mesh.sharedMesh.bounds.size + new Vector3(0.1f, 0f, 0.1f); }
+                obstacle.carving = true;
+                obstacle.carveOnlyStationary = false;
+            }
+            updateObstacle();
+        }
+
+        /// <summary>
+        /// VANTAGE change (2026-11-25): the model has some leaves standing open (the L2 Office door is turned ~70° into
+        /// the hall), so a locked one showed open. Turns the leaf about its pivot (the hinge) into the gap of its
+        /// doorway: from the hinge, the gap is the axis direction where the wall comes back about one leaf length away.
+        /// </summary>
+        void swingShut()
+        {
+            if (swungFrom.HasValue) return;
+            var r = GetComponentInChildren<Renderer>();
+            if (r == null) return;
+            var hinge = transform.position;
+            var leaf = r.bounds.center - hinge; leaf.y = 0;
+            var length = leaf.magnitude * 2f;
+            if (length < 0.3f) return;
+            var colliders = GetComponentsInChildren<Collider>();
+            foreach (var c in colliders) c.enabled = false;
+            var origin = hinge + Vector3.up * 1.1f;
+            Vector3? best = null;
+            var bestError = float.MaxValue;
+            foreach (var dir in new[] { Vector3.right, Vector3.left, Vector3.forward, Vector3.back })
+            {
+                var d = Physics.Raycast(origin, dir, out var hit, length + 1f, ~0, QueryTriggerInteraction.Ignore) ? hit.distance : float.MaxValue;
+                var error = Mathf.Abs(d - length);
+                if (d >= length * 0.7f && d <= length + 0.6f && error < bestError) { bestError = error; best = dir; }
+            }
+            foreach (var c in colliders) c.enabled = true;
+            if (!best.HasValue)
+            {
+                Debug.LogWarning($"[Vantage] {name}: no doorway gap found beside its hinge; the leaf stays as modelled.");
+                return;
+            }
+            swungFrom = transform.rotation;
+            transform.rotation = Quaternion.FromToRotation(leaf.normalized, best.Value) * transform.rotation;
+        }
+        Quaternion? swungFrom;
+
+        /// <summary>VANTAGE change (2026-11-25): opens a door locked by Lock() now, whatever its ClearLevel, with the gate sound.</summary>
+        public void OpenNow()
+        {
+            pendingUnlock = false;
+            if (!locked) return;
+            locked = false;
+            if (swungFrom.HasValue) { transform.rotation = swungFrom.Value; swungFrom = null; }
+            if (Doorway)
+            {
+                VantageAudio.Play(VantageSounds.ShutterRoll, transform.position);
+                setDoorway(true);
+            }
             updateObstacle();
         }
 
@@ -220,6 +304,7 @@ namespace Vantage
         void setDoorway(bool open)
         {
             doorwayOpen = open;
+            if (KeepLeaf) return;   // the model's leaf stands open: nothing to hide
             foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = !open;
             foreach (var c in GetComponentsInChildren<Collider>(true)) c.enabled = !open;
         }

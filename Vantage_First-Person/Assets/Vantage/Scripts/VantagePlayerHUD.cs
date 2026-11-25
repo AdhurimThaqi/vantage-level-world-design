@@ -34,7 +34,9 @@ namespace Vantage
         private RectTransform _canvas, _hud;
 
         private TMP_Text _hp, _ammo, _reserve, _weapon, _levelNumber, _levelName, _hint, _notice, _bannerTitle, _bannerSub, _death, _deathSub;
-        private TMP_Text _prompt, _coins, _endTitle, _endStats, _endAgain, _warning;
+        private TMP_Text _prompt, _coins, _endTitle, _endStats, _endAgain, _warning, _grenades, _grenadeHint;
+        private int _shownGrenades = -1;
+        private string _shownGrenadeHint;
         private float _warningFirstAt = -1f;
 
         /// <summary>The ring warning ("sentries above") is on screen.</summary>
@@ -179,6 +181,20 @@ namespace Vantage
             {
                 _shownPrompt = prompt;
                 _prompt.text = prompt == null ? "" : VantageUI.Caps("[E]  " + prompt);
+            }
+            // Grenades (2026-11-25): the count above the weapon once found, the how-to until the first throw.
+            var grenades = VantageRun.Grenades;
+            if (grenades != _shownGrenades)
+            {
+                _shownGrenades = grenades;
+                _grenades.text = grenades > 0 || VantageRun.GrenadeTaught ? VantageUI.Caps($"Grenades {grenades}") : "";
+                _grenades.color = grenades > 0 ? Color.white : Muted;
+            }
+            var hint = prompt == null ? VantageGrenades.Hint : null;
+            if (!ReferenceEquals(hint, _shownGrenadeHint))
+            {
+                _shownGrenadeHint = hint;
+                _grenadeHint.text = hint == null ? "" : VantageUI.Caps(hint);
             }
             var coins = VantageRun.Coins.Count;
             if (coins != _shownCoins)
@@ -456,6 +472,7 @@ namespace Vantage
             _reserve.color = Muted;
             _ammo = VantageUI.Text(_hud, "Ammo", 76, TextAlignmentOptions.BottomRight, br, new Vector2(-Margin - 96, Margin - 6), new Vector2(200, 90));
             _weapon = VantageUI.Text(_hud, "Weapon", 26, TextAlignmentOptions.BottomRight, br, new Vector2(-Margin, Margin + 84), new Vector2(500, 32));
+            _grenades = VantageUI.Text(_hud, "Grenades", 24, TextAlignmentOptions.BottomRight, br, new Vector2(-Margin, Margin + 118), new Vector2(500, 30));
 
             // Level, top-centre.
             var tc = new Vector2(0.5f, 1);
@@ -486,6 +503,8 @@ namespace Vantage
             _bannerSub = VantageUI.Text(_hud, "Banner Detail", 28, TextAlignmentOptions.Center, new Vector2(0.5f, 0.7f), new Vector2(0, -62), new Vector2(1400, 40));
             _bannerTitle.color = _bannerSub.color = Color.clear;
             _prompt = VantageUI.Text(_hud, "Prompt", 30, TextAlignmentOptions.Center, new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(900, 40));
+            _grenadeHint = VantageUI.Text(_hud, "Grenade Hint", 28, TextAlignmentOptions.Center, new Vector2(0.5f, 0.3f), Vector2.zero, new Vector2(1100, 40));
+            _grenadeHint.color = Accent;
             _warning = VantageUI.Text(_hud, "Ring Warning", 34, TextAlignmentOptions.Center, new Vector2(0.5f, 0.64f), Vector2.zero, new Vector2(1200, 46));
             _warning.text = VantageUI.Caps("Sentries above: get back to the tower");
             _warning.color = Color.clear;

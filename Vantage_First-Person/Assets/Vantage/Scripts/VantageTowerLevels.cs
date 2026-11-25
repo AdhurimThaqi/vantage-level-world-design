@@ -48,6 +48,27 @@ namespace Vantage
             public string ClearedMessage;
             [Tooltip("Where the player restarts after dying on this level.")]
             public Transform Arrival;
+
+            [Header("Second wave (2026-11-25)")]
+            [Tooltip("Markers (names, or prefixes ending in *) held back for a second wave: it spawns when the first wave is dead (and SecondWaveWeapon is in hand), and SecondWaveDoor opens.")]
+            public string SecondWave = "";
+            [Tooltip("Door kept shut and locked until the second wave starts (e.g. L2_DOOR_Office).")]
+            public string SecondWaveDoor = "";
+            [Tooltip("Gun the player must have before the second wave starts (Rifle); empty: none.")]
+            public string SecondWaveWeapon = "";
+            public int SecondWaveSoldiers;
+            public int SecondWaveDrones;
+            [Tooltip("HUD message as the second wave starts.")]
+            public string SecondWaveMessage = "";
+            [Tooltip("Markers never used on this level (names, or prefixes ending in *).")]
+            public string Unused = "";
+            [Tooltip("Optional tower object: the heavy robot stands at its middle (on the NavMesh) instead of on its marker.")]
+            public string HeavyAt = "";
+            [Header("Grenades (2026-11-25)")]
+            [Tooltip("Optional tower object: a bucket of grenades stands on the NavMesh at its position when the level begins.")]
+            public string GrenadeCrateAt = "";
+            [Tooltip("The bucket fills the player up to this many grenades.")]
+            public int GrenadeCount = 3;
         }
 
         public static VantageTowerLevels Instance { get; private set; }
@@ -152,6 +173,9 @@ namespace Vantage
         private readonly Dictionary<string, int> _byName = new Dictionary<string, int>();
 
         private int _countedFrame = -1, _remaining, _lastRemaining;
+        private bool _secondWavePending, _secondWaveHinted;
+        private VantageArsenal _arsenal;
+        private GameObject _kit, _grenadeCrate;
         private float _lastKillTime, _nextLostCheck, _nextHelipadMessage;
         private bool _huntAll;
         private int _highestCleared = -1;
@@ -197,10 +221,16 @@ namespace Vantage
 
             _gates = FindObjectsByType<VantageFloorGate>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             _markers = Tower != null ? Tower.GetComponentsInChildren<VantageTag>(true) : new VantageTag[0];
+            _arsenal = FindFirstObjectByType<VantageArsenal>();
             findGround();
+            var start = Mathf.Clamp(VantageRun.Checkpoint, 0, Levels.Count - 1);
+            // A restart on a level whose second wave needs a gun found there (L2: the rifle) starts without it, so the
+            // level's order holds after a death: rifle, first wave, Office, key (the user's request, 2026-11-25).
+            var levelGun = Levels[start].SecondWaveWeapon;
+            if (start > 0 && !string.IsNullOrEmpty(levelGun) && VantageRun.Weapons.Remove(levelGun))
+                Debug.Log($"[Vantage] Restart on {Levels[start].Name}: the {levelGun} has to be taken again.");
             restoreWeapons();
 
-            var start = Mathf.Clamp(VantageRun.Checkpoint, 0, Levels.Count - 1);
             _highestCleared = start - 1;
             if (start > 0)
                 restoreCheckpoint(start);
@@ -224,7 +254,10 @@ namespace Vantage
             }
 
             if (remaining == 0)
-                levelDone();
+            {
+                if (_secondWavePending) trySecondWave();
+                else levelDone();
+            }
 
             var p = VantageEvents.ActivePlayer();
             var lv = p != null ? LevelAt(p.transform.position) : -1;
@@ -337,20 +370,45 @@ namespace Vantage
             if (Completed) return;
 
             var level = Levels[index];
-            var spawns = pick(level, EnemySpawnMarker, level.Soldiers);
+            _secondWavePending = !string.IsNullOrEmpty(level.SecondWave);
+            _secondWaveHinted = false;
+            if (_secondWavePending && !string.IsNullOrEmpty(level.SecondWaveDoor))
+            {
+                var door = VantageDoor.Find(level.SecondWaveDoor);
+                if (door != null) door.Lock();
+                else Debug.LogWarning($"[Vantage] {level.Name}: second-wave door {level.SecondWaveDoor} not found.");
+            }
+            spawnWave(index, false, level.Soldiers, level.Drones);
+            spawnKit(index);
+            spawnGrenadeCrate(index);
+
+            updateDoors();
+            VantageDoor.RecheckKills();
+            Debug.Log($"[Vantage] {level.Name}: {Remaining} enemies{(_secondWavePending ? $", {level.SecondWaveSoldiers} soldiers and {level.SecondWaveDrones} drones held for the second wave" : "")} (seed {Seed}).");
+        }
+
+        /// <summary>One wave of a level: soldiers on picked markers, the turrets and heavy robot whose markers belong to it, drones over free spawns.</summary>
+        private void spawnWave(int index, bool second, int soldiers, int drones)
+        {
+            var level = Levels[index];
+            Func<VantageTag, bool> inWave = m => inWaveOf(level, m, second);
+            var spawns = pick(level, EnemySpawnMarker, soldiers, null, inWave);
             foreach (var m in spawns)
                 spawnSoldier(index, m);
 
-            foreach (var m in _markers.Where(m => m.MarkerType == TurretMarker && isMarkerOf(m, index)))
+            foreach (var m in _markers.Where(m => m.MarkerType == TurretMarker && isMarkerOf(m, index) && inWave(m)))
                 spawnSpecial(index, TurretPrefab, m.transform.position + Vector3.up * 0.2f, m.transform.rotation, m.name);
-            foreach (var m in _markers.Where(m => m.MarkerType == HeavyMarker && isMarkerOf(m, index)))
-                spawnSpecial(index, HeavyRobotPrefab, standAt(m), Quaternion.Euler(0, m.transform.eulerAngles.y, 0), m.name);
+            foreach (var m in _markers.Where(m => m.MarkerType == HeavyMarker && isMarkerOf(m, index) && inWave(m)))
+            {
+                var at = heavyPoint(level, m, out var face);
+                spawnSpecial(index, HeavyRobotPrefab, at, face, m.name);
+            }
 
             // Drones hover over free enemy spawns.
-            var droneSpots = pick(level, EnemySpawnMarker, level.Drones, spawns);
+            var droneSpots = pick(level, EnemySpawnMarker, drones, spawns, inWave);
             for (int i = 0; i < droneSpots.Count; i++)
             {
-                var go = spawnSpecial(index, DronePrefab, droneSpots[i].transform.position + Vector3.up * DroneSpawnHeight, Quaternion.identity, $"Drone - {level.Name} {i + 1}");
+                var go = spawnSpecial(index, DronePrefab, droneSpots[i].transform.position + Vector3.up * DroneSpawnHeight, Quaternion.identity, $"Drone - {level.Name} {(second ? "B" : "")}{i + 1}");
                 var drone = go != null ? go.GetComponent<VantageDrone>() : null;
                 if (drone != null)
                 {
@@ -358,21 +416,179 @@ namespace Vantage
                     drone.FireInterval = level.DroneFireInterval;
                 }
             }
+        }
 
+        /// <summary>The marker belongs to this wave: never an Unused one; the second wave's markers only in the second.</summary>
+        private static bool inWaveOf(Level level, VantageTag m, bool second)
+        {
+            if (Matches(m.name, level.Unused)) return false;
+            return string.IsNullOrEmpty(level.SecondWave) ? !second : Matches(m.name, level.SecondWave) == second;
+        }
+
+        /// <summary>A comma-separated list of names or prefixes ending in * contains this name.</summary>
+        public static bool Matches(string name, string list)
+        {
+            if (string.IsNullOrEmpty(list)) return false;
+            foreach (var raw in list.Split(','))
+            {
+                var token = raw.Trim();
+                if (token.Length == 0) continue;
+                if (token.EndsWith("*") ? name.StartsWith(token.Substring(0, token.Length - 1), StringComparison.Ordinal) : name == token)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// The first wave is dead: the second starts once the player has the level's gun (L2: the rifle first, then
+        /// the Office and the key, the professor's suggestion). Until then a hint says what's missing.
+        /// </summary>
+        private void trySecondWave()
+        {
+            var level = Levels[Current];
+            if (!string.IsNullOrEmpty(level.SecondWaveWeapon) && (_arsenal == null || !_arsenal.IsUnlocked(level.SecondWaveWeapon)))
+            {
+                if (!_secondWaveHinted)
+                {
+                    _secondWaveHinted = true;
+                    VantageEvents.RaiseMessage(VantageUI.Caps($"Take the {level.SecondWaveWeapon.ToLowerInvariant()}"));
+                }
+                return;
+            }
+            _secondWavePending = false;
+            _huntAll = false;
+            _lastKillTime = Time.time;
+            spawnWave(Current, true, level.SecondWaveSoldiers, level.SecondWaveDrones);
+            var door = string.IsNullOrEmpty(level.SecondWaveDoor) ? null : VantageDoor.Find(level.SecondWaveDoor);
+            if (door != null) door.OpenNow();
+            if (!string.IsNullOrEmpty(level.SecondWaveMessage)) VantageEvents.RaiseMessage(level.SecondWaveMessage);
             updateDoors();
-            VantageDoor.RecheckKills();
-            Debug.Log($"[Vantage] {level.Name}: {Remaining} enemies (seed {Seed}).");
+            Debug.Log($"[Vantage] {level.Name}: second wave, {Remaining} enemies; {level.SecondWaveDoor} open.");
+        }
+
+        /// <summary>
+        /// Where the heavy robot stands: its marker, or (HeavyAt) the middle of a tower object on the NavMesh, facing
+        /// the marker (where the player comes from). L3 since 2026-11-25: the destroyed area, not the cramped robot room.
+        /// </summary>
+        private Vector3 heavyPoint(Level level, VantageTag marker, out Quaternion face)
+        {
+            face = Quaternion.Euler(0, marker.transform.eulerAngles.y, 0);
+            var home = standAt(marker);
+            if (string.IsNullOrEmpty(level.HeavyAt) || Tower == null) return home;
+            var area = Tower.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == level.HeavyAt);
+            if (area == null) { Debug.LogWarning($"[Vantage] {level.Name}: HeavyAt {level.HeavyAt} not found; the robot stays on its marker."); return home; }
+            var c = area.GetComponent<Collider>();
+            var r = area.GetComponent<Renderer>();
+            var bounds = c != null ? c.bounds : r != null ? r.bounds : new Bounds(area.position, Vector3.one * 4f);
+            // The area's NavMesh is broken up by debris: of the floor points walkable from the marker, the one with the
+            // most room around it (distance to the NavMesh edge), nearer the middle on a tie.
+            if (!best(bounds, level.FloorY, home, out var spot))
+            {
+                Debug.LogWarning($"[Vantage] {level.Name}: no reachable NavMesh in {level.HeavyAt}; the robot stays on its marker.");
+                return home;
+            }
+            var look = home - spot; look.y = 0;
+            if (look.sqrMagnitude > 0.01f) face = Quaternion.LookRotation(look);
+            Debug.Log($"[Vantage] {level.Name}: heavy robot at {spot:F1} in {level.HeavyAt}.");
+            return spot;
+        }
+
+        private static bool best(Bounds bounds, float floorY, Vector3 from, out Vector3 spot)
+        {
+            spot = default;
+            var bestScore = float.MinValue;
+            var path = new NavMeshPath();
+            for (float x = bounds.min.x + 0.5f; x <= bounds.max.x - 0.5f; x += 1f)
+                for (float z = bounds.min.z + 0.5f; z <= bounds.max.z - 0.5f; z += 1f)
+                {
+                    if (!NavMesh.SamplePosition(new Vector3(x, floorY, z), out var hit, 0.5f, NavMesh.AllAreas) || Mathf.Abs(hit.position.y - floorY) > GroundMaxDrop) continue;
+                    if (!NavMesh.FindClosestEdge(hit.position, out var edge, NavMesh.AllAreas)) continue;
+                    var centre = new Vector2(hit.position.x - bounds.center.x, hit.position.z - bounds.center.z).magnitude;
+                    var score = edge.distance * 10f - centre * 0.1f;
+                    if (score <= bestScore) continue;
+                    if (!NavMesh.CalculatePath(from, hit.position, NavMesh.AllAreas, path) || path.status != NavMeshPathStatus.PathComplete) continue;
+                    bestScore = score;
+                    spot = hit.position;
+                }
+            return bestScore > float.MinValue;
+        }
+
+        /// <summary>
+        /// A health kit at the level's entrance (2026-11-25, the user's request): on the first floor point up the
+        /// stairs from the arrival (inside the tower entrance on level 1). Each life gets one.
+        /// </summary>
+        private void spawnKit(int index)
+        {
+            if (_kit != null) Destroy(_kit);
+            _kit = null;
+            if (!kitPoint(index, out var at)) return;
+            _kit = new GameObject($"Health Kit - {Levels[index].Name}");
+            _kit.transform.position = at;
+            _kit.AddComponent<VantageHealthKit>();
+            Debug.Log($"[Vantage] {Levels[index].Name}: health kit at {at:F1}.");
+        }
+
+        /// <summary>
+        /// The level's bucket of grenades (L3: where the robot used to stand, in the robot room that leads through the
+        /// breach to the patrols behind the rubble: pick them up, then the first use is right there).
+        /// </summary>
+        private void spawnGrenadeCrate(int index)
+        {
+            if (_grenadeCrate != null) Destroy(_grenadeCrate);
+            _grenadeCrate = null;
+            var level = Levels[index];
+            if (string.IsNullOrEmpty(level.GrenadeCrateAt) || Tower == null) return;
+            var anchor = Tower.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == level.GrenadeCrateAt);
+            if (anchor == null || !NavMesh.SamplePosition(new Vector3(anchor.position.x, level.FloorY, anchor.position.z), out var hit, 2f, NavMesh.AllAreas))
+            {
+                Debug.LogWarning($"[Vantage] {level.Name}: no place for the grenade bucket at {level.GrenadeCrateAt}.");
+                return;
+            }
+            _grenadeCrate = new GameObject($"Grenade Bucket - {level.Name}");
+            _grenadeCrate.transform.position = hit.position;
+            _grenadeCrate.AddComponent<VantageGrenadeCrate>().Count = level.GrenadeCount;
+            Debug.Log($"[Vantage] {level.Name}: grenade bucket ({level.GrenadeCount}) at {hit.position:F1}.");
+        }
+
+        private bool kitPoint(int index, out Vector3 at)
+        {
+            at = default;
+            var level = Levels[index];
+            if (index == 0)
+            {
+                var intro = FindFirstObjectByType<VantageIntro>();
+                if (intro == null) return false;
+                var inward = -intro.EntranceFacing; inward.y = 0;
+                var p = intro.EntrancePoint + inward.normalized * 3f;
+                if (!NavMesh.SamplePosition(p, out var hit, 2f, NavMesh.AllAreas)) return false;
+                at = hit.position;
+                return true;
+            }
+            if (level.Arrival == null) return false;
+            var forward = level.Arrival.forward; forward.y = 0; forward.Normalize();
+            for (float d = 1f; d <= 16f; d += 0.5f)
+            {
+                var q = level.Arrival.position + forward * d; q.y = level.FloorY;
+                if (!NavMesh.SamplePosition(q, out var hit, 0.4f, NavMesh.AllAreas) || Mathf.Abs(hit.position.y - level.FloorY) > 0.3f) continue;
+                var further = hit.position + forward * 1.2f;
+                at = NavMesh.SamplePosition(further, out var hit2, 0.5f, NavMesh.AllAreas) && Mathf.Abs(hit2.position.y - level.FloorY) <= 0.3f ? hit2.position : hit.position;
+                return true;
+            }
+            Debug.LogWarning($"[Vantage] {level.Name}: no floor found up the stairs from the arrival; its health kit sits at the arrival.");
+            at = level.Arrival.position;
+            return true;
         }
 
         /// <summary>
         /// Seeded pick of the level's markers, spread over rooms before doubling up. Markers with a patrol route
         /// (the L3 outside patrols, needed by a KILL door) are always taken first.
         /// </summary>
-        private List<VantageTag> pick(Level level, string type, int count, ICollection<VantageTag> exclude = null)
+        private List<VantageTag> pick(Level level, string type, int count, ICollection<VantageTag> exclude = null, Func<VantageTag, bool> allow = null)
         {
             var index = Levels.IndexOf(level);
             var pool = _markers.Where(m => m.MarkerType == type && isMarkerOf(m, index) && _ground.ContainsKey(m)
-                                           && !BehindExit.Contains(m.name) && (exclude == null || !exclude.Contains(m)))
+                                           && !BehindExit.Contains(m.name) && (exclude == null || !exclude.Contains(m))
+                                           && (allow == null || allow(m)))
                                .OrderBy(_ => _random.Next()).ToList();
             // Markers that cover the arrival only fill up a level that would otherwise come up short.
             var covering = pool.Where(m => !m.Has("patrol") && coversArrival(level, m)).ToList();
@@ -549,7 +765,9 @@ namespace Vantage
                 if (_level[i] != Current || !isAlive(i) || _special[i] is VantageDrone) continue;
                 var enemy = _alive[i].transform;
                 if (levelAt(enemy.position, 0.3f) == Current || LevelAt(enemy.position) == Current) continue;
-                var marker = pick(Levels[Current], EnemySpawnMarker, 1).FirstOrDefault();
+                // Only where the current wave lives (a second-wave marker sits behind its locked door).
+                var lv = Levels[Current];
+                var marker = pick(lv, EnemySpawnMarker, 1, null, m => inWaveOf(lv, m, false) || (!_secondWavePending && inWaveOf(lv, m, true))).FirstOrDefault();
                 if (marker == null) continue;
                 var lostAt = enemy.position;
                 var position = standAt(marker) + Vector3.up * SoldierSpawnLift;

@@ -277,7 +277,9 @@ namespace Vantage
             go.transform.SetParent(transform, false);
             if (follow != null) go.transform.position = follow.position;
             var source = go.AddComponent<AudioSource>();
-            setup(source, e, false);
+            // A loop with nothing to follow (music, beds, the reveal) has no place in the world: always 2D, whatever
+            // the event's Spatial says (2026-11-25: 3D music sat at this object and swelled as the player passed it).
+            setup(source, e, follow == null);
             source.clip = clip;
             source.loop = true;
             source.Play();

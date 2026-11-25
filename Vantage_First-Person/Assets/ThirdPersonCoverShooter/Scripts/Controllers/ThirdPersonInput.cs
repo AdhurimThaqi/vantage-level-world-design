@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace CoverShooter
@@ -264,6 +264,9 @@ namespace CoverShooter
                 _controller.InputCrouch();
         }
 
+        /// <summary>VANTAGE change (2026-11-25): asked before G takes a grenade out (null = always).</summary>
+        public static Func<bool> CanTakeGrenade;
+
         protected virtual void UpdateGrenade()
         {
             if (_motor.HasGrenadeInHand)
@@ -275,7 +278,8 @@ namespace CoverShooter
                     _controller.InputCancelGrenade();
             }
 
-            if (Input.GetButton("Grenade"))
+            // VANTAGE change (2026-11-25): grenades are found in the level (VantageGrenades); without one, G does nothing.
+            if (Input.GetButton("Grenade") && (CanTakeGrenade == null || CanTakeGrenade()))
                 _controller.InputTakeGrenade();
         }
 

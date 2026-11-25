@@ -110,7 +110,7 @@ namespace Vantage
             Shown = best;
             _deadAt = -1f;
             _trailValue = Mathf.Clamp01(best.Health / Mathf.Max(1f, best.MaxHealth));
-            if (_wasBoss != best.IsBoss || _name.text.Length == 0)
+            if (_wasBoss != best.IsBoss || string.IsNullOrEmpty(_name.text))
             {
                 _wasBoss = best.IsBoss;
                 _name.text = VantageUI.Caps(best.IsBoss ? BossName : RobotName);

@@ -4,9 +4,10 @@ using UnityEngine.AI;
 namespace Vantage
 {
     /// <summary>
-    /// A locked security shutter on a stair flight (inner stairs or fire escape). While locked, an invisible box over
-    /// the whole flight blocks the player and a carving NavMeshObstacle keeps soldiers on their level; the shutter
-    /// panel at the bottom glows red. Open() lifts the panel, turns it green and clears both.
+    /// A lock on a stair flight. While locked, an invisible box over the whole flight blocks the player and a carving
+    /// NavMeshObstacle keeps soldiers on their level; Open() clears both. Since 2026-11-25 Setup builds it without its
+    /// red/green shutter panel and lamp (the user didn't want them; the maintenance shutter covers the stairs in the
+    /// lockdown); a Panel, if set, still rolls up and changes colour.
     /// Placed by Vantage → Tower → Set Up Tower (the ground floor stairs); opened by VantageTowerLevels when a level is cleared.
     /// </summary>
     public class VantageFloorGate : MonoBehaviour
@@ -39,7 +40,7 @@ namespace Vantage
             if (IsOpen) return;
             IsOpen = true;
             _openedAt = instant ? Time.time - 10f : Time.time;
-            if (!instant) VantageAudio.Play(VantageSounds.ShutterRoll, transform.position);
+            if (!instant && Panel != null) VantageAudio.Play(VantageSounds.ShutterRoll, transform.position);
             if (Blocker != null) Blocker.enabled = false;
             if (Obstacle != null) Obstacle.enabled = false;
             tint(Unlocked);

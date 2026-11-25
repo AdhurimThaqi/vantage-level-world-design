@@ -65,6 +65,17 @@ namespace Vantage
         private float _nextThink, _nextBurst, _windUpStart = -1f, _nextShotInBurst, _tracerOff, _nextMessage;
         private int _shotsLeft;
         private float _nextCharge, _chargeWindUp = -1f, _chargeLeft;
+        private float _wallClearance = -1f;
+        private int _explosionFrame = -1;
+
+        [Tooltip("Share of a grenade's damage that gets through the armour (2026-11-25: grenades hurt the robots too).")]
+        [Range(0f, 1f)] public float ExplosionDamage = 0.6f;
+
+        [Header("Boss room (2026-11-25)")]
+        [Tooltip("Boss only: extra room kept between the model and the NavMesh edge (walls, railings), on top of what its width needs.")]
+        public float WallMargin = 0.3f;
+        [Tooltip("Radius the NavMesh was baked with (the soldiers' body): its edges are already this far from walls.")]
+        public float BakedAgentRadius = 0.3f;
         private Vector3 _chargeDir;
         private bool _chargeHit;
         private float _diedAt = -1f;
@@ -225,7 +236,52 @@ namespace Vantage
             if (_agent == null || !_agent.isOnNavMesh || _chargeLeft > 0) return;
             // Walks up to firing range of where the player was last seen; stands still while it has them in sight.
             _agent.isStopped = !_alerted || (_canSee && to.magnitude < EngageRange * 0.6f);
-            if (!_agent.isStopped) _agent.SetDestination(_lastKnown);
+            if (_agent.isStopped) return;
+            if (!IsBoss) { _agent.SetDestination(_lastKnown); return; }
+            // The boss is much wider than its agent: it only goes where its whole body fits (2026-11-25: it followed
+            // the player to the L3 exit and stood half inside the tower's wall).
+            if (roomyPointToward(_lastKnown, out var goal)) _agent.SetDestination(goal);
+            else _agent.isStopped = true;
+        }
+
+        /// <summary>Boss: half its model's width beyond what the baked NavMesh edge already keeps from walls.</summary>
+        private float wallClearance()
+        {
+            if (_wallClearance >= 0f) return _wallClearance;
+            var root = Model != null ? Model : transform;
+            var half = 0f;
+            foreach (var r in root.GetComponentsInChildren<Renderer>())
+            {
+                if (r is ParticleSystemRenderer || r is LineRenderer) continue;
+                var e = r.bounds.max - transform.position; var f = transform.position - r.bounds.min;
+                half = Mathf.Max(half, Mathf.Max(Mathf.Max(e.x, e.z), Mathf.Max(f.x, f.z)));
+            }
+            _wallClearance = Mathf.Max(0f, half * 0.75f - BakedAgentRadius) + WallMargin;
+            return _wallClearance;
+        }
+
+        private bool fits(Vector3 at)
+        {
+            if (!NavMesh.SamplePosition(at, out var hit, 1f, NavMesh.AllAreas)) return false;
+            return NavMesh.FindClosestEdge(hit.position, out var edge, NavMesh.AllAreas) && edge.distance >= wallClearance();
+        }
+
+        /// <summary>The roomy point nearest the target on the way from the boss to it (none: it holds where it is).</summary>
+        private bool roomyPointToward(Vector3 target, out Vector3 goal)
+        {
+            goal = transform.position;
+            var back = transform.position - target; back.y = 0;
+            var distance = back.magnitude;
+            if (distance < 0.01f) return false;
+            back /= distance;
+            for (float d = 0f; d < distance; d += 0.75f)
+            {
+                if (!NavMesh.SamplePosition(target + back * d, out var hit, 1f, NavMesh.AllAreas)) continue;
+                if (!NavMesh.FindClosestEdge(hit.position, out var edge, NavMesh.AllAreas) || edge.distance < wallClearance()) continue;
+                goal = hit.position;
+                return true;
+            }
+            return false;
         }
 
         private void face(Vector3 point)
@@ -298,6 +354,14 @@ namespace Vantage
                 var step = ChargeSpeed * Time.deltaTime;
                 _chargeLeft -= step;
                 var next = transform.position + _chargeDir * step;
+                if (IsBoss && !fits(next))
+                {
+                    // The wall ahead ends the charge here, before the model reaches it.
+                    _chargeLeft = 0f;
+                    setEye(0f);
+                    if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = false;
+                    return true;
+                }
                 if (_agent != null && _agent.isOnNavMesh) _agent.Move(_chargeDir * step);
                 else transform.position = next;
                 var player = _target;
@@ -355,7 +419,15 @@ namespace Vantage
                 _alerted = true;
                 _lastKnown = attacker.transform.position;
             }
-            if (RifleOnly && pistolRound(hit, attacker))
+            var explosion = hit.Type == HitType.Explosion;
+            if (explosion)
+            {
+                // One explosion reaches every collider of the model: it counts once, through the armour at a share.
+                if (Time.frameCount == _explosionFrame) return;
+                _explosionFrame = Time.frameCount;
+                hit.Damage *= ExplosionDamage;
+            }
+            if (RifleOnly && !explosion && pistolRound(hit, attacker))
             {
                 VantageAudio.Play(VantageSounds.RobotDeflect, hit.Position);
                 if (Time.time >= _nextMessage)

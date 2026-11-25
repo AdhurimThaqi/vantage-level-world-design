@@ -961,15 +961,14 @@ namespace Vantage.EditorTools
         {
             var gates = new List<VantageFloorGate>();
             var ground = LevelHeights(tower)[0] - tower.position.y;
-            var material = gateMaterial();
             foreach (var f in flights)
                 if (f.name.StartsWith("LVL1") && Mathf.Abs(f.bottom.y - ground) < 0.8f)
-                    gates.Add(gate(tower, parent, f, 0, material));
+                    gates.Add(gate(tower, parent, f, 0));
             Debug.Log($"[Vantage] Gates: {gates.Count} ({string.Join(", ", gates.Select(g => g.name))}).");
             return gates;
         }
 
-        private static VantageFloorGate gate(Transform t, Transform parent, Flight piece, int level, Material material)
+        private static VantageFloorGate gate(Transform t, Transform parent, Flight piece, int level)
         {
             var go = new GameObject($"Gate {level + 1}->{level + 2} (Stairs)");
             go.transform.SetParent(parent, false);
@@ -993,45 +992,15 @@ namespace Vantage.EditorTools
             obstacle.carving = true;
             obstacle.carveOnlyStationary = false;
 
-            var panel = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            panel.name = "Shutter";
-            Object.DestroyImmediate(panel.GetComponent<Collider>());
-            panel.transform.SetParent(go.transform, false);
-            panel.transform.SetPositionAndRotation(t.TransformPoint(piece.bottom - dir * 0.4f + Vector3.up * 1.3f), frame);
-            panel.transform.localScale = new Vector3(piece.width + 0.4f, 2.6f, 0.08f);
-            var renderer = panel.GetComponent<Renderer>();
-            renderer.sharedMaterial = material;
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-            var lamp = new GameObject("Lamp").AddComponent<Light>();
-            lamp.transform.SetParent(go.transform, false);
-            lamp.transform.position = t.TransformPoint(piece.bottom - dir * 1.2f + Vector3.up * 2.4f);
-            lamp.type = LightType.Point;
-            lamp.range = 6f;
-            lamp.intensity = 2.5f;
-            lamp.shadows = LightShadows.None;
-
+            // No panel or lamp (2026-11-25, the user: the red and green panels aren't needed): the maintenance shutter
+            // already closes the stairs during the lockdown; this stays an invisible lock under it.
             var gate = go.AddComponent<VantageFloorGate>();
             gate.Level = level;
             gate.Blocker = box;
             gate.Obstacle = obstacle;
-            gate.Panel = panel.transform;
-            gate.PanelRenderer = renderer;
-            gate.Lamp = lamp;
             return gate;
         }
 
-        private static Material gateMaterial()
-        {
-            const string path = "Assets/Vantage/Materials/Gate Shutter.mat";
-            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (m == null)
-            {
-                m = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                AssetDatabase.CreateAsset(m, path);
-            }
-            return m;
-        }
 
         #endregion
 
@@ -1283,10 +1252,13 @@ namespace Vantage.EditorTools
             foreach (var door in tower.GetComponentsInChildren<VantageDoor>(true))
             {
                 door.Doorway = door.type != DoorType.Shutter && !door.name.Contains("GATE");
+                // The tower's front doors keep their leaves, standing open as modelled (2026-11-25, the user: the
+                // entrance was gone; "they are already open, they just need to be there").
+                door.KeepLeaf = door.name.StartsWith("DOOR_Entrance");
                 if (door.Doorway) doorways++;
                 EditorUtility.SetDirty(door);
             }
-            Debug.Log($"[Vantage] Doors: {doorways} open doorways (locked ones open when unlocked), the rest roll up.");
+            Debug.Log($"[Vantage] Doors: {doorways} open doorways (locked ones open when unlocked), the entrance doors stand open, the rest roll up.");
         }
 
         /// <summary>The key glows and floats (VantageKeyItem); the slot shows the key turning and a lamp (VantageKeySlot).</summary>
@@ -1569,11 +1541,20 @@ namespace Vantage.EditorTools
                 new VantageTowerLevels.Level { Name = "Ground floor", Prefix = "MK_", FloorY = h[0], Soldiers = 5, Drones = 0, SoldierWeapon = "Pistol",
                     SoldierDamage = 6f, SoldierHealth = 0.8f, ClearedMessage = "LOCKDOWN LIFTED  ·  STAIRS OPEN",
                     Arrival = arrival("Arrival Ground floor", start, startLook) },
-                new VantageTowerLevels.Level { Name = "Armory", Prefix = "L2_", FloorY = h[1], Soldiers = 5, Drones = 2, SoldierWeapon = "Pistol",
+                // Two waves (2026-11-25, the professor's suggestion): the Armory and the west hall first (no turret or drone
+                // at the stairs); with the rifle in hand and that wave dead the Office door opens on the second wave
+                // (Office, east hall, the east turret, one drone) and the key.
+                new VantageTowerLevels.Level { Name = "Armory", Prefix = "L2_", FloorY = h[1], Soldiers = 3, Drones = 0, SoldierWeapon = "Pistol",
                     SoldierDamage = 7f, SoldierHealth = 1f, DroneAccuracy = 0.3f, DroneFireInterval = 1.8f, ClearedMessage = "ARMORY CLEAR",
+                    SecondWave = "L2_MK_Enemy_Office_*,L2_MK_Enemy_Hall_1,L2_MK_Enemy_Hall_3,L2_MK_Turret_East", SecondWaveDoor = "L2_DOOR_Office",
+                    SecondWaveWeapon = "Rifle", SecondWaveSoldiers = 3, SecondWaveDrones = 1, SecondWaveMessage = "OFFICE OPEN  ·  GET THE KEY",
+                    Unused = "L2_MK_Enemy_Hall_4,L2_MK_Turret_West",
                     Arrival = topOf("Arrival Armory", "LVL1") },
+                // The heavy robot fights in the destroyed area, next to the outside patrols (2026-11-25: the robot room was too small).
                 new VantageTowerLevels.Level { Name = "Destroyed floor", Prefix = "L3_", FloorY = h[2], Soldiers = 5, Drones = 0,
-                    SoldierDamage = 8f, SoldierHealth = 1.15f, ClearedMessage = "THE WAY TO THE HELIPAD IS OPEN",
+                    SoldierDamage = 8f, SoldierHealth = 1.15f, ClearedMessage = "THE WAY TO THE HELIPAD IS OPEN", HeavyAt = "TRIGGER_L3_OpenArea_Enter",
+                    // Grenades are found here, in the robot room on the way to the breach (2026-11-25).
+                    GrenadeCrateAt = "L3_MK_EnemyRobot_Heavy", GrenadeCount = 3,
                     Arrival = topOf("Arrival Destroyed floor", "LVL2") },
                 new VantageTowerLevels.Level { Name = "Helipad", Prefix = "FINAL_", FloorY = h[3], Soldiers = 2, Drones = 0,
                     SoldierDamage = 8f, SoldierHealth = 1.25f, ClearedMessage = "REACH THE HELIPAD",
@@ -1786,6 +1767,29 @@ namespace Vantage.EditorTools
         /// of the hall on level 2, the broken slab outside on level 3 (patrol ground), the far edge of the helipad.
         /// Each goes on the walkable floor beside its anchor object, on the side away from the tower's middle.
         /// </summary>
+        /// <summary>World bounds of a level-model object as the model asset places it under the scene's model instance.</summary>
+        private static bool modelBounds(Transform tower, string name, out Bounds b)
+        {
+            b = default;
+            var instance = Find(tower, "VANTAGE_Tower_Level");
+            var source = instance.gameObject.scene.IsValid() ? PrefabUtility.GetCorrespondingObjectFromSource(instance.gameObject) : null;
+            var asset = source != null ? source.transform : null;
+            if (instance == null || asset == null) return false;
+            var node = asset.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == name);
+            var mesh = node != null ? node.GetComponent<MeshFilter>() : null;
+            if (mesh == null || mesh.sharedMesh == null) return false;
+            var mb = mesh.sharedMesh.bounds;
+            var first = true;
+            for (int i = 0; i < 8; i++)
+            {
+                var corner = mb.center + Vector3.Scale(mb.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                var world = instance.TransformPoint(asset.InverseTransformPoint(node.TransformPoint(corner)));
+                if (first) { b = new Bounds(world, Vector3.zero); first = false; }
+                else b.Encapsulate(world);
+            }
+            return true;
+        }
+
         private static void coins(Transform tower, Transform parent, VantageTowerLevels levels)
         {
             var spots = new (string id, string anchor)[]
@@ -1802,7 +1806,15 @@ namespace Vantage.EditorTools
             foreach (var (id, anchorName) in spots)
             {
                 var anchor = Find(tower, anchorName);
-                if (anchor == null || !WorldBounds(anchor, out var b)) { Debug.LogWarning($"[Vantage] Coin {id}: no {anchorName}."); continue; }
+                Bounds b;
+                if (anchor == null)
+                {
+                    // Deleted from the scene's tower instance (2026-11-25: PROP_Crate_Top1): the coin still goes where the
+                    // model puts that object, on the floor.
+                    if (!modelBounds(tower, anchorName, out b)) { Debug.LogWarning($"[Vantage] Coin {id}: no {anchorName}."); continue; }
+                    Debug.Log($"[Vantage] Coin {id}: {anchorName} was removed from the scene; placed by the model's {anchorName}.");
+                }
+                else if (!WorldBounds(anchor, out b)) { Debug.LogWarning($"[Vantage] Coin {id}: no {anchorName}."); continue; }
                 var floor = b.min.y;
                 Vector3? best = null;
                 var bestScore = float.MinValue;
@@ -1817,7 +1829,7 @@ namespace Vantage.EditorTools
                         var to = hit.position + Vector3.up * 0.5f;
                         var blocked = false;
                         foreach (var h in Physics.RaycastAll(from, to - from, (to - from).magnitude, VantagePhysics.Solid, QueryTriggerInteraction.Ignore))
-                            if (!h.collider.transform.IsChildOf(anchor)) { blocked = true; break; }
+                            if (anchor == null || !h.collider.transform.IsChildOf(anchor)) { blocked = true; break; }
                         if (blocked) continue;
                         var score = new Vector2(hit.position.x - middle.x, hit.position.z - middle.z).magnitude;
                         if (score > bestScore) { bestScore = score; best = hit.position; }

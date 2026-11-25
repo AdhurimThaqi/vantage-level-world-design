@@ -34,8 +34,8 @@ namespace Vantage
         [Tooltip("Fade-in of MUS_Explore after the intro track, in seconds.")]
         public float ExploreFadeIn = 4f;
         [Tooltip("Seconds of the intro track kept after the player has control, then it fades over IntroTailFade.")]
-        public float IntroTail = 15f;
-        public float IntroTailFade = 8f;
+        public float IntroTail = 0f;
+        public float IntroTailFade = 2f;
         [Tooltip("Fade-out of the boss track (MUS_BossFight) when the boss dies, in seconds.")]
         public float BossMusicFade = 2f;
 
